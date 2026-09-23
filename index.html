@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alexandre Garcia | Desenvolvedor Full-Stack</title>
+<meta name="description" content="Olá, sou Alexandre Garcia, desenvolvedor fullstack especializado em criar sites e aplicações modernas. Veja meus projetos e entre em contato.">
+
+<meta property="og:title" content="Alexandre Garcia | Desenvolvedor Full-Stack">
+<meta property="og:description" content="Olá, sou Alexandre Garcia, desenvolvedor fullstack especializado em criar sites e aplicações modernas. Veja meus projetos e entre em contato.">
+<meta property="og:url" content="https://alexandregarcia.dev">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://alexandregarcia.dev/assets/img/logo-completo-azul-escuro-1200.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="1200">
+
+<meta name="google-site-verification" content="vIraPa01UJwl8MS1leBPi4cEibCV-wQbXu5re9QmRQE" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./css/style.css">
+<link rel="icon" type="image/svg+xml" href="./assets/svg/favicon-laptop.svg">
+<link rel="icon" type="image/png" href="./assets/img/favicon-laptop-400.png">
+<script>try{var t=localStorage.getItem("agTheme");if(t&&t!=="blue")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body>
+
+<!-- ============ LOADER ============ -->
+<div id="loader">
+  <canvas id="loaderCanvas" aria-hidden="true"></canvas>
+</div>
+
+<!-- ============ CURSOR ============ -->
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- ============ BLUEPRINT REGISTRATION MARKS ============ -->
+<div class="reg-marks" aria-hidden="true">
+  <span class="reg-mark tl"></span>
+  <span class="reg-mark tr"></span>
+  <span class="reg-mark bl"></span>
+  <span class="reg-mark br"></span>
+</div>
+<div class="scanline" id="scanline" aria-hidden="true"></div>
+
+<!-- ============ MEASURE RAIL ============ -->
+<div class="measure-rail" id="measureRail" role="navigation" aria-label="Navegação por seção">
+  <span class="measure-rail-n mono"><span class="cur" id="railN">01</span>/06</span>
+  <div class="measure-track"><div class="measure-indicator" id="railFill"></div></div>
+  <span class="measure-rail-label mono" id="railLabel">HERO</span>
+  <div class="measure-flyout" id="measureFlyout">
+    <button data-target="hero" class="mono">Hero</button>
+    <button data-target="about" class="mono">Sobre</button>
+    <button data-target="experience" class="mono">Experiência</button>
+    <button data-target="projects" class="mono">Projetos</button>
+    <button data-target="education" class="mono">Formação</button>
+    <button data-target="contact" class="mono">Contato</button>
+  </div>
+</div>
+
+<!-- ============ WHATSAPP ============ -->
+<div class="wa-pulse" aria-hidden="true"></div>
+<a class="wa-float" href="https://wa.me/5511986186964?text=Olá,%20preciso%20de%20mais%20informações." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- ============ CONFIGURAÇÕES (tema, música, navegação) ============ -->
+<button class="music-toggle-fab" id="musicToggleFab" aria-label="Ligar/desligar música" aria-pressed="true">
+  <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/></svg>
+  <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
+</button>
+<button class="settings-fab" id="settingsFab" aria-label="Abrir configurações" aria-expanded="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+</button>
+
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="settings-panel" id="settingsPanel" role="dialog" aria-label="Configurações">
+  <div class="settings-header">
+    <div>
+      <div class="settings-title">System</div>
+      <div class="settings-subtitle mono">GLOBAL CONFIG</div>
+    </div>
+    <button class="settings-close" id="settingsClose" aria-label="Fechar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[01]</span> tema <span class="settings-label-tag mono">core</span></div>
+    <div class="theme-swatches">
+      <button class="theme-swatch is-active" data-theme="blue" aria-label="Tema azul"><span style="--sw:#3d6bff"></span></button>
+      <button class="theme-swatch" data-theme="violet" aria-label="Tema violeta"><span style="--sw:#8b5cf6"></span></button>
+      <button class="theme-swatch" data-theme="emerald" aria-label="Tema esmeralda"><span style="--sw:#10b981"></span></button>
+      <button class="theme-swatch" data-theme="amber" aria-label="Tema âmbar"><span style="--sw:#f59e0b"></span></button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[02]</span> trilha sonora <button class="settings-label-tag mono audio-toggle" id="audioToggle">on</button></div>
+    <button class="track-card is-active" data-track="1">
+      <span class="track-info"><span class="track-name">Sci-Fi Ambient</span><span class="track-tag mono">atmosférico · espaço</span></span>
+      <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </button>
+    <button class="track-card" data-track="2">
+      <span class="track-info"><span class="track-name">Synthwave</span><span class="track-tag mono">retro · sintetizador</span></span>
+      <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[03]</span> navegar</div>
+    <nav class="settings-nav">
+      <a href="#hero" class="settings-nav-link"><span class="mono">01</span>Home</a>
+      <a href="#about" class="settings-nav-link"><span class="mono">02</span>Sobre</a>
+      <a href="#projects" class="settings-nav-link"><span class="mono">03</span>Projetos</a>
+      <a href="contato.html" class="settings-nav-link"><span class="mono">04</span>Contato</a>
+    </nav>
+  </div>
+
+  <div class="settings-status mono"><span class="settings-status-dot"></span>system active</div>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav id="mainNav">
+  <a href="#hero" class="nav-logo"><img src="./assets/svg/logo-header-no1993.svg" alt="Logo Alexandre Garcia"></a>
+  <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+    <span class="hamburger-label mono">MENU</span>
+    <span class="hamburger-bars"><span></span><span></span><span></span></span>
+  </button>
+</nav>
+
+<div class="fullmenu" id="fullMenu">
+  <div class="fullmenu-giant-bg" aria-hidden="true">MENU</div>
+  <nav class="fullmenu-links">
+    <a href="#about" class="fullmenu-link"><span class="fullmenu-num mono">01</span><span class="fullmenu-link-text">Sobre</span></a>
+    <a href="#experience" class="fullmenu-link"><span class="fullmenu-num mono">02</span><span class="fullmenu-link-text">Experiência</span></a>
+    <a href="#projects" class="fullmenu-link"><span class="fullmenu-num mono">03</span><span class="fullmenu-link-text">Projetos</span></a>
+    <a href="#education" class="fullmenu-link"><span class="fullmenu-num mono">04</span><span class="fullmenu-link-text">Formação</span></a>
+    <a href="contato.html" class="fullmenu-link"><span class="fullmenu-num mono">05</span><span class="fullmenu-link-text">Contato</span></a>
+  </nav>
+  <div class="fullmenu-corner tl mono">// full stack dev</div>
+  <div class="fullmenu-corner tr mono">são paulo, brasil</div>
+  <div class="fullmenu-bottom">
+    <div class="fullmenu-socials mono">
+      <a href="mailto:alexandregojunior@gmail.com">E-mail</a>
+      <a href="https://linkedin.com/in/alexandregarcia-junior" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/AlexandreGarciaJr" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="fullmenu-badge mono"><span class="eyebrow-dot"></span>disponível para novos projetos</div>
+  </div>
+</div>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-grid-fade"></div>
+
+  <!-- anotação técnica: planta baixa → código-fonte -->
+  <div class="hero-annotation mono" aria-hidden="true">
+    <span class="dim-line"></span>
+    <span class="hero-annotation-swap">
+      <span class="swap-a">planta baixa</span>
+      <span class="swap-b">código-fonte</span>
+    </span>
+  </div>
+
+  <div class="hero-inner">
+    <div class="hero-copy" id="heroCopy">
+      <div class="hero-badge eyebrow-badge mono">
+        <span class="eyebrow-dot"></span>
+        disponível para novos projetos — São Paulo, Brasil
+      </div>
+      <h1 class="hero-title" id="heroTitle" aria-label="Alexandre Garcia">
+        <span class="title-line" id="titleLine1">ALEX<span class="hl">ANDRE</span></span>
+        <span class="title-line" id="titleLine2">GARCIA</span>
+      </h1>
+      <span class="hero-role mono" id="typingText"><span class="typing-cursor"></span></span>
+      <p class="hero-desc">Construo produtos digitais escaláveis com foco em performance e experiência do usuário. Apaixonado por código limpo e arquitetura sólida.</p>
+      <div class="hero-cta">
+        <a href="#projects" class="btn-primary">Ver Projetos</a>
+        <a href="#contact" class="btn-outline">Fale Comigo</a>
+      </div>
+    </div>
+
+    <div class="hero-code-wrap">
+      <div class="rotate-badge" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
+          <defs><path id="badgeCircle" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs>
+          <g class="rotate-badge-ring">
+            <text style="font-family:var(--f-mono)" font-size="7.6" fill="#7dd8ff" letter-spacing="2">
+              <textPath href="#badgeCircle">DISPONÍVEL PARA PROJETOS • FULL STACK DEV • </textPath>
+            </text>
+          </g>
+        </svg>
+        <div class="rotate-badge-core">{ }</div>
+      </div>
+      <div class="hero-code mono" id="heroCode">
+      <div class="hero-code-head"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <div class="code-line"><span class="cm">// developer.config.ts</span></div>
+      <div class="code-line">&nbsp;</div>
+      <div class="code-line"><span class="kw">const</span> <span class="fn">developer</span> = {</div>
+      <div class="code-line">&nbsp;&nbsp;name: <span class="str">"Alexandre Garcia"</span>,</div>
+      <div class="code-line">&nbsp;&nbsp;role: <span class="str">"Full Stack Dev"</span>,</div>
+      <div class="code-line">&nbsp;&nbsp;experience: <span class="num">3</span>,</div>
+      <div class="code-line">&nbsp;&nbsp;stack: [</div>
+      <div class="code-line">&nbsp;&nbsp;&nbsp;<span class="str">"HTML"</span>, <span class="str">"CSS"</span>,</div>
+      <div class="code-line">&nbsp;&nbsp;&nbsp;<span class="str">"JavaScript"</span>, <span class="str">"React"</span></div>
+      <div class="code-line">&nbsp;&nbsp;],</div>
+      <div class="code-line">&nbsp;&nbsp;available: <span class="kw">true</span>,</div>
+      <div class="code-line">}</div>
+      <div class="code-line">&nbsp;</div>
+      <div class="code-line"><span class="kw">export default</span> <span class="fn">developer</span></div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MARQUEE (único da página) ============ -->
+<div class="marquee-section" aria-hidden="true">
+  <div class="marquee-track" id="marqueeTrack">
+    <!-- conteúdo duplicado via JS para loop contínuo -->
+    <span class="marquee-item mono"><b>HTML</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>CSS</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>JavaScript</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>React</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>Java</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>Spring Boot</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>MySQL</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>PHP</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>VS Code</b></span><span class="marquee-item mono sep">/</span>
+    <span class="marquee-item mono"><b>IntelliJ</b></span><span class="marquee-item mono sep">/</span>
+  </div>
+</div>
+
+<!-- ============ ABOUT ============ -->
+<section id="about">
+  <div class="about-main">
+  <canvas id="aboutCanvas" aria-hidden="true"></canvas>
+  <div class="hero-grid-fade-like" aria-hidden="true"></div>
+  <div class="section-wrap about-hero-wrap">
+    <div class="about-giant-bg" aria-hidden="true" id="aboutGiantBg">QUEM<br>SOU EU</div>
+
+    <div class="about-photo reveal" id="aboutPhotoStage">
+      <img src="./assets/img/foto-perfil-normal.png" alt="Alexandre Garcia" id="aboutPhotoImg" class="about-photo-cutout">
+      <img src="./assets/img/foto-perfil-robo.png" alt="" aria-hidden="true" id="aboutPhotoRobo" class="about-photo-cutout about-photo-robo">
+      <div class="about-photo-glow" aria-hidden="true"></div>
+    </div>
+
+    <div class="about-copy reveal">
+      <span class="section-kicker about-corner tl">sobre</span>
+      <div class="about-corner bl">
+        <div class="eyebrow-badge mono about-bio-badge">
+          <span class="eyebrow-dot"></span>disponível para novos projetos
+        </div>
+        <p class="section-body">Olá, sou Alexandre Garcia, estudante de Análise e Desenvolvimento de Sistemas pela instituição SENAC.</p>
+        <p class="section-body">Formado em Arquitetura e Urbanismo, com 12 anos de experiência na área de construção civil — hoje unindo essa senioridade à tecnologia e ao desenvolvimento de sistemas e softwares.</p>
+      </div>
+      <div class="stats-row about-corner br" id="statsRow">
+        <div class="stat-item"><div class="stat-num" data-target="3"><span class="val">0</span><span class="plus">+</span></div><div class="stat-label">anos em dev</div></div>
+        <div class="stat-item"><div class="stat-num" data-target="9"><span class="val">0</span><span class="plus">+</span></div><div class="stat-label">projetos entregues</div></div>
+        <div class="stat-item"><div class="stat-num" data-target="12"><span class="val">0</span><span class="plus">+</span></div><div class="stat-label">anos em construção civil</div></div>
+        <div class="stat-item"><div class="stat-num" data-target="3"><span class="val">0</span></div><div class="stat-label">idiomas</div></div>
+      </div>
+    </div>
+
+    <div class="about-stack reveal about-stack-bottom">
+      <span class="stack-label mono">// stack</span>
+      <div class="stack-tags">
+        <span class="stack-tag" data-cat="front">HTML</span>
+        <span class="stack-tag" data-cat="front">CSS</span>
+        <span class="stack-tag" data-cat="front">JavaScript</span>
+        <span class="stack-tag" data-cat="front">React</span>
+        <span class="stack-tag" data-cat="back">Java</span>
+        <span class="stack-tag" data-cat="back">Spring Boot</span>
+        <span class="stack-tag" data-cat="back">MySQL</span>
+        <span class="stack-tag" data-cat="back">PHP</span>
+        <span class="stack-tag" data-cat="tool">VS Code</span>
+        <span class="stack-tag" data-cat="tool">IntelliJ</span>
+      </div>
+    </div>
+  </div>
+  <div class="about-fx-words" id="aboutFxWords" aria-hidden="true">
+    <span class="fx-word" data-pos="1">REACT.JS</span>
+    <span class="fx-word" data-pos="2">SPRING BOOT</span>
+    <span class="fx-word" data-pos="3">CÓDIGO LIMPO</span>
+    <span class="fx-word" data-pos="4">ARQUITETURA</span>
+    <span class="fx-word" data-pos="5">UX DESIGN</span>
+  </div>
+  <div class="about-motion-caption mono" id="aboutMotionCaption">
+    <span class="dim">// </span>ambiente pronto para o próximo desafio
+  </div>
+  </div>
+</section>
+
+<!-- overlay fixo: o "virar" do notebook do Quem-sou-eu até o primeiro
+     frame surgir — ver initAboutSequence / initExperiencePin -->
+<div class="about-video-unfold" id="aboutVideoUnfold" aria-hidden="true">
+  <img src="./assets/video/frames/frame_020.jpg" alt="">
+</div>
+
+<!-- ============ EXPERIENCE (scroll horizontal pinado) ============ -->
+<section id="experience">
+  <div class="exp-head">
+    <span class="section-kicker reveal">experiência</span>
+    <h2 class="section-heading reveal">Trajetória</h2>
+  </div>
+
+  <div class="exp-pin-wrap" id="expPinWrap">
+    <canvas class="exp-bg-video" id="expBgCanvas" aria-hidden="true"></canvas>
+    <div class="exp-bg-tint" id="expBgTint"></div>
+    <div class="exp-track" id="expTrack">
+
+      <div class="exp-card">
+        <div class="exp-card-year mono">2026</div>
+        <div class="exp-card-range mono">2026 — até o momento</div>
+        <div class="exp-card-role">Analista de Tecnologia e Inovação</div>
+        <div class="exp-card-company mono">Synx Space</div>
+        <p class="exp-card-desc">Desenvolvedor focado na criação, manutenção e evolução de soluções SaaS voltadas à gestão de relacionamento com clientes (CRM), atuando com JavaScript e Node.js para construir sistemas mais eficientes, escaláveis e alinhados às necessidades do negócio.</p>
+        <div class="exp-card-tags">
+          <span class="exp-tag">HTML</span><span class="exp-tag">CSS</span><span class="exp-tag">JavaScript</span>
+          <span class="exp-tag">Next.js</span><span class="exp-tag">Node.js</span><span class="exp-tag">TypeScript</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-card-year mono">2024</div>
+        <div class="exp-card-range mono">2024 — até o momento</div>
+        <div class="exp-card-role">Desenvolvedor Frontend</div>
+        <div class="exp-card-company mono">Alexandre Garcia (Freelance)</div>
+        <p class="exp-card-desc">Desenvolvimento de pequenos projetos, páginas Web, programas e APIs como desenvolvedor Frontend e Backend.</p>
+        <div class="exp-card-tags">
+          <span class="exp-tag">Java</span><span class="exp-tag">Spring Boot</span><span class="exp-tag">MySQL</span>
+          <span class="exp-tag">HTML</span><span class="exp-tag">CSS</span><span class="exp-tag">JavaScript</span>
+          <span class="exp-tag">PHP</span><span class="exp-tag">UI/UX Design</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-card-year mono">2020</div>
+        <div class="exp-card-range mono">2020 — 2026</div>
+        <div class="exp-card-role">Arquiteto</div>
+        <div class="exp-card-company mono">AG Arquitetura</div>
+        <p class="exp-card-desc">Execução de diversos projetos residenciais e comerciais como arquiteto autônomo em Alexandre Garcia Arquitetura. Projetos de casas unifamiliares, apartamentos, estúdios, lojas comerciais, restaurantes e obras de diversos tipos.</p>
+        <div class="exp-card-tags">
+          <span class="exp-tag">Autocad</span><span class="exp-tag">Sketchup</span><span class="exp-tag">Lumion</span>
+          <span class="exp-tag">Word</span><span class="exp-tag">Excel</span><span class="exp-tag">Photoshop</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-card-year mono">2017</div>
+        <div class="exp-card-range mono">2017 — até o momento</div>
+        <div class="exp-card-role">Arquiteto</div>
+        <div class="exp-card-company mono">Nautilo Arquitetura e Gerenciamento</div>
+        <p class="exp-card-desc">Realização de diversos projetos de arquitetura de diferentes tipologias e tamanhos, realização de todas as etapas dos projetos, estudos de materiais e gerenciamento de obras, organização e gestão de equipes e execução de planilhas e cronogramas.</p>
+        <div class="exp-card-tags">
+          <span class="exp-tag">Autocad</span><span class="exp-tag">Sketchup</span><span class="exp-tag">Lumion</span>
+          <span class="exp-tag">Office</span><span class="exp-tag">Premiere</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="exp-progress"><div class="exp-progress-fill" id="expProgressFill"></div></div>
+    <div class="exp-hint mono">← arraste ou role para navegar →</div>
+  </div>
+
+  <!-- fallback estático: mobile / prefers-reduced-motion -->
+  <div class="exp-static" id="expStatic"></div>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section id="projects">
+  <div class="section-wrap">
+    <div class="proj-head">
+      <div>
+        <span class="section-kicker reveal">projetos</span>
+        <h2 class="section-heading reveal">Projetos</h2>
+      </div>
+      <div class="proj-head-right reveal">
+        <p class="section-body" style="text-align:right;">Unindo <strong>Backend</strong>, <strong>Frontend</strong> e a visão analítica da <strong>Arquitetura de Software</strong>.</p>
+        <a href="https://github.com/AlexandreGarciaJr" target="_blank" rel="noopener" class="github-all">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+          Ver todos no GitHub
+        </a>
+      </div>
+    </div>
+
+    <div class="bento-grid">
+
+      <!-- Teon -->
+      <a class="proj-card c-7 c-featured reveal" href="https://www.teonapp.com.br/" target="_blank" rel="noopener">
+        <div class="proj-shot">
+          <img src="./assets/img/projeto-teon.jpg" alt="Website Teon App" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </div>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Website Teon App</span><span class="proj-year mono">2026</span></div>
+          <p class="proj-desc">Reformulação de todo o UX Design e funcionalidades do Website de apresentação do app Teon.</p>
+          <div class="proj-stack"><span>React</span><span>Next</span><span>JavaScript</span><span>Typescript</span></div>
+          <div class="proj-links"><span class="link-arrow">→ Ver Projeto</span></div>
+        </div>
+      </a>
+
+      <!-- NRA -->
+      <div class="proj-card c-5 reveal">
+        <a class="proj-shot" href="https://nraassessoria.com.br/" target="_blank" rel="noopener">
+          <img src="./assets/img/projeto-nra.jpg" alt="Website NRA Assessoria" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </a>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Website NRA Assessoria</span><span class="proj-year mono">2026</span></div>
+          <p class="proj-desc">Website para empresa de assessoria de Geologia, Hidrogeologia, Geofísica e Meio Ambiente.</p>
+          <div class="proj-stack"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>PHP</span></div>
+          <div class="proj-links">
+            <a class="link-arrow" href="https://nraassessoria.com.br/" target="_blank" rel="noopener">→ Ver Projeto</a>
+            <a class="link-arrow" href="https://github.com/AlexandreGarciaJr/website-nra-assessoria" target="_blank" rel="noopener">→ GitHub</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Augusto Tomba -->
+      <div class="proj-card c-5 reveal">
+        <a class="proj-shot" href="https://alexandregarciajr.github.io/website-augusto-tomba/" target="_blank" rel="noopener">
+          <img src="./assets/img/projeto-augusto.jpg" alt="Website Augusto Tomba" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </a>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Website Augusto Tomba</span><span class="proj-year mono">2026</span></div>
+          <p class="proj-desc">Website de portfólio pessoal do artista, pintor e escritor Augusto Tomba. Tema ultra minimalista japonês.</p>
+          <div class="proj-stack"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>PHP</span></div>
+          <div class="proj-links">
+            <a class="link-arrow" href="https://alexandregarciajr.github.io/website-augusto-tomba/" target="_blank" rel="noopener">→ Ver Projeto</a>
+            <a class="link-arrow" href="https://github.com/AlexandreGarciaJr/website-augusto-tomba" target="_blank" rel="noopener">→ GitHub</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maonamassa -->
+      <div class="proj-card c-4 reveal">
+        <a class="proj-shot" href="https://alexandregarciajr.github.io/aplicativo-maonamassa/" target="_blank" rel="noopener">
+          <img src="./assets/img/projeto-maonamassa.jpg" alt="Maonamassa — Aplicativo de Serviços" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </a>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Maonamassa</span><span class="proj-year mono">2026</span></div>
+          <p class="proj-desc">Plataforma para conectar clientes a prestadores de serviços como eletricistas, encanadores, diaristas e mais.</p>
+          <div class="proj-stack"><span>HTML</span><span>CSS</span><span>JS</span><span>PHP</span><span>SQL</span></div>
+          <div class="proj-links">
+            <a class="link-arrow" href="https://alexandregarciajr.github.io/aplicativo-maonamassa/" target="_blank" rel="noopener">→ Ver Projeto</a>
+            <a class="link-arrow" href="https://github.com/AlexandreGarciaJr/aplicativo-maonamassa" target="_blank" rel="noopener">→ GitHub</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bikecraft -->
+      <div class="proj-card c-3 reveal">
+        <a class="proj-shot" href="https://alexandregarciajr.github.io/bikecraft-project/" target="_blank" rel="noopener">
+          <img src="./assets/img/projeto-bikecraft.jpg" alt="Website Bikecraft" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </a>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Bikecraft</span><span class="proj-year mono">2025</span></div>
+          <p class="proj-desc">Site pensado para ciclistas apaixonados, lojistas e curiosos que desejam explorar o universo das bikes.</p>
+          <div class="proj-stack"><span>HTML</span><span>CSS</span><span>JS</span><span>PHP</span></div>
+          <div class="proj-links">
+            <a class="link-arrow" href="https://alexandregarciajr.github.io/bikecraft-project/" target="_blank" rel="noopener">→ Ver Projeto</a>
+            <a class="link-arrow" href="https://github.com/AlexandreGarciaJr/projeto-pagina-bikecraft" target="_blank" rel="noopener">→ GitHub</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal -->
+      <div class="proj-card c-6 reveal">
+        <a class="proj-shot" href="https://alexandregarciajr.github.io/alexandre-personal-landing-page/" target="_blank" rel="noopener">
+          <img src="./assets/img/projeto-personal.jpg" alt="Landing Page Alexandre Personal" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </a>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Alexandre Personal</span><span class="proj-year mono">2025</span></div>
+          <p class="proj-desc">Página de profissional autônomo no ramo de Personal Trainer.</p>
+          <div class="proj-stack"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>PHP</span></div>
+          <div class="proj-links">
+            <a class="link-arrow" href="https://alexandregarciajr.github.io/alexandre-personal-landing-page/" target="_blank" rel="noopener">→ Ver Projeto</a>
+            <a class="link-arrow" href="https://github.com/AlexandreGarciaJr/alexandre-personal-landing-page" target="_blank" rel="noopener">→ GitHub</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Foodi -->
+      <a class="proj-card c-6 reveal" href="https://github.com/AlexandreGarciaJr/pti-senac-app-foodi" target="_blank" rel="noopener">
+        <div class="proj-shot">
+          <img src="./assets/img/projeto-foodi.jpg" alt="Foodi App" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </div>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Foodi App</span><span class="proj-year mono">2026</span></div>
+          <p class="proj-desc">Aplicativo mobile de delivery de comida desenvolvido em React Native com Expo Router, criado como projeto acadêmico (PTI).</p>
+          <div class="proj-stack"><span>React</span><span>JavaScript</span><span>Typescript</span></div>
+          <div class="proj-links"><span class="link-arrow">→ GitHub</span></div>
+        </div>
+      </a>
+
+      <!-- Banco DIO (tech card) -->
+      <a class="proj-card c-6 c-tech reveal" href="https://github.com/AlexandreGarciaJr/projeto-final-dio" target="_blank" rel="noopener">
+        <div class="tech-strip"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        <div class="proj-shot" style="aspect-ratio:16/9;">
+          <img src="./assets/img/projeto-banco.jpg" alt="Projeto Banco DIO 2024" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </div>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Projeto Banco DIO 2024</span><span class="proj-year mono">2024</span></div>
+          <p class="proj-desc">API para demonstrar o funcionamento de um sistema de banco de um cliente e sua interação com Swagger.</p>
+          <div class="proj-stack"><span>Java</span><span>Spring Boot</span><span>MySQL</span><span>Swagger</span></div>
+          <div class="proj-links"><span class="link-arrow">→ GitHub</span></div>
+        </div>
+      </a>
+
+      <!-- Loja de Eletrônicos (tech card) -->
+      <a class="proj-card c-6 c-tech reveal" href="https://github.com/AlexandreGarciaJr/PTI-loja-celular" target="_blank" rel="noopener">
+        <div class="tech-strip"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        <div class="proj-shot" style="aspect-ratio:16/9;">
+          <img src="./assets/img/projeto-celular.jpg" alt="Sistema de Loja de Eletrônicos" loading="lazy">
+          <div class="proj-shot-veil"></div>
+          <span class="proj-ext-link">↗</span>
+        </div>
+        <div class="proj-body">
+          <div class="proj-top-row"><span class="proj-name">Sistema de Loja de Eletrônicos</span><span class="proj-year mono">2024</span></div>
+          <p class="proj-desc">API para controlar o caixa de uma loja de eletrônicos.</p>
+          <div class="proj-stack"><span>C#</span><span>MySQL</span></div>
+          <div class="proj-links"><span class="link-arrow">→ GitHub</span></div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDUCATION ============ -->
+<section id="education">
+  <div class="section-wrap edu-intro-wrap">
+    <span class="section-kicker reveal">formação</span>
+    <h2 class="section-heading reveal">Formação</h2>
+    <p class="section-body edu-intro reveal" style="margin-top:1.4rem;max-width:62ch;">Estudante de <strong>Análise e Desenvolvimento de Sistemas</strong> pela instituição <strong>SENAC</strong>, com foco em <strong>Backend</strong> e <strong>Frontend</strong>. Formado em <strong>Arquitetura e Urbanismo</strong> pela Universidade Nove de Julho, com 12 anos de experiência na área de construção civil.</p>
+  </div>
+
+  <div class="edu-split" id="eduSplit">
+    <div class="edu-panel edu-panel-a">
+      <div class="edu-panel-label mono">FORMAÇÃO ACADÊMICA</div>
+      <div class="edu-row"><strong>Análise e Desenvolvimento de Sistemas</strong><span class="edu-row-sub mono">Tecnólogo · SENAC</span></div>
+      <div class="edu-row"><strong>Arquitetura e Urbanismo</strong><span class="edu-row-sub mono">Bacharel · UNINOVE</span></div>
+      <div class="edu-row-spacer"></div>
+      <div class="edu-panel-label mono">IDIOMAS</div>
+      <div class="edu-row edu-row-flex"><strong>Português</strong><span class="edu-row-tag mono">Nativo</span></div>
+      <div class="edu-row edu-row-flex"><strong>Inglês</strong><span class="edu-row-tag mono">Avançado</span></div>
+      <div class="edu-row edu-row-flex"><strong>Espanhol</strong><span class="edu-row-tag mono">Intermediário</span></div>
+    </div>
+
+    <div class="edu-split-counter-wrap">
+      <div class="edu-split-counter">
+        <span class="counter-label mono">HORAS DE</span>
+        <span class="counter-label mono">ESTUDO</span>
+        <span class="counter-value mono" id="eduCounterValue">0</span>
+      </div>
+    </div>
+
+    <div class="edu-panel edu-panel-b">
+      <div class="edu-panel-label mono">CURSOS INTENSIVOS</div>
+      <div class="edu-row" data-hours="23"><strong>HTML &amp; CSS</strong><span class="edu-row-sub mono">Origamid · 23h</span></div>
+      <div class="edu-row" data-hours="8"><strong>CSS Flexbox &amp; Grid Layout</strong><span class="edu-row-sub mono">Origamid · 8h</span></div>
+      <div class="edu-row" data-hours="17"><strong>UI Design</strong><span class="edu-row-sub mono">Origamid · 17h</span></div>
+      <div class="edu-row" data-hours="37"><strong>JavaScript CS6</strong><span class="edu-row-sub mono">Origamid · 37h</span></div>
+      <div class="edu-row" data-hours="18"><strong>React</strong><span class="edu-row-sub mono">Origamid · 18h</span></div>
+      <div class="edu-row" data-hours="75"><strong>Bootcamp Java, Springboot e MySQL</strong><span class="edu-row-sub mono">DIO. · 75h</span></div>
+      <div class="edu-row" data-hours="30"><strong>Fundamentos de Python</strong><span class="edu-row-sub mono">Cisco · 30h</span></div>
+      <div class="edu-row" data-hours="40"><strong>Computer Hardware Basics</strong><span class="edu-row-sub mono">Cisco · 40h</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SIGNAL — momento de assinatura ============ -->
+<section id="signal">
+  <p class="signal-line reveal">Toda <b>planta</b> começa com um risco no papel.</p>
+  <p class="signal-line accent-line reveal">Toda <b>função</b> termina em entrega.</p>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section id="contact">
+  <video class="contact-bg-video" id="contactBgVideo" autoplay muted loop playsinline aria-hidden="true">
+    <source src="./assets/video/contact-bg.webm" type="video/webm">
+    <source src="./assets/video/contact-bg.mp4" type="video/mp4">
+  </video>
+  <div class="contact-vignette" aria-hidden="true"></div>
+  <div class="contact-glow" aria-hidden="true"></div>
+  <div class="signature-watermark-wrap" id="signatureWrap">
+    <div class="signature-watermark" aria-hidden="true">ALEXANDRE GARCIA</div>
+    <div class="signature-watermark fill" aria-hidden="true" id="signatureFill">ALEXANDRE GARCIA</div>
+  </div>
+  <div class="contact-inner">
+    <span class="section-kicker reveal">contato</span>
+    <h2 class="section-heading reveal">Vamos conversar?</h2>
+    <p class="section-body reveal">Estou aberto a novos projetos, colaborações e oportunidades de trabalho. Entre em contato e vamos construir algo incrível juntos.</p>
+    <div class="contact-links reveal">
+      <a class="contact-link" href="mailto:alexandregojunior@gmail.com"><span class="ic">✉</span>alexandregojunior@gmail.com</a>
+      <a class="contact-link" href="https://linkedin.com/in/alexandregarcia-junior" target="_blank" rel="noopener"><span class="ic">in</span>LinkedIn</a>
+      <a class="contact-link" href="https://github.com/AlexandreGarciaJr" target="_blank" rel="noopener"><span class="ic">⌥</span>GitHub</a>
+    </div>
+    <a href="contato.html" class="btn-primary reveal">Entre em contato</a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#hero"><img src="./assets/svg/logo-header-no1993.svg" alt="Logo Alexandre Garcia"></a>
+        <p class="footer-desc">Estou disponível para novos projetos, entre em contato e será um prazer atendê-lo(a).</p>
+        <div class="footer-badge"><span class="dot"></span>Disponível para novos projetos</div>
+      </div>
+      <div>
+        <div class="footer-nav-title mono">Menu</div>
+        <ul class="footer-nav-links">
+          <li><a href="#about">Sobre</a></li>
+          <li><a href="#experience">Experiência</a></li>
+          <li><a href="#projects">Projetos</a></li>
+          <li><a href="#education">Formação</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Alexandre Garcia. Todos os direitos reservados.</span>
+      <span>Feito com ☕ e JavaScript</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ VENDOR (local, sem CDN externo) ============ -->
+<script src="./assets/vendor/three.min.js"></script>
+<script src="./assets/vendor/gsap.min.js"></script>
+<script src="./assets/vendor/ScrollTrigger.min.js"></script>
+<script src="./assets/vendor/lenis.min.js"></script>
+<script src="./js/main.js"></script>
+</body>
+</html>
