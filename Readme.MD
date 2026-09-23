@@ -37,6 +37,8 @@ A proposta visual combina uma estética **dark-tech / terminal** com elementos d
 
 ---
 
+![alt text](./assets/img/image-site.png)
+
 <video src="./assets/video/gravacao-tela-1.5x.mp4" width="100%"
   controls
   muted
