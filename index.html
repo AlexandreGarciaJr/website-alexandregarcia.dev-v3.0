@@ -20,7 +20,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+<link rel="preload" href="./assets/fonts/archivo-wdth-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="./assets/models/casa.glb" as="fetch" type="model/gltf-binary" crossorigin>
 <link rel="stylesheet" href="./css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+  }
+}
+</script>
 <link rel="icon" type="image/svg+xml" href="./assets/svg/favicon-laptop.svg">
 <link rel="icon" type="image/png" href="./assets/img/favicon-laptop-400.png">
 <script>try{var t=localStorage.getItem("agTheme");if(t&&t!=="blue")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
@@ -153,68 +163,142 @@
 </div>
 
 <!-- ============ HERO ============ -->
-<section id="hero">
-  <canvas id="heroCanvas"></canvas>
-  <div class="hero-grid-fade"></div>
+<section id="hero" aria-label="Apresentação">
+  <div class="hero-bg" aria-hidden="true"></div>
 
-  <!-- anotação técnica: planta baixa → código-fonte -->
+  <!-- tipografia gigante: fica ATRÁS do canvas, a casa passa na frente dela -->
+  <h1 class="hero-title" id="heroTitle" aria-label="Alexandre Garcia">
+    <span class="title-line title-line--a" id="titleLine1" aria-hidden="true">ALEXANDRE</span>
+    <span class="hero-stage" aria-hidden="true"></span>
+    <span class="title-line title-line--b" id="titleLine2" aria-hidden="true">GARCIA</span>
+  </h1>
+
+  <canvas id="heroCanvas" aria-label="Maquete 3D interativa de uma casa. Arraste para girar."></canvas>
+  <div class="hero-fade" aria-hidden="true"></div>
+
+  <nav class="hero-index mono" aria-label="Seções">
+    <a href="#about">Sobre</a>
+    <a href="#experience">Trajetória</a>
+    <a href="#projects">Projetos</a>
+    <a href="#education">Formação</a>
+    <a href="contato.html">Contato</a>
+  </nav>
+
+  <!-- anotação técnica: maquete → planta baixa (troca no scroll) -->
   <div class="hero-annotation mono" aria-hidden="true">
     <span class="dim-line"></span>
     <span class="hero-annotation-swap">
-      <span class="swap-a">planta baixa</span>
-      <span class="swap-b">código-fonte</span>
+      <span class="swap-a">maquete 3D</span>
+      <span class="swap-b">planta baixa</span>
+      <span class="swap-c">código-fonte</span>
     </span>
   </div>
 
-  <div class="hero-inner">
-    <div class="hero-copy" id="heroCopy">
-      <div class="hero-badge eyebrow-badge mono">
-        <span class="eyebrow-dot"></span>
-        disponível para novos projetos — São Paulo, Brasil
+  <!-- a casa "compilada": os glifos do canvas pousam exatamente sobre este bloco
+       e passam o bastão para o texto real (selecionável, acessível) -->
+  <figure class="hero-code" id="heroCode" aria-hidden="true">
+    <figcaption class="hero-code-head mono">
+      <span class="hero-code-file">casa_01.js</span>
+      <span class="hero-code-live"><i></i>sincronizado com a maquete</span>
+    </figcaption>
+    <div class="hero-code-body">
+      <ol class="hero-code-gutter mono" id="heroCodeGutter" aria-hidden="true"></ol>
+      <pre class="mono"><code id="heroCodeText"></code></pre>
+    </div>
+  </figure>
+
+  <div class="hero-copy" id="heroCopy">
+    <div class="hero-badge eyebrow-badge mono">
+      <span class="eyebrow-dot"></span>
+      disponível para novos projetos
+    </div>
+    <span class="hero-role mono" id="typingText"><span class="typing-cursor"></span></span>
+    <p class="hero-desc">Construo produtos digitais escaláveis, com foco em performance, código limpo e experiência do usuário.</p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn-primary">Ver Projetos</a>
+      <a href="contato.html" class="btn-outline">Fale Comigo</a>
+    </div>
+  </div>
+
+  <!-- painel de parâmetros da cena 3D (substitui o antigo bloco de código) -->
+  <aside class="hero-panel" id="heroPanel" aria-label="Parâmetros da maquete 3D">
+    <div class="rotate-badge" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <defs><path id="badgeCircle" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs>
+        <g class="rotate-badge-ring">
+          <text style="font-family:var(--f-mono)" font-size="7.6" fill="currentColor" letter-spacing="2">
+            <textPath href="#badgeCircle">ARRASTE PARA CONSTRUIR • CASA_01 • MAQUETE VIVA • </textPath>
+          </text>
+        </g>
+      </svg>
+      <div class="rotate-badge-core">3D</div>
+    </div>
+
+    <header class="hp-head">
+      <div>
+        <p class="hp-title">Casa_01</p>
+        <p class="hp-sub mono" id="hpStatus" aria-live="polite">carregando modelo…</p>
       </div>
-      <h1 class="hero-title" id="heroTitle" aria-label="Alexandre Garcia">
-        <span class="title-line" id="titleLine1">ALEX<span class="hl">ANDRE</span></span>
-        <span class="title-line" id="titleLine2">GARCIA</span>
-      </h1>
-      <span class="hero-role mono" id="typingText"><span class="typing-cursor"></span></span>
-      <p class="hero-desc">Construo produtos digitais escaláveis com foco em performance e experiência do usuário. Apaixonado por código limpo e arquitetura sólida.</p>
-      <div class="hero-cta">
-        <a href="#projects" class="btn-primary">Ver Projetos</a>
-        <a href="#contact" class="btn-outline">Fale Comigo</a>
+      <button class="hp-icon" id="hpReset" type="button" aria-label="Recentralizar câmera" title="Recentralizar câmera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      </button>
+    </header>
+
+    <div class="hp-field hp-field--build">
+      <div class="hp-row">
+        <label for="hpBuild">Construção</label>
+        <output class="mono" id="hpBuildOut" for="hpBuild">Terreno</output>
+      </div>
+      <div class="hp-range hp-range--steps" style="--v:0">
+        <input type="range" id="hpBuild" min="0" max="1000" value="0" step="1" aria-describedby="hpBuildOut">
+        <div class="hp-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
     </div>
 
-    <div class="hero-code-wrap">
-      <div class="rotate-badge" aria-hidden="true">
-        <svg viewBox="0 0 120 120">
-          <defs><path id="badgeCircle" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs>
-          <g class="rotate-badge-ring">
-            <text style="font-family:var(--f-mono)" font-size="7.6" fill="#7dd8ff" letter-spacing="2">
-              <textPath href="#badgeCircle">DISPONÍVEL PARA PROJETOS • FULL STACK DEV • </textPath>
-            </text>
-          </g>
-        </svg>
-        <div class="rotate-badge-core">{ }</div>
+    <div class="hp-field">
+      <div class="hp-row">
+        <label for="hpTime">Horário</label>
+        <output class="mono" id="hpTimeOut" for="hpTime">21:15</output>
       </div>
-      <div class="hero-code mono" id="heroCode">
-      <div class="hero-code-head"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
-      <div class="code-line"><span class="cm">// developer.config.ts</span></div>
-      <div class="code-line">&nbsp;</div>
-      <div class="code-line"><span class="kw">const</span> <span class="fn">developer</span> = {</div>
-      <div class="code-line">&nbsp;&nbsp;name: <span class="str">"Alexandre Garcia"</span>,</div>
-      <div class="code-line">&nbsp;&nbsp;role: <span class="str">"Full Stack Dev"</span>,</div>
-      <div class="code-line">&nbsp;&nbsp;experience: <span class="num">3</span>,</div>
-      <div class="code-line">&nbsp;&nbsp;stack: [</div>
-      <div class="code-line">&nbsp;&nbsp;&nbsp;<span class="str">"HTML"</span>, <span class="str">"CSS"</span>,</div>
-      <div class="code-line">&nbsp;&nbsp;&nbsp;<span class="str">"JavaScript"</span>, <span class="str">"React"</span></div>
-      <div class="code-line">&nbsp;&nbsp;],</div>
-      <div class="code-line">&nbsp;&nbsp;available: <span class="kw">true</span>,</div>
-      <div class="code-line">}</div>
-      <div class="code-line">&nbsp;</div>
-      <div class="code-line"><span class="kw">export default</span> <span class="fn">developer</span></div>
+      <div class="hp-range" style="--v:.82">
+        <input type="range" id="hpTime" min="0" max="1000" value="820" step="1">
+      </div>
     </div>
+
+    <div class="hp-field">
+      <div class="hp-row">
+        <label for="hpCut">Corte de seção</label>
+        <output class="mono" id="hpCutOut" for="hpCut">sem corte</output>
+      </div>
+      <div class="hp-range" style="--v:1">
+        <input type="range" id="hpCut" min="0" max="1000" value="1000" step="1">
+      </div>
     </div>
-  </div>
+
+    <div class="hp-field">
+      <div class="hp-row">
+        <span class="hp-label" id="hpMatLabel">Linguagem</span>
+        <output class="mono" id="hpModeOut">arquitetura</output>
+      </div>
+      <div class="hp-seg hp-seg--full" role="group" aria-labelledby="hpMatLabel">
+        <button type="button" data-mat="0" aria-pressed="true">Holograma</button>
+        <button type="button" data-mat="1" aria-pressed="false">Natural</button>
+        <button type="button" data-mat="2" aria-pressed="false" class="hp-seg-code"><span aria-hidden="true">&lt;/&gt;</span> Código</button>
+      </div>
+    </div>
+
+    <div class="hp-field hp-row">
+      <span class="hp-label" id="hpRotLabel">Rotação automática</span>
+      <button type="button" class="hp-switch" id="hpRotate" role="switch" aria-checked="true" aria-labelledby="hpRotLabel"><span></span></button>
+    </div>
+
+    <footer class="hp-stats mono" id="hpStats" aria-hidden="true">
+      <span><b id="hpFps">--</b> fps</span>
+      <span><b id="hpCalls">--</b> draws</span>
+      <span><b id="hpTris">--</b> tris</span>
+      <span><b id="hpPts">--</b> pts</span>
+    </footer>
+  </aside>
 </section>
 
 <!-- ============ MARQUEE (único da página) ============ -->
@@ -294,12 +378,6 @@
   </div>
 </section>
 
-<!-- overlay fixo: o "virar" do notebook do Quem-sou-eu até o primeiro
-     frame surgir — ver initAboutSequence / initExperiencePin -->
-<div class="about-video-unfold" id="aboutVideoUnfold" aria-hidden="true">
-  <img src="./assets/video/frames/frame_020.jpg" alt="">
-</div>
-
 <!-- ============ EXPERIENCE (scroll horizontal pinado) ============ -->
 <section id="experience">
   <div class="exp-head">
@@ -310,30 +388,34 @@
   <div class="exp-pin-wrap" id="expPinWrap">
     <canvas class="exp-bg-video" id="expBgCanvas" aria-hidden="true"></canvas>
     <div class="exp-bg-tint" id="expBgTint"></div>
+
+    <!-- título que surge no frame em que a mão aparece (traço SVG → preenchimento) -->
+    <div class="exp-intro" id="expIntro" aria-hidden="true">
+      <p class="exp-intro-kicker mono"><span class="exp-intro-line"></span><span>experiência · 2017 → hoje</span></p>
+      <svg class="exp-intro-svg" id="expIntroSvg" viewBox="0 0 1200 230" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="expIntroGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#e8ecf4"/>
+            <stop offset=".55" stop-color="#e8ecf4"/>
+            <stop offset="1" stop-color="#7dd8ff"/>
+          </linearGradient>
+        </defs>
+        <text id="expIntroText" x="600" y="178" text-anchor="middle">Trajetória</text>
+      </svg>
+      <p class="exp-intro-sub mono">da prancheta ao código</p>
+    </div>
+
     <div class="exp-track" id="expTrack">
 
       <div class="exp-card">
-        <div class="exp-card-year mono">2026</div>
-        <div class="exp-card-range mono">2026 — até o momento</div>
-        <div class="exp-card-role">Analista de Tecnologia e Inovação</div>
-        <div class="exp-card-company mono">Synx Space</div>
-        <p class="exp-card-desc">Desenvolvedor focado na criação, manutenção e evolução de soluções SaaS voltadas à gestão de relacionamento com clientes (CRM), atuando com JavaScript e Node.js para construir sistemas mais eficientes, escaláveis e alinhados às necessidades do negócio.</p>
+        <div class="exp-card-year mono">2017</div>
+        <div class="exp-card-range mono">2017 — até o momento</div>
+        <div class="exp-card-role">Arquiteto</div>
+        <div class="exp-card-company mono">Nautilo Arquitetura e Gerenciamento</div>
+        <p class="exp-card-desc">Realização de diversos projetos de arquitetura de diferentes tipologias e tamanhos, realização de todas as etapas dos projetos, estudos de materiais e gerenciamento de obras, organização e gestão de equipes e execução de planilhas e cronogramas.</p>
         <div class="exp-card-tags">
-          <span class="exp-tag">HTML</span><span class="exp-tag">CSS</span><span class="exp-tag">JavaScript</span>
-          <span class="exp-tag">Next.js</span><span class="exp-tag">Node.js</span><span class="exp-tag">TypeScript</span>
-        </div>
-      </div>
-
-      <div class="exp-card">
-        <div class="exp-card-year mono">2024</div>
-        <div class="exp-card-range mono">2024 — até o momento</div>
-        <div class="exp-card-role">Desenvolvedor Frontend</div>
-        <div class="exp-card-company mono">Alexandre Garcia (Freelance)</div>
-        <p class="exp-card-desc">Desenvolvimento de pequenos projetos, páginas Web, programas e APIs como desenvolvedor Frontend e Backend.</p>
-        <div class="exp-card-tags">
-          <span class="exp-tag">Java</span><span class="exp-tag">Spring Boot</span><span class="exp-tag">MySQL</span>
-          <span class="exp-tag">HTML</span><span class="exp-tag">CSS</span><span class="exp-tag">JavaScript</span>
-          <span class="exp-tag">PHP</span><span class="exp-tag">UI/UX Design</span>
+          <span class="exp-tag">Autocad</span><span class="exp-tag">Sketchup</span><span class="exp-tag">Lumion</span>
+          <span class="exp-tag">Office</span><span class="exp-tag">Premiere</span>
         </div>
       </div>
 
@@ -350,20 +432,33 @@
       </div>
 
       <div class="exp-card">
-        <div class="exp-card-year mono">2017</div>
-        <div class="exp-card-range mono">2017 — até o momento</div>
-        <div class="exp-card-role">Arquiteto</div>
-        <div class="exp-card-company mono">Nautilo Arquitetura e Gerenciamento</div>
-        <p class="exp-card-desc">Realização de diversos projetos de arquitetura de diferentes tipologias e tamanhos, realização de todas as etapas dos projetos, estudos de materiais e gerenciamento de obras, organização e gestão de equipes e execução de planilhas e cronogramas.</p>
+        <div class="exp-card-year mono">2024</div>
+        <div class="exp-card-range mono">2024 — até o momento</div>
+        <div class="exp-card-role">Desenvolvedor Frontend</div>
+        <div class="exp-card-company mono">Alexandre Garcia (Freelance)</div>
+        <p class="exp-card-desc">Desenvolvimento de pequenos projetos, páginas Web, programas e APIs como desenvolvedor Frontend e Backend.</p>
         <div class="exp-card-tags">
-          <span class="exp-tag">Autocad</span><span class="exp-tag">Sketchup</span><span class="exp-tag">Lumion</span>
-          <span class="exp-tag">Office</span><span class="exp-tag">Premiere</span>
+          <span class="exp-tag">Java</span><span class="exp-tag">Spring Boot</span><span class="exp-tag">MySQL</span>
+          <span class="exp-tag">HTML</span><span class="exp-tag">CSS</span><span class="exp-tag">JavaScript</span>
+          <span class="exp-tag">PHP</span><span class="exp-tag">UI/UX Design</span>
+        </div>
+      </div>
+
+      <div class="exp-card is-current">
+        <div class="exp-card-year mono">2026</div>
+        <div class="exp-card-range mono">2026 — até o momento <span class="exp-now"><i></i>atual</span></div>
+        <div class="exp-card-role">Analista de Tecnologia e Inovação</div>
+        <div class="exp-card-company mono">Synx Space</div>
+        <p class="exp-card-desc">Desenvolvedor focado na criação, manutenção e evolução de soluções SaaS voltadas à gestão de relacionamento com clientes (CRM), atuando com JavaScript e Node.js para construir sistemas mais eficientes, escaláveis e alinhados às necessidades do negócio.</p>
+        <div class="exp-card-tags">
+          <span class="exp-tag">HTML</span><span class="exp-tag">CSS</span><span class="exp-tag">JavaScript</span>
+          <span class="exp-tag">Next.js</span><span class="exp-tag">Node.js</span><span class="exp-tag">TypeScript</span>
         </div>
       </div>
 
     </div>
     <div class="exp-progress"><div class="exp-progress-fill" id="expProgressFill"></div></div>
-    <div class="exp-hint mono">← arraste ou role para navegar →</div>
+    <div class="exp-hint mono">← role para navegar →</div>
   </div>
 
   <!-- fallback estático: mobile / prefers-reduced-motion -->
@@ -651,5 +746,6 @@
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
 <script src="./js/main.js"></script>
+<script type="module" src="./js/hero3d.js"></script>
 </body>
 </html>

@@ -765,7 +765,7 @@
 
   function initGlitchText(){
     // elementos onde o texto já está isolado — aplica o glitch direto
-    document.querySelectorAll(".btn-primary, .btn-outline, .btn-send-label, .fullmenu-link-text, .hamburger-label, .track-name, .audio-toggle, .measure-flyout button, .footer-nav-links a, .contact-info-value").forEach((el) => {
+    document.querySelectorAll(".btn-primary, .btn-outline, .btn-send-label, .fullmenu-link-text, .hamburger-label, .track-name, .audio-toggle, .measure-flyout button, .footer-nav-links a, .contact-info-value, .hero-index a").forEach((el) => {
       if (el.classList.contains("glitch-hover")) return;
       const text = el.textContent.trim();
       if (!text) return;
@@ -1145,6 +1145,16 @@
     if (!capable) return;
 
     mainEl.classList.add("compact");
+    document.documentElement.classList.add("about-pinned");
+    resize(); // o canvas foi medido antes do modo "compact" (100dvh)
+
+    // primeiro frame do vídeo da Trajetória, aplicado na tela do notebook:
+    // o "mergulho" termina exatamente na imagem com que a próxima seção começa
+    const vidTex = new THREE.TextureLoader().load("./assets/video/frames/frame_020.jpg");
+    const vidMat = new THREE.MeshBasicMaterial({ map: vidTex, transparent: true, opacity: 0, depthWrite: false });
+    const vidPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.05, 1.75), vidMat);
+    vidPlane.position.set(0, 1.05, 0.047);
+    laptop.screenPivot.add(vidPlane);
 
     const fxWords = Array.from(document.querySelectorAll("#aboutFxWords .fx-word"));
     const BG_1 = "#141a33";
@@ -1154,7 +1164,7 @@
 
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: mainEl, start: "top top", end: "+=430%",
+        trigger: mainEl, start: "top top", end: "+=460%",
         pin: true, scrub: 0.7, anticipatePin: 1,
       },
     });
@@ -1164,6 +1174,7 @@
       { opacity: 1, y: 0, scale: 1 },
       { opacity: 0, y: -26, scale: 0.96, duration: 2, ease: "power1.in", stagger: 0.1 },
     1.0);
+    tl.set([photoWrap, copy, stack, giantBg], { visibility: "hidden" }, 3.3); // some de vez (evita "fantasmas" de composição)
     tl.to(waveMat, { opacity: 0, duration: 1.6 }, 1.2);
     tl.to(waveState, { amp: 0, duration: 1.6 }, 1.2);
 
@@ -1200,24 +1211,35 @@
     // 5) legenda final
     if (caption) tl.to(caption, { opacity: 1, duration: 1 }, 14.6);
 
-    // 6) o notebook "vira" e vai deitando — o mesmo gesto de scroll que abriu
-    // a tela agora o leva a virar o primeiro frame do vídeo da Trajetória
-    const unfold = document.getElementById("aboutVideoUnfold");
-    tl.to(laptop.group.rotation, { x: 1.15, duration: 2.2, ease: "power2.inOut" }, 16.2);
-    tl.to(laptop.group.position, { y: -1.4, duration: 2.2, ease: "power2.inOut" }, 16.2);
-    tl.to([laptop.lineMat, laptop.hingeLineMat], { opacity: 0, duration: 1.3 }, 17);
-    if (caption) tl.to(caption, { opacity: 0, duration: 0.8 }, 16.2);
-    if (unfold){
-      tl.set(unfold, { opacity: 0, width: 60, height: 34, borderRadius: 4 }, 16.2);
-      tl.to(unfold, { opacity: 1, duration: 0.6, ease: "power1.out" }, 16.6);
-      tl.to(unfold, {
-        width: () => window.innerWidth * 1.02,
-        height: () => window.innerHeight * 1.02,
-        borderRadius: 0,
-        duration: 2.6,
-        ease: "power2.inOut",
-      }, 16.9);
+    // 6) MERGULHO NA TELA — o notebook para de frente, a tela fica reta e a
+    // câmera entra nela até a imagem (1º frame do vídeo) cobrir a viewport.
+    // A Trajetória começa exatamente nesse quadro (ver initExperiencePin).
+    const CAM0 = new THREE.Vector3(0, 2.4, 11.5), LOOK0 = new THREE.Vector3(0, -0.35, 0);
+    const dive = { k: 0 };
+    const tmpPos = new THREE.Vector3(), tmpLook = new THREE.Vector3();
+    function applyDive(){
+      const S = laptop.group.scale.x;
+      // centro da tela na pose final (rotação 6π, tela a 90°)
+      const c = new THREE.Vector3(0, laptop.group.position.y + S * 1.13, -S * 1.035);
+      const W = 3.05 * S, H = 1.75 * S;
+      const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      const d = Math.min(H / (2 * t), W / (2 * t * camera.aspect)) * 0.995; // "cover"
+      tmpPos.set(c.x, c.y, c.z + d);
+      camera.position.copy(CAM0).lerp(tmpPos, dive.k);
+      tmpLook.copy(LOOK0).lerp(c, dive.k);
+      camera.lookAt(tmpLook);
     }
+    if (caption) tl.to(caption, { opacity: 0, duration: 0.7 }, 15.7);
+    tl.to(laptop.group.rotation, { y: Math.PI * 6, x: 0, duration: 1.9, ease: "power2.inOut" }, 15.4);
+    tl.to(laptop.screenPivot.rotation, { x: 0, duration: 1.6, ease: "power2.inOut" }, 15.6);
+    tl.to(vidMat, { opacity: 1, duration: 1.3, ease: "power1.inOut" }, 16.4);
+    tl.to(laptop.glowMat, { opacity: 0, duration: 0.6 }, 17.6);
+    tl.to(dive, { k: 1, duration: 2.6, ease: "power2.inOut", onUpdate: applyDive }, 16.5);
+    tl.to(canvas, { opacity: 1, duration: 2.2, ease: "power1.inOut" }, 16.6); // canvas do Sobre fica a 55%: a tela final precisa do brilho cheio
+    tl.to([laptop.lineMat, laptop.hingeLineMat], { opacity: 0, duration: 0.7 }, 18.3);
+    tl.to(mainEl, { backgroundColor: "#050810", duration: 2.4, ease: "none" }, 16.6);
+    tl.to({}, { duration: 0.5 }, 19.1); // respiro: o quadro final "assenta" antes da troca
+    window.addEventListener("resize", () => { if (dive.k > 0) applyDive(); });
   }
 
   /* ---------------------------------------------------------
@@ -1254,295 +1276,39 @@
   /* ---------------------------------------------------------
      9) HERO 3D SCENE (Three.js) — grafo de nós flutuante
      --------------------------------------------------------- */
-  let heroRefs = null;
 
-  function initHeroScene(){
-    const canvas = document.getElementById("heroCanvas");
-    if (!canvas || typeof THREE === "undefined") return;
-    if (isTouch && isNarrow){
-      // em telas de toque pequenas, poupa GPU/bateria
-      canvas.style.display = "none";
-      return;
+  /* ---------------------------------------------------------
+     9.a) HERO — ajuste tipográfico: ALEXANDRE ocupa a largura exata;
+     GARCIA recebe o espaçamento entre letras que fecha a mesma largura
+     --------------------------------------------------------- */
+  function initHeroTitleFit(){
+    const hero = document.getElementById("hero");
+    const a = document.getElementById("titleLine1");
+    const b = document.getElementById("titleLine2");
+    if (!hero || !a || !b) return;
+    function fit(){
+      const pad = hero.clientWidth > 900 ? a.offsetLeft : (parseFloat(getComputedStyle(hero).paddingLeft) || 0);
+      const avail = hero.clientWidth - pad * 2;
+      if (avail <= 0) return;
+      // linha A: mede em 100px e escala (compensa o tracking negativo da última letra)
+      hero.style.setProperty("--fs-a", "100px");
+      const wa = a.getBoundingClientRect().width;
+      const fsA = Math.min(100 * avail / Math.max(1, wa - 4.5), window.innerHeight * 0.34);
+      hero.style.setProperty("--fs-a", fsA.toFixed(2) + "px");
+      // linha B: altura proporcional à tela; tracking preenche o resto
+      const n = (b.getAttribute("data-glitch") || b.textContent).trim().length;
+      let fsB = Math.min(fsA * 1.18, window.innerHeight * (hero.clientWidth > 900 ? 0.24 : 0.2));
+      hero.style.setProperty("--ls-b", "0px");
+      hero.style.setProperty("--fs-b", fsB.toFixed(2) + "px");
+      let wb = b.getBoundingClientRect().width;
+      if (wb > avail){ fsB *= avail / wb; hero.style.setProperty("--fs-b", fsB.toFixed(2) + "px"); wb = avail; }
+      const ls = Math.max(0, (avail - wb) / Math.max(1, n - 1));
+      hero.style.setProperty("--ls-b", ls.toFixed(2) + "px");
     }
-
-    const heroEl = document.getElementById("hero");
-    let width = heroEl.clientWidth, height = heroEl.clientHeight;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
-    camera.position.set(0, 0.4, 16);
-
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(width, height);
-
-    const INK = 0x9fc7ff;    // linha de planta (blueprint ink)
-    const INK_DIM = 0x3d6bff;
-    const NODE_C = 0x7dd8ff;
-    const LINE_C = 0x3d6bff;
-
-    /* ---------- GRUPO 1 — CASA MODERNA (composição multi-volume, wireframe) ---------- */
-    const blueprintGroup = new THREE.Group();
-    blueprintGroup.rotation.set(-0.3, 0.56, 0);
-
-    function addEdges(geo, mat, x, y, z){
-      const edges = new THREE.EdgesGeometry(geo);
-      const seg = new THREE.LineSegments(edges, mat);
-      seg.position.set(x, y, z);
-      blueprintGroup.add(seg);
-      return seg;
-    }
-    function addWire(geo, mat, x, y, z){
-      const wire = new THREE.WireframeGeometry(geo);
-      const seg = new THREE.LineSegments(wire, mat);
-      seg.position.set(x, y, z);
-      blueprintGroup.add(seg);
-      return seg;
-    }
-    const inkMat = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.55, depthWrite: false });
-    const inkMatDim = new THREE.LineBasicMaterial({ color: INK_DIM, transparent: true, opacity: 0.4, depthWrite: false });
-    const inkMatFaint = new THREE.LineBasicMaterial({ color: INK_DIM, transparent: true, opacity: 0.2, depthWrite: false });
-    registerThemeColor(inkMat, "ink");
-    registerThemeColor(inkMatDim, "accent");
-    registerThemeColor(inkMatFaint, "accent");
-
-    // pódio — terraço largo e baixo, a base de tudo
-    addEdges(new THREE.BoxGeometry(9, 0.4, 6.5), inkMatDim, 0, -2, 0);
-    // volume térreo — corpo principal da casa, apoiado no pódio
-    addEdges(new THREE.BoxGeometry(5.5, 2.6, 4.5), inkMat, -1, -0.5, 0);
-    // volume em balanço — "segundo andar" flutuando acima, deslocado pra fora do térreo
-    addEdges(new THREE.BoxGeometry(7, 2, 3.2), inkMat, 2, 2.4, -0.3);
-    // telhado de uma água — inclinado, pousa sobre o volume em balanço,
-    // é o que faz a composição se ler como "casa" e não só volumes soltos
-    addEdges(new THREE.BoxGeometry(7.8, 0.12, 3.9), inkMat, 2, 3.56, -0.3).rotation.x = -0.15;
-    // parede de vidro — grade subdividida na fachada frontal do volume térreo
-    addWire(new THREE.PlaneGeometry(5.5, 2.6, 6, 3), inkMatFaint, -1, -0.5, 2.26);
-    // pilares finos sustentando o balanço, nas bordas do vão livre
-    [[1.5, 1.35], [5.3, 1.35], [1.5, -1.35], [5.3, -1.35]].forEach(([x, z]) => {
-      addEdges(new THREE.CylinderGeometry(0.05, 0.05, 3.2, 6), inkMatDim, x, -0.2, z);
-    });
-
-    // grade de solo (planta)
-    const grid = new THREE.GridHelper(20, 20, INK_DIM, INK_DIM);
-    grid.material.transparent = true;
-    grid.material.opacity = 0.18;
-    grid.material.depthWrite = false;
-    grid.position.y = -2.25;
-    blueprintGroup.add(grid);
-
-    // pontos de brilho pulsante nos vértices-chave da massa (efeito "node ativo")
-    const glowSpots = [
-      [1.75, 0.8, 2.25], [-3.75, 0.8, -2.25], [2, 3.4, -1.9], [5.5, 2.4, -1.9], [3, -2, 3.25],
-    ];
-    const glowMat = new THREE.PointsMaterial({
-      color: NODE_C, size: 0.28, transparent: true, opacity: 0.85,
-      sizeAttenuation: true, depthWrite: false,
-    });
-    registerThemeColor(glowMat, "accent2");
-    const glowGeo = new THREE.BufferGeometry();
-    glowGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(glowSpots.flat()), 3));
-    const glowPoints = new THREE.Points(glowGeo, glowMat);
-    blueprintGroup.add(glowPoints);
-
-    scene.add(blueprintGroup);
-
-    /* ---------- GRUPO 1B — AMBIENTE: preso rigidamente à casa (mesmo
-       objeto 3D, sem grupo/rotação independente) — terreno + ornamentos ---------- */
-    const envGroup = new THREE.Group();
-
-    const ENV_SEG = isNarrow ? 14 : 22;
-    const terrainGeo = new THREE.PlaneGeometry(46, 30, ENV_SEG, ENV_SEG);
-    const terrainMat = new THREE.PointsMaterial({ color: INK_DIM, size: 0.045, transparent: true, opacity: 0.4, depthWrite: false });
-    registerThemeColor(terrainMat, "accent");
-    const terrainMesh = new THREE.Points(terrainGeo, terrainMat);
-    terrainMesh.rotation.x = -Math.PI / 2.25;
-    terrainMesh.position.set(2, -4.6, -10);
-    envGroup.add(terrainMesh);
-    const terrainPos = terrainGeo.attributes.position;
-    const terrainBase = Float32Array.from(terrainPos.array);
-
-    // ornamentos wireframe flutuantes — anéis abstratos, ecoam a arquitetura
-    // e ajudam a compor a cena (tudo preso ao mesmo objeto principal)
-    const ringMat = new THREE.LineBasicMaterial({ color: NODE_C, transparent: true, opacity: 0.3, depthWrite: false });
-    registerThemeColor(ringMat, "accent2");
-    const rings = [
-      { r: 0.32, x: 8.5, y: 4.2, z: -6, speed: 0.4 },
-      { r: 0.22, x: -7, y: 1.6, z: -7, speed: 0.55 },
-      { r: 0.4, x: 7, y: -1.8, z: -8, speed: 0.3 },
-      { r: 0.18, x: -4.5, y: 5.2, z: -4, speed: 0.48 },
-      { r: 0.26, x: 9.5, y: -0.6, z: -3, speed: 0.36 },
-    ].map(({ r, x, y, z, speed }) => {
-      const geo = new THREE.TorusGeometry(r, r * 0.12, 8, 20);
-      const mesh = new THREE.LineSegments(new THREE.WireframeGeometry(geo), ringMat);
-      mesh.position.set(x, y, z);
-      mesh.userData.speed = speed;
-      mesh.userData.baseY = y;
-      envGroup.add(mesh);
-      return mesh;
-    });
-
-    // pequenos cristais/diamantes flutuantes — compõem o cenário no lugar
-    // das árvores, sem precisar de um "chão" próprio (ficam presos ao ar,
-    // orbitando a massa principal, então nunca parecem "flutuar errado")
-    const crystalMat = new THREE.LineBasicMaterial({ color: INK_DIM, transparent: true, opacity: 0.3, depthWrite: false });
-    registerThemeColor(crystalMat, "accent");
-    const crystals = [
-      { x: -8, y: 2.6, z: -2, s: 0.55, speed: 0.32 },
-      { x: 9.5, y: 3.4, z: -1, s: 0.4, speed: 0.44 },
-      { x: -7, y: -0.4, z: 3.5, s: 0.32, speed: 0.5 },
-      { x: 8.8, y: -1.2, z: 4, s: 0.45, speed: 0.38 },
-    ].map(({ x, y, z, s, speed }) => {
-      const geo = new THREE.OctahedronGeometry(s, 0);
-      const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(geo), crystalMat);
-      mesh.position.set(x, y, z);
-      mesh.userData.speed = speed;
-      mesh.userData.baseY = y;
-      envGroup.add(mesh);
-      return mesh;
-    });
-
-    // envGroup é filho direto da casa — herda a MESMA transformação dela
-    // sempre, sem precisar de nenhuma rotação/parallax própria (é fisicamente
-    // impossível "flutuar" separado, porque é o mesmo objeto 3D)
-    blueprintGroup.add(envGroup);
-
-    // poeira estelar no céu — também presa à casa, pelo mesmo motivo
-    const DUST_COUNT = isNarrow ? 220 : 420;
-    const dustPos = new Float32Array(DUST_COUNT * 3);
-    for (let i = 0; i < DUST_COUNT; i++){
-      const ix = i * 3;
-      dustPos[ix] = (Math.random() - 0.5) * 70;      // x — larga faixa horizontal
-      dustPos[ix + 1] = Math.random() * 28 + 2;        // y — só na parte de cima (céu)
-      dustPos[ix + 2] = -8 - Math.random() * 40;       // z — bem ao fundo
-    }
-    const dustGeo = new THREE.BufferGeometry();
-    dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
-    const dustMat = new THREE.PointsMaterial({
-      color: 0xffffff, size: 0.05, transparent: true, opacity: 0.55,
-      sizeAttenuation: true, depthWrite: false,
-    });
-    const dustPoints = new THREE.Points(dustGeo, dustMat);
-    blueprintGroup.add(dustPoints);
-
-    /* ---------- GRUPO 2 — CÓDIGO-FONTE (grafo de nós) ---------- */
-    const circuitGroup = new THREE.Group();
-    const NODE_COUNT = isNarrow ? 34 : 60;
-    const RADIUS = 9;
-    const nodePositions = [];
-    for (let i = 0; i < NODE_COUNT; i++){
-      nodePositions.push(new THREE.Vector3(
-        (Math.random() - 0.5) * RADIUS * 2.1,
-        (Math.random() - 0.5) * RADIUS * 1.3,
-        (Math.random() - 0.5) * RADIUS
-      ));
-    }
-    const posArr = new Float32Array(NODE_COUNT * 3);
-    nodePositions.forEach((v, idx) => posArr.set([v.x, v.y, v.z], idx * 3));
-    const pointsGeo = new THREE.BufferGeometry();
-    pointsGeo.setAttribute("position", new THREE.BufferAttribute(posArr, 3));
-    const pointsMat = new THREE.PointsMaterial({ color: NODE_C, size: 0.19, transparent: true, opacity: 0, sizeAttenuation: true, depthWrite: false });
-    registerThemeColor(pointsMat, "accent2");
-    circuitGroup.add(new THREE.Points(pointsGeo, pointsMat));
-
-    const lineVerts = [];
-    const MAX_DIST = 3.4;
-    for (let i = 0; i < nodePositions.length; i++){
-      for (let j = i + 1; j < nodePositions.length; j++){
-        if (nodePositions[i].distanceTo(nodePositions[j]) < MAX_DIST){
-          lineVerts.push(nodePositions[i].x, nodePositions[i].y, nodePositions[i].z);
-          lineVerts.push(nodePositions[j].x, nodePositions[j].y, nodePositions[j].z);
-        }
-      }
-    }
-    const lineGeo = new THREE.BufferGeometry();
-    lineGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(lineVerts), 3));
-    const lineMat = new THREE.LineBasicMaterial({ color: LINE_C, transparent: true, opacity: 0, depthWrite: false });
-    registerThemeColor(lineMat, "accent");
-    circuitGroup.add(new THREE.LineSegments(lineGeo, lineMat));
-    circuitGroup.scale.setScalar(0.001); // some antes de "nascer"
-    circuitGroup.position.z = -3; // mantém o grafo enquadrado quando a câmera se aproxima
-    scene.add(circuitGroup);
-
-    // parallax de mouse
-    let targetRotX = 0, targetRotY = 0;
-    window.addEventListener("mousemove", (e) => {
-      const nx = (e.clientX / window.innerWidth) * 2 - 1;
-      const ny = (e.clientY / window.innerHeight) * 2 - 1;
-      targetRotY = nx * 0.22;
-      targetRotX = ny * 0.12;
-    }, { passive: true });
-
-    function resize(){
-      width = heroEl.clientWidth; height = heroEl.clientHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    }
-    window.addEventListener("resize", resize);
-
-    let raf;
-    let t0 = performance.now();
-    let frameParity = 0;
-    function animate(){
-      raf = requestAnimationFrame(animate);
-      if (!reduceMotion){
-        blueprintGroup.rotation.y += 0.0016 + (targetRotY * 0.02 - blueprintGroup.rotation.y * 0.003);
-        blueprintGroup.rotation.x += (targetRotX * 0.5 - blueprintGroup.rotation.x) * 0.02;
-        circuitGroup.rotation.y += 0.0022;
-        circuitGroup.rotation.x += (targetRotX - circuitGroup.rotation.x) * 0.04;
-        const t = (performance.now() - t0) / 1000;
-        glowMat.opacity = 0.5 + Math.sin(t * 1.6) * 0.35;
-        glowMat.size = 0.24 + Math.sin(t * 1.6) * 0.06;
-
-        // terreno ondulando devagar — só recalcula a cada 2 frames (metade
-        // do custo de CPU) pra sobrar mais margem durante o scroll, que é
-        // quando o navegador já está ocupado recalculando o pin/layout
-        frameParity ^= 1;
-        if (frameParity === 0){
-          for (let i = 0; i < terrainPos.count; i++){
-            const ix = i * 3;
-            const x = terrainBase[ix], y = terrainBase[ix + 1];
-            terrainPos.array[ix + 2] = Math.sin(x * 0.18 + t * 0.5) * 0.7 + Math.cos(y * 0.15 + t * 0.35) * 0.5;
-          }
-          terrainPos.needsUpdate = true;
-        }
-
-        // anéis flutuantes — bóiam devagar e giram em ritmos levemente diferentes
-        rings.forEach((ring) => {
-          ring.rotation.x += ring.userData.speed * 0.006;
-          ring.rotation.y += ring.userData.speed * 0.004;
-          ring.position.y = ring.userData.baseY + Math.sin(t * ring.userData.speed + ring.userData.baseY) * 0.35;
-        });
-
-        // cristais flutuantes — mesma ideia, ritmo levemente diferente
-        crystals.forEach((c) => {
-          c.rotation.x += c.userData.speed * 0.005;
-          c.rotation.y += c.userData.speed * 0.007;
-          c.position.y = c.userData.baseY + Math.sin(t * c.userData.speed + c.userData.baseY) * 0.28;
-        });
-      }
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    // só renderiza quando a seção realmente está visível na tela — evita
-    // gastar GPU/CPU com uma cena 3D rodando escondida, que é a causa mais
-    // comum de travamento quando há várias cenas na mesma página
-    let heroVisible = true;
-    if ("IntersectionObserver" in window){
-      new IntersectionObserver((entries) => {
-        heroVisible = entries[0].isIntersecting;
-        if (!heroVisible) cancelAnimationFrame(raf);
-        else if (!document.hidden) animate();
-      }, { threshold: 0 }).observe(heroEl);
-    }
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) cancelAnimationFrame(raf);
-      else if (heroVisible) animate();
-    });
-
-    heroRefs = { camera, blueprintGroup, circuitGroup, inkMat, inkMatDim, pointsMat, lineMat, glowMat };
+    fit();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fit(); if (window.ScrollTrigger) ScrollTrigger.refresh(); });
+    let t;
+    window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(fit, 120); });
   }
 
   /* ---------------------------------------------------------
@@ -1585,25 +1351,30 @@
 
     splitTitleIntoChars();
     const chars = Array.from(heroEl.querySelectorAll(".tchar"));
-    const heroCode = document.getElementById("heroCode");
-    const codeLines = heroCode ? Array.from(heroCode.querySelectorAll(".code-line")) : [];
-    if (heroCode) heroCode.classList.add("code-armed");
+    // a cena 3D (js/hero3d.js, módulo) lê este objeto a cada frame:
+    // p 0 → .42: maquete desce para planta baixa (corte + vista de cima)
+    // p .46 → .86: a planta se desfaz em glifos que viram código-fonte
+    // p .88 → 1: sobra só o código, que sobe junto com a página
+    const proxy = (window.heroScroll = window.heroScroll || { p: 0 });
 
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: heroEl,
         start: "top top",
-        end: "+=140%",
+        end: "+=260%",
         scrub: 0.7,
         pin: true,
         anticipatePin: 1,
       },
     });
 
-    // 1) copy sai de cena para abrir espaço para a transformação
-    tl.to("#heroCopy .hero-badge, #heroCopy .hero-desc, #heroCopy .hero-cta, #heroCopy .hero-role", {
+    tl.to(proxy, { p: 1, duration: 6, ease: "none" }, 0);
+
+    // 1) copy, índice e painel saem de cena
+    tl.to("#heroCopy > *, .hero-index", {
       opacity: 0, y: -16, duration: 1.1, ease: "power1.in", stagger: 0.03,
     }, 0);
+    tl.to("#heroPanel", { opacity: 0, y: 24, duration: 1.2, ease: "power1.in" }, 0.15);
 
     // 2) letras do título se dispersam em 3D
     chars.forEach((ch, i) => {
@@ -1615,33 +1386,16 @@
         x: dx, y: dy, z: dz,
         rotationX: rot, rotationY: rot * 0.6,
         opacity: 0,
-        duration: 3,
+        duration: 1.8,
         ease: "power2.in",
-      }, 0.6 + i * 0.045);
+      }, 0.3 + i * 0.03);
     });
 
-    // 3) painel de código "compila" linha a linha — e o vidro fosco vira sólido
-    tl.to("#heroCode", { backgroundColor: "rgba(20,26,42,.96)", duration: 1.8, ease: "power1.out" }, 0.3);
-    codeLines.forEach((line, i) => {
-      tl.to(line, { opacity: 1, y: 0, duration: 1.4, ease: "power1.out" }, 0.4 + i * 0.28);
-    });
-
-    // 4) cena 3D: planta baixa esmaece, grafo de código nasce; câmera avança
-    if (heroRefs){
-      const { camera, blueprintGroup, inkMat, inkMatDim, pointsMat, lineMat, circuitGroup, glowMat } = heroRefs;
-      tl.to(camera.position, { z: 9.5, duration: 6, ease: "power1.inOut" }, 0);
-      tl.to(blueprintGroup.rotation, { y: blueprintGroup.rotation.y + 1.1, duration: 6, ease: "power1.in" }, 0);
-      tl.to([inkMat, inkMatDim, glowMat], { opacity: 0, duration: 2.6, ease: "power1.in" }, 2.6);
-      tl.to(circuitGroup.scale, { x: 1, y: 1, z: 1, duration: 3, ease: "power2.out" }, 2.2);
-      tl.to([pointsMat, lineMat], { opacity: (i) => (i === 0 ? 1 : 0.4), duration: 2.6, ease: "power1.out" }, 2.6);
-    }
-
-    // 5) anotação técnica troca de rótulo
-    tl.to(".swap-a", { opacity: 0, duration: 0.6 }, 2.6);
-    tl.to(".swap-b", { opacity: 1, duration: 0.6 }, 2.6);
-
-    // 6) fecha a cena 3D com um fade limpo antes de soltar o pin
-    tl.to("#heroCanvas", { opacity: 0, duration: 1, ease: "power1.in" }, 5.4);
+    // 3) anotação técnica: maquete → planta baixa → código-fonte
+    tl.to(".swap-a", { opacity: 0, duration: 0.4 }, 1.5);
+    tl.to(".swap-b", { opacity: 1, duration: 0.4 }, 1.5);
+    tl.to(".swap-b", { opacity: 0, duration: 0.4 }, 3.0);
+    tl.to(".swap-c", { opacity: 1, duration: 0.4 }, 3.0);
 
     heroPinTl = tl;
   }
@@ -1653,7 +1407,8 @@
   function initScanlineTransitions(){
     const line = document.getElementById("scanline");
     if (!line || typeof gsap === "undefined" || !window.ScrollTrigger || reduceMotion) return;
-    const targets = ["about", "experience", "projects", "education", "contact"];
+    const targets = ["about", "experience", "projects", "education", "contact"]
+      .filter((id) => !(id === "experience" && document.documentElement.classList.contains("about-pinned")));
     targets.forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -1954,6 +1709,7 @@
         '<span class="exp-corner tl"></span><span class="exp-corner tr"></span>' +
         '<span class="exp-corner bl"></span><span class="exp-corner br"></span>' +
         '<span class="exp-scanline"></span>' +
+        '<span class="exp-rv" aria-hidden="true"><i class="exp-rv-line t"></i><i class="exp-rv-line b"></i></span>' +
         `<span class="exp-id-tag mono">NODE_${String(i + 1).padStart(2, "0")}</span>`;
       while (frag.firstChild) card.appendChild(frag.firstChild);
 
@@ -1979,11 +1735,16 @@
   }
 
   function initExperiencePin(){
+    const section = document.getElementById("experience");
     const wrap = document.getElementById("expPinWrap");
     const track = document.getElementById("expTrack");
     const fill = document.getElementById("expProgressFill");
     const staticWrap = document.getElementById("expStatic");
     const canvas = document.getElementById("expBgCanvas");
+    const tint = document.getElementById("expBgTint");
+    const intro = document.getElementById("expIntro");
+    const introText = document.getElementById("expIntroText");
+    const introSvg = document.getElementById("expIntroSvg");
     const cards = track ? Array.from(track.querySelectorAll(".exp-card")) : [];
 
     // clona os cards para o fallback estático (mobile / reduced motion)
@@ -1993,15 +1754,20 @@
       });
     }
 
-    if (!wrap || !track || typeof gsap === "undefined" || !window.ScrollTrigger) return;
-    if (reduceMotion || isNarrow) return; // usa o fallback estático via CSS
+    if (!section || !wrap || !track || typeof gsap === "undefined" || !window.ScrollTrigger) return;
+    if (reduceMotion || isNarrow){ section.classList.add("exp-static-on"); return; }
 
-    // ----- fundo em sequência de frames (não é <video>!) — o scroll desenha
-    // a imagem certa num <canvas>. Isso evita de vez os engasgos/travamentos
-    // de "seek" de vídeo HTML5, que dependem de keyframes e do navegador. -----
+    section.classList.add("exp-cine");
+    // emenda com o pin do Sobre: a seção sobe uma tela por cima do final dele
+    const aboutMain = document.querySelector("#about .about-main.compact");
+    const overlap = !!aboutMain;
+    function applyOverlap(){ section.style.marginTop = overlap ? `-${aboutMain.offsetHeight}px` : ""; }
+    applyOverlap();
+
+    // ----- fundo em sequência de frames num <canvas> (o scroll escolhe o frame) -----
     const FRAME_COUNT = 192;
-    const SKIP_FRAMES = 19; // pula os primeiros frames (fade-in bem escuro do vídeo novo) —
-    // combina com o frame usado na prévia do overlay de "desdobrar" (frame_015)
+    const SKIP_FRAMES = 19;          // frame_020 = o mesmo quadro que termina o "mergulho" no notebook
+    const LAST = FRAME_COUNT - 1;
     const FRAME_BASE = "./assets/video/frames/frame_";
     const frames = [];
     for (let i = 1; i <= FRAME_COUNT; i++){
@@ -2012,34 +1778,26 @@
     }
 
     const ctx = canvas ? canvas.getContext("2d") : null;
-    let currentFrameIdx = 0;
-    let lastDrawnIdx = 0;
+    let currentFrameIdx = SKIP_FRAMES;
+    let lastDrawnIdx = SKIP_FRAMES;
     function frameReady(i){ const im = frames[i]; return im && im.complete && im.naturalWidth; }
     function drawCover(img, alpha){
       if (!img || !img.naturalWidth) return;
       const cw = canvas.width, ch = canvas.height;
       const iw = img.naturalWidth, ih = img.naturalHeight;
-      const scale = Math.max(cw / iw, ch / ih); // comportamento "cover"
+      const scale = Math.max(cw / iw, ch / ih);
       const dw = iw * scale, dh = ih * scale;
       ctx.globalAlpha = alpha;
       ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
       ctx.globalAlpha = 1;
     }
-    // desenha com CROSS-FADE entre os dois frames mais próximos do índice
-    // fracionário — isso é o que dá a suavidade "nível Awwwards" mesmo com
-    // um número modesto de frames: em vez de saltar de imagem em imagem
-    // (efeito "pipocado"), a transição sempre passa por uma mistura suave
-    // das duas imagens vizinhas, proporcional à posição exata do scroll
+    // cross-fade entre os dois frames vizinhos do índice fracionário
     function drawFrame(idx){
       if (!ctx || !canvas.width || !canvas.height) return;
-      const clamped = Math.max(0, Math.min(FRAME_COUNT - 1, idx));
+      const clamped = Math.max(0, Math.min(LAST, idx));
       let a = Math.floor(clamped);
-      let b = Math.min(FRAME_COUNT - 1, a + 1);
+      let b = Math.min(LAST, a + 1);
       const frac = clamped - a;
-
-      // fallback: se o frame exato ainda não carregou (conexões concorrentes
-      // limitadas pelo navegador), anda em direção ao último frame desenhado
-      // com sucesso, em vez de "congelar" a tela
       if (!frameReady(a)){
         const dir = a > lastDrawnIdx ? 1 : -1;
         let probe = a;
@@ -2049,7 +1807,6 @@
       } else if (!frameReady(b)){
         b = a;
       }
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawCover(frames[a], 1);
       if (b !== a && frac > 0.01) drawCover(frames[b], frac);
@@ -2062,30 +1819,72 @@
       canvas.height = canvas.clientHeight * dpr;
       drawFrame(currentFrameIdx);
     }
-    window.addEventListener("resize", resizeCanvas);
+    frames[SKIP_FRAMES].addEventListener("load", () => drawFrame(currentFrameIdx));
 
-    // ----- a "entrada" vem do desdobrar do notebook do Quem-sou-eu (ver
-    // initAboutSequence) — aqui só garantimos que o canvas já esteja pronto -----
-    const unfoldEl = document.getElementById("aboutVideoUnfold");
-    if (canvas) gsap.set(canvas, { opacity: 1 });
+    /* ---------- linha do tempo (em "progresso" 0 → 1 do pin) ----------
+       0.00        tela = 1º frame (continuação do mergulho)
+       0.00 – .90  vídeo roda do frame 20 ao 192
+       .215 – .47  a mão aparece → título desenhado em SVG, depois se desfaz
+       .48  – .66  três experiências abrem, uma a uma, com o vídeo rodando
+       .66  – .84  trilha desliza; a experiência atual entra por último
+       .90  – 1.0  respiro final                                            */
+    const VIDEO_END = 0.9;
+    const pOfFrame = (f) => ((f - 1 - SKIP_FRAMES) / (LAST - SKIP_FRAMES)) * VIDEO_END;
+    const T_HAND = pOfFrame(62);               // primeiro frame em que a mão entra
+    const chrome = wrap.querySelectorAll(".exp-progress, .exp-hint");
+    const kicker = intro ? intro.querySelector(".exp-intro-kicker") : null;
+    const kLine = intro ? intro.querySelector(".exp-intro-line") : null;
+    const sub = intro ? intro.querySelector(".exp-intro-sub") : null;
 
+    // cada card ganha um sub-timeline de abertura
+    function cardReveal(card){
+      const rvLines = card.querySelectorAll(".exp-rv-line");
+      const yearEl = card.querySelector(".exp-card-year");
+      const year = yearEl ? yearEl.textContent.trim() : "";
+      const inner = card.querySelectorAll(".exp-card-range, .exp-card-role, .exp-card-company, .exp-card-desc");
+      const tags = card.querySelectorAll(".exp-tag");
+      const t = gsap.timeline();
+      // 1) uma linha de luz risca o centro do card
+      t.fromTo(card, { opacity: 1, "--o": 1, y: 36, rotationX: -10, transformPerspective: 1200 },
+        { y: 0, rotationX: 0, duration: 0.07, ease: "power2.out" }, 0);
+      t.fromTo(rvLines, { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.022, ease: "power2.out" }, 0);
+      // 2) a "tela" se abre do centro para as bordas, as linhas acompanham
+      t.to(card, { "--o": 0, duration: 0.036, ease: "power3.inOut" }, 0.018);
+      t.to(rvLines, { opacity: 0, duration: 0.014, ease: "power1.in" }, 0.05);
+      // 3) conteúdo sobe em cascata; o ano "decodifica"
+      t.fromTo(inner, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.03, stagger: 0.008, ease: "power2.out" }, 0.036);
+      t.fromTo(tags, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.018, stagger: 0.003, ease: "back.out(2)" }, 0.056);
+      if (yearEl && /^\d{4}$/.test(year)){
+        const o = { p: 0 };
+        t.to(o, {
+          p: 1, duration: 0.05, ease: "none",
+          onUpdate: () => {
+            const k = Math.floor(o.p * 4.999);
+            let s2 = year.slice(0, k);
+            for (let i = k; i < 4; i++) s2 += o.p <= 0 ? year[i] : String((Math.random() * 10) | 0);
+            yearEl.textContent = o.p >= 1 ? year : s2;
+          },
+        }, 0.03);
+      }
+      return t;
+    }
+
+    let tlRef = null;
     function build(){
-      ScrollTrigger.getById("expPin") && ScrollTrigger.getById("expPin").kill();
-      const distance = track.scrollWidth - window.innerWidth + 160;
-      if (distance <= 0) return;
-
-      // fase 1 (sequência de frames) + fase 2 (cards deslizando) — a mesma
-      // rolagem é dividida entre as duas
-      const videoLen = Math.max(window.innerHeight * 2.2, 900);
-      const totalLen = videoLen + distance;
-      const videoFrac = videoLen / totalLen;
+      if (tlRef){ tlRef.scrollTrigger && tlRef.scrollTrigger.kill(true); tlRef.kill(); tlRef = null; }
+      applyOverlap();
+      const cs = getComputedStyle(track);
+      const padR = parseFloat(cs.paddingRight) || 0;
+      const distance = Math.max(0, track.scrollWidth - window.innerWidth + padR * 0.2);
+      const totalLen = Math.max(window.innerHeight * 5.2, 4200);
 
       gsap.set(track, { x: 0 });
-      gsap.set(cards, { opacity: 0, y: 70 });
+      gsap.set(cards, { opacity: 0 });
       resizeCanvas();
       drawFrame(SKIP_FRAMES);
 
       const tl = gsap.timeline({
+        defaults: { ease: "none" },
         scrollTrigger: {
           id: "expPin",
           trigger: wrap,
@@ -2094,49 +1893,59 @@
           pin: true,
           scrub: 0.6,
           invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            if (fill) fill.style.width = `${self.progress * 100}%`;
-            // esconde o overlay do "virar do notebook" assim que ESTE pin
-            // faz qualquer progresso — usando "visibility" (não "opacity")
-            // pra nunca conflitar com a timeline do Quem-sou-eu, que já
-            // anima a opacidade/tamanho desse MESMO elemento. Assim, dá pra
-            // rolar de volta pra cima e ver a animação reversa funcionando
-            // normalmente (a tentativa anterior "matava" o tween do GSAP
-            // pra sempre, o que travava o overlay pequeno ao voltar)
-            if (unfoldEl) unfoldEl.style.visibility = self.progress > 0.001 ? "hidden" : "visible";
-          },
+          onUpdate: (self) => { if (fill) fill.style.width = `${self.progress * 100}%`; },
         },
       });
+      tl.set({}, {}, 1); // duração total = 1 (tempo = progresso)
 
-      tl.to(wrap, {
-        onUpdate: function(){ wrap.style.backgroundColor = lerpColorStops(EXP_COLOR_STOPS, this.progress()); },
-        duration: videoFrac,
-      }, 0);
+      // tela: invisível enquanto a seção sobe por cima do Sobre; aparece no 1º pixel do pin
+      if (canvas) tl.fromTo(canvas, { opacity: overlap ? 0 : 1 }, { opacity: 1, duration: 0.002 }, 0);
+      if (tint) tl.fromTo(tint, { opacity: 0 }, { opacity: 0.45, duration: 0.12 }, 0.02);
+      if (tint) tl.to(tint, { opacity: 1, duration: 0.05 }, 0.46);
+      tl.fromTo(chrome, { opacity: 0 }, { opacity: 1, duration: 0.05 }, 0.03);
 
-      // fase 1 — a rolagem escolhe qual frame desenhar (0 a 84), instantâneo,
-      // sem decodificação de vídeo nem espera de "seek"
+      // vídeo
       if (canvas){
         tl.to({}, {
-          duration: videoFrac,
-          ease: "none",
+          duration: VIDEO_END,
           onUpdate: function(){
-            currentFrameIdx = SKIP_FRAMES + this.progress() * (FRAME_COUNT - 1 - SKIP_FRAMES);
+            currentFrameIdx = SKIP_FRAMES + this.progress() * (LAST - SKIP_FRAMES);
             drawFrame(currentFrameIdx);
           },
         }, 0);
       }
 
-      // transição — a cena esmaece um pouco e os cards de experiência entram
-      tl.to(canvas || {}, { opacity: 0.35, duration: 0.08, ease: "power1.in" }, videoFrac - 0.04);
-      tl.to(cards, { opacity: 1, y: 0, stagger: 0.05, duration: 0.14, ease: "power2.out" }, videoFrac - 0.02);
+      // título: traço desenhado → preenchimento → se espalha e dissolve
+      if (intro && introText){
+        const t0 = T_HAND - 0.005;
+        tl.set(intro, { visibility: "visible" }, t0);
+        if (kLine) tl.fromTo(kLine, { scaleX: 0 }, { scaleX: 1, duration: 0.03, ease: "power2.out" }, t0);
+        if (kicker) tl.fromTo(kicker, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.025, ease: "power2.out" }, t0);
+        tl.fromTo(introText, { strokeDashoffset: 1100, strokeOpacity: 1 },
+          { strokeDashoffset: 0, duration: 0.085, ease: "power1.inOut" }, t0 + 0.004);
+        tl.fromTo(introText, { fillOpacity: 0 }, { fillOpacity: 1, duration: 0.045, ease: "power1.inOut" }, t0 + 0.06);
+        tl.to(introText, { strokeOpacity: 0.3, duration: 0.03 }, t0 + 0.08);
+        if (sub) tl.fromTo(sub, { opacity: 0, y: 10, letterSpacing: "0.6em" }, { opacity: 1, y: 0, letterSpacing: "0.34em", duration: 0.04, ease: "power2.out" }, t0 + 0.075);
+        // saída
+        const tOut = 0.4;
+        tl.fromTo(introText, { letterSpacing: "-7px" }, { letterSpacing: "46px", immediateRender: false, duration: 0.06, ease: "power2.in" }, tOut);
+        tl.to(introText, { fillOpacity: 0, strokeDashoffset: -1100, strokeOpacity: 1, duration: 0.06, ease: "power2.in" }, tOut);
+        if (introSvg) tl.fromTo(introSvg, { filter: "blur(0px) drop-shadow(0 0 22px rgba(125,216,255,.28))" }, { filter: "blur(10px) drop-shadow(0 0 22px rgba(125,216,255,0))", duration: 0.06, ease: "power2.in" }, tOut);
+        tl.to([kicker, sub].filter(Boolean), { opacity: 0, y: -12, duration: 0.04, ease: "power1.in" }, tOut);
+        tl.set(intro, { visibility: "hidden" }, tOut + 0.07);
+      }
 
-      // fase 2 — trilha desliza horizontalmente, como antes
-      tl.to(track, { x: -distance, ease: "none", duration: 1 - videoFrac }, videoFrac);
+      // cards: três abrem com o vídeo rodando; a trilha desliza e a atual entra por último
+      const starts = [0.48, 0.545, 0.61, 0.715];
+      cards.forEach((card, i) => { tl.add(cardReveal(card), starts[Math.min(i, starts.length - 1)] + Math.max(0, i - 3) * 0.06); });
+      if (distance > 0) tl.to(track, { x: -distance, duration: 0.18, ease: "power1.inOut" }, 0.665);
 
+      tlRef = tl;
       return tl;
     }
     build();
-    window.addEventListener("resize", () => { ScrollTrigger.refresh(); });
+    let rt;
+    window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { build(); ScrollTrigger.refresh(); }, 150); });
   }
 
   /* ---------------------------------------------------------
@@ -2161,7 +1970,7 @@
 
     // pins/scrollTriggers registrados em ordem top-to-bottom do documento
     // (evita cálculo de posição incorreto entre pins aninhados no GSAP)
-    initHeroScene();
+    initHeroTitleFit();
     initHeroPinSequence();
     initStatCounters();
     initAboutSequence();
@@ -2176,6 +1985,8 @@
     initEducationSplit();
 
     runLoader(() => {
+      window.__heroLoaderDone = true;
+      document.dispatchEvent(new CustomEvent("loader:done"));
       if (window.ScrollTrigger) ScrollTrigger.refresh();
     });
   });
