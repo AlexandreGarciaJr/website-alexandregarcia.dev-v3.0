@@ -63,12 +63,28 @@ body{
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  opacity: 0;
 }
-body.page-ready{ opacity: 1; transition: opacity .5s var(--ease-out); }
-body.page-exit{ opacity: 0 !important; transition: opacity .35s var(--ease-in); }
+/* ---------- transição entre páginas: véu na cor do fundo ----------
+   Entra opaco (a página nasce "no escuro") e se dissolve quando está pronta;
+   ao clicar num link interno ele volta a cobrir tudo antes de navegar.
+   Pseudo-elemento do <html>: existe antes de qualquer JS, então não há
+   flash de conteúdo; e não usa opacity/filter no <body> (que quebraria
+   os elementos position:fixed). */
+html::before{
+  content:""; position:fixed; inset:0;
+  z-index: 2147483000;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 55%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%),
+    var(--bg);
+  pointer-events:none;
+  opacity:1;
+  animation: veil-failsafe .6s ease 3s forwards; /* se o JS falhar, a página aparece mesmo assim */
+}
+html.is-revealed::before{ animation:none; opacity:0; transition: opacity .8s cubic-bezier(.22,.61,.36,1) .05s; }
+html.is-leaving::before{ animation:none; opacity:1; transition: opacity .45s cubic-bezier(.55,.06,.68,.19); }
+@keyframes veil-failsafe{ to{ opacity:0; } }
 @media (prefers-reduced-motion: reduce){
-  body{ opacity:1 !important; transition:none !important; }
+  html.is-revealed::before, html.is-leaving::before{ transition-duration:.01s; }
 }
 html.lenis, html.lenis body{ height: auto; }
 img{ max-width:100%; display:block; }
@@ -1487,6 +1503,35 @@ section{ position:relative; }
 }
 .exp-now i{ width:5px; height:5px; border-radius:50%; background: var(--accent-2); box-shadow:0 0 8px var(--accent-2); animation: blink 1.6s steps(1) infinite; }
 
+/* ---------- celular: mesma sequência, adaptada ----------
+   vídeo em retrato · título ocupa a largura · cards em baralho (um por vez) */
+#experience.exp-mobile{ background:#050810; }
+.exp-mobile .exp-pin-wrap{ height:100svh; }
+.exp-mobile .exp-bg-video{ will-change: clip-path, transform; }
+.exp-mobile .exp-track{ position:absolute; inset:0; display:block; padding:0; gap:0; }
+.exp-mobile .exp-card{
+  position:absolute; left:50%; top:52%;
+  width: min(88vw, 440px);
+  height:auto; max-height: 68svh;
+  padding: 1.5rem 1.35rem 1.35rem;
+  /* sem backdrop-filter: blur sobre um canvas que redesenha a cada frame pesa demais no celular */
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.8);
+}
+.exp-mobile .exp-card-year{ font-size:2.2rem; top:1rem; right:1.1rem; }
+.exp-mobile .exp-card-role{ font-size:1.12rem; }
+.exp-mobile .exp-card-desc{ font-size:.86rem; line-height:1.55; flex:none; }
+.exp-mobile .exp-card-tags{ margin-top:1rem; gap:.4rem; }
+.exp-mobile .exp-tag{ font-size:.66rem; padding:.24rem .55rem; }
+.exp-mobile .exp-intro{ bottom: 14svh; }
+.exp-mobile .exp-intro-svg{ width: 92vw; }
+.exp-mobile .exp-intro-kicker{ font-size:.62rem; letter-spacing:.18em; gap:.6rem; }
+.exp-mobile .exp-intro-line{ width:36px; }
+.exp-mobile .exp-intro-sub{ font-size:.66rem; letter-spacing:.26em; }
+.exp-mobile .exp-progress{ left:var(--edge); right:var(--edge); bottom:1.6rem; }
+.exp-mobile .exp-hint{ display:none; }
+
 /* entre 721px e 900px nada pinava: usa o fallback estático */
 #experience.exp-static-on .exp-pin-wrap{ display:none; }
 #experience.exp-static-on .exp-static{ display:flex; flex-direction:column; gap:1.6rem; padding: 0 var(--edge) var(--section-pad); }
@@ -1494,7 +1539,7 @@ section{ position:relative; }
 
 /* fallback estático (reduced motion / mobile) */
 .exp-static{ display:none; }
-@media (max-width: 720px), (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion: reduce){
   .exp-pin-wrap{ display:none; }
   .exp-static{
     display:flex; flex-direction:column; gap:1.6rem;
@@ -1745,14 +1790,6 @@ section{ position:relative; }
   position:relative;
   overflow:hidden;
 }
-.contact-bg-video{
-  position:absolute; inset:0;
-  z-index:0;
-  width:100%; height:100%;
-  object-fit:cover;
-  opacity:.55;
-  filter: saturate(1.05) brightness(.85);
-}
 /* vinheta — escurece bordas e as divisas com as seções vizinhas, deixando
    só o centro do vídeo visível, no estilo da referência (Gustavo Campelo) */
 .contact-vignette{
@@ -1898,31 +1935,34 @@ footer{ border-top:1px solid var(--border); padding: 3.6rem var(--edge) 2.2rem; 
 /* ============================================================
    SIGNATURE WATERMARK — nome gigante em contorno (assinatura)
    ============================================================ */
-.signature-watermark-wrap{ position:absolute; inset:0; z-index:0; --sx: -9999px; --sy: -9999px; }
+.signature-watermark-wrap{ position:absolute; inset:0; z-index:1; --sx: -9999px; --sy: -9999px; pointer-events:none; } /* acima da vinheta: o nome não some no escuro */
 .signature-watermark{
   position:absolute;
-  left:50%; bottom:-2%;
+  left:50%; bottom: clamp(.8rem, 2.4vw, 2rem);
   transform: translateX(-50%);
   z-index:0;
   font-family: var(--f-display);
   font-weight:700;
-  font-size: clamp(4.5rem, 15vw, 12rem);
+  font-size: var(--sig-fs, clamp(3rem, 11.5vw, 12rem)); /* main.js ajusta para caber na largura */
   line-height:.85;
   letter-spacing:-0.02em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(226,236,255,.14);
-  text-stroke: 1px rgba(226,236,255,.14);
+  color: rgba(125,216,255,.06);
+  -webkit-text-stroke: 1.3px rgba(170,215,255,.42);
+  text-shadow: 0 0 30px rgba(125,216,255,.22);
   white-space:nowrap;
   pointer-events:none;
   user-select:none;
 }
+.signature-watermark span{ display:inline-block; }
 .signature-watermark.fill{
   background-image: linear-gradient(100deg, var(--accent-2), var(--accent) 70%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-stroke: 0;
-  -webkit-mask-image: radial-gradient(circle 170px at var(--sx) var(--sy), #000 0%, transparent 72%);
-  mask-image: radial-gradient(circle 170px at var(--sx) var(--sy), #000 0%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle var(--sr, 170px) at var(--sx) var(--sy), #000 0%, transparent 72%);
+  mask-image: radial-gradient(circle var(--sr, 170px) at var(--sx) var(--sy), #000 0%, transparent 72%);
+  text-shadow:none;
+  filter: drop-shadow(0 0 18px rgba(125,216,255,.55));
   z-index:1;
 }
 
@@ -2149,12 +2189,6 @@ body.page-contact{ transition: background-color .4s; }
   position:relative;
   padding-top: calc(var(--section-pad) + 3rem);
   overflow:hidden;
-}
-#contactCanvas{
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  z-index:0;
-  pointer-events:none;
 }
 .contact-hero-title{
   font-family: var(--f-display);
@@ -2451,6 +2485,7 @@ html{ transition: background-color .5s; }
   position:fixed; inset:0; z-index:800;
   background: rgba(3,5,10,.5);
   backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   opacity:0; pointer-events:none;
   transition: opacity .4s;
 }
@@ -2642,3 +2677,395 @@ html{ transition: background-color .5s; }
   .glitch-hover::before, .glitch-hover::after{ display:none; }
 }
 
+
+
+/* ============================================================
+   HERO — celular: painel vira um "dock" com abas sobre o palco da casa
+   (fica na primeira tela, junto do 3D, em vez de lá embaixo)
+   ============================================================ */
+.hp-tabs{ display:none; }
+@media (max-width: 900px){
+  .hero-stage{ height: 58svh; min-height: 330px; }
+  #hero .hero-panel{
+    position:absolute; top:0; left: var(--edge); right: var(--edge);
+    width:auto; max-width:none; margin:0;
+    padding: .5rem .55rem .55rem;
+    z-index:5;
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+  }
+  #hero .hero-panel .hp-head,
+  #hero .hero-panel .hp-stats,
+  #hero .hero-panel .hp-field--rot{ display:none; }
+  #hero .hero-panel .hp-field{ display:none; padding:.4rem .35rem .1rem; border:0; }
+  #hero .hero-panel .hp-field.is-tab{ display:block; }
+  #hero .hero-panel .hp-field .hp-row label,
+  #hero .hero-panel .hp-field .hp-label{ font-size:.72rem; }
+  .hp-tabs{
+    display:flex; align-items:center; gap:.3rem;
+    padding-bottom:.45rem;
+    border-bottom:1px dashed var(--border);
+  }
+  .hp-tab{
+    flex: 1 1 auto;
+    font-family: var(--f-mono); font-size:.64rem; letter-spacing:.04em;
+    padding:.42rem .2rem;
+    border:1px solid var(--border-strong); border-radius: var(--r-md);
+    color: var(--text-faint);
+    transition: color .25s, background .25s, border-color .25s;
+    white-space:nowrap;
+  }
+  .hp-tab[aria-selected="true"]{ color: var(--bg); background: var(--accent-2); border-color: var(--accent-2); }
+  .hp-tab-ico{
+    flex:0 0 auto; width:32px; height:30px;
+    display:grid; place-items:center;
+    border:1px solid var(--border-strong); border-radius: var(--r-md);
+    color: var(--text-faint);
+  }
+  .hp-tab-ico svg{ width:15px; height:15px; }
+  .hp-tab-ico[aria-pressed="true"]{ color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 60%, transparent); }
+  .hero-panel.is-loading .hp-tabs{ opacity:.4; pointer-events:none; }
+}
+
+/* ============================================================
+   FORMAÇÃO — celular: contador vira uma pílula fixa no topo enquanto
+   os cursos passam (antes só contava quando já tinha saído da tela)
+   ============================================================ */
+.edu-split-counter{ --p: 0; }
+@media (max-width: 900px){
+  .edu-split{ display:block; }
+  .edu-split-counter-wrap{
+    position: sticky; top: 12px; z-index:6;
+    padding: .9rem 0;
+    background: transparent;
+    pointer-events:none;
+  }
+  .edu-split-counter{
+    width:auto; height:auto; max-width: max-content;
+    flex-direction:row; align-items:center; gap:.55rem;
+    padding:.5rem 1.05rem .5rem 1.1rem;
+    border-radius: var(--r-full);
+    background:
+      linear-gradient(90deg, rgba(125,216,255,.2) calc(var(--p) * 100%), transparent 0),
+      rgba(10,14,26,.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,.7), 0 0 30px rgba(125,216,255,.12);
+  }
+  .edu-split-counter .counter-label{ line-height:1; font-size:.6rem; }
+  .edu-split-counter .counter-label + .counter-label{ margin-left:-.3rem; }
+  .edu-split-counter .counter-value{ font-size:1.35rem; margin:0 0 0 .2rem; line-height:1; }
+  .edu-split-counter .counter-value::after{ font-size:.8rem; }
+}
+
+/* ============================================================
+   SAFARI — backdrop-filter ignora clip-path no WebKit (o desfoque
+   "vaza" durante a abertura dos cards): no Safari os cards usam fundo sólido
+   ============================================================ */
+.is-safari .exp-cine .exp-card{
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+
+/* ============================================================
+   CONTATO — assinatura: espaço reservado embaixo (antes era cortada)
+   e duas linhas no celular
+   ============================================================ */
+#contact{ padding-bottom: calc(var(--section-pad) + var(--sig-h, 9rem)); }
+@media (max-width: 720px){
+  .signature-watermark{ line-height:.9; text-align:center; }
+  .signature-watermark span{ display:block; width:max-content; margin:0 auto; }
+}
+
+/* ============================================================
+   CONTATO — quebra-blocos
+   ============================================================ */
+.contact-game{
+  position:absolute; inset:0; z-index:1;
+  pointer-events:none;
+}
+.contact-game canvas{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  display:block;
+  opacity:.32;
+  filter: saturate(.85);
+  /* de fundo só aparecem os tijolos: raquete/textos do jogo somem no degradê */
+  -webkit-mask-image: linear-gradient(#000 0 42%, transparent 62%);
+  mask-image: linear-gradient(#000 0 42%, transparent 62%);
+  outline:none;
+  touch-action: pan-y;
+  transition: opacity .8s var(--ease-out), filter .8s var(--ease-out);
+}
+.contact-play{
+  display:flex; align-items:center; gap:.85rem;
+  margin: 1.6rem auto 0;
+  padding:.7rem 1.15rem .7rem .8rem;
+  border:1px dashed color-mix(in srgb, var(--accent-2) 45%, transparent);
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  font-family: var(--f-mono); font-size:.78rem; letter-spacing:.02em;
+  color: var(--text-dim);
+  cursor:pointer;
+  transition: color .3s, border-color .3s, background .3s, transform .3s var(--ease-out);
+}
+.contact-play b{ font-weight:500; color: var(--accent-2); }
+.contact-play:hover{ color: var(--text); border-style:solid; border-color: var(--accent-2); transform: translateY(-2px); }
+.contact-play:focus-visible{ outline:2px solid var(--accent-2); outline-offset:4px; }
+.contact-play-ico{ display:grid; grid-template-columns: repeat(3, 7px); gap:2px; flex-shrink:0; }
+.contact-play-ico i{ height:4px; border-radius:1px; background: var(--accent-2); opacity:.85; }
+.contact-play-ico i:nth-child(2n){ background: var(--accent); }
+.contact-play:hover .contact-play-ico i{ animation: brick-pop .9s var(--ease-out) infinite alternate; }
+.contact-play:hover .contact-play-ico i:nth-child(odd){ animation-delay:.15s; }
+@keyframes brick-pop{ to{ opacity:.25; transform: translateY(-2px); } }
+
+.contact-inner, .signature-watermark-wrap{ transition: opacity .5s var(--ease-out), transform .6s var(--ease-out), visibility .5s; }
+
+/* modo jogo */
+#contact.is-playing{ min-height: 100svh; }
+#contact.is-playing .contact-inner{ opacity:0; visibility:hidden; transform: translateY(-14px); pointer-events:none; }
+#contact.is-playing .signature-watermark-wrap{ opacity:.25; }
+#contact.is-playing .contact-shader{ opacity:.35; }
+#contact.is-playing .contact-game{ pointer-events:auto; z-index:3; }
+#contact.is-playing .contact-game canvas{ opacity:1; filter:none; -webkit-mask-image:none; mask-image:none; touch-action:none; cursor: crosshair; top: 4.2rem; height: calc(100% - 4.2rem); }
+/* no jogo, a navegação e os botões flutuantes saem de cena (tela cheia de verdade) */
+html.game-on #mainNav, html.game-on .music-toggle-fab, html.game-on .settings-fab,
+html.game-on .wa-float, html.game-on .measure-rail{
+  opacity:0 !important; pointer-events:none !important; transition: opacity .4s;
+}
+.contact-game-bar{
+  position:absolute; z-index:2; left:50%; top: clamp(.8rem, 2.5vh, 1.6rem);
+  transform: translateX(-50%);
+  width: min(92%, 980px);
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:.6rem .7rem .6rem 1.1rem;
+  border:1px solid var(--border-strong); border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  text-align:left;
+}
+.contact-game-bar[hidden]{ display:none; }
+.contact-game-help{ font-size:.7rem; line-height:1.5; color: var(--text-faint); display:flex; flex-wrap:wrap; gap:.1rem 1rem; }
+.contact-game-help b{ font-weight:500; color: var(--text-dim); }
+.contact-game-tip b{ color: #fbbf6a; }
+.k-touch{ display:none; }
+@media (pointer: coarse){ .k-desk{ display:none; } .k-touch{ display:inline; } }
+.contact-game-close{
+  flex-shrink:0;
+  font-family: var(--f-mono); font-size:.72rem;
+  padding:.5rem .9rem;
+  border-radius: var(--r-full);
+  border:1px solid var(--border-strong);
+  color: var(--text);
+  transition: background .25s, color .25s, border-color .25s;
+}
+.contact-game-close:hover, .contact-game-close:focus-visible{ background: var(--accent-2); color: var(--bg); border-color: var(--accent-2); outline:none; }
+@media (max-width: 720px){
+  .contact-play{ font-size:.72rem; text-align:left; border-radius: var(--r-md); }
+  .contact-game-bar{ top:.8rem; border-radius: var(--r-md); padding:.55rem .55rem .55rem .8rem; }
+  .contact-game-tip{ display:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .contact-inner, .signature-watermark-wrap, .contact-game canvas{ transition:none; }
+}
+
+/* fundo do contato: shader (substitui o vídeo) */
+.contact-shader{
+  position:absolute; inset:0; z-index:0;
+  width:100%; height:100%;
+  display:block;
+  opacity:1;
+  transition: opacity .8s var(--ease-out);
+  /* fallback se não houver WebGL: gradiente parado nas mesmas cores */
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 35%, rgba(61,107,255,.22), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 72% 60%, rgba(140,70,255,.18), transparent 70%),
+    radial-gradient(ellipse 40% 35% at 55% 20%, rgba(125,216,255,.12), transparent 70%),
+    var(--bg);
+}
+
+/* ============================================================
+   CONTATO v2 — campo de pontos em tela cheia + formulário
+   ============================================================ */
+#contactField{
+  position:fixed; inset:0;
+  width:100vw; height:100vh; height:100lvh;
+  z-index:0;
+  pointer-events:none;
+  opacity:0;
+  transition: opacity 1.2s var(--ease-out);
+}
+#contactField.is-ready{ opacity:1; }
+/* fundo atrás da malha: brilho no horizonte que se desloca quando a
+   câmera sobe (--field-tilt vem do js/contato.js) */
+body.page-contact::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 22% at 50% calc(30% - var(--field-tilt, 0) * 40%), color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 50% calc(38% - var(--field-tilt, 0) * 30%), color-mix(in srgb, var(--accent) 22%, transparent), transparent 72%),
+    radial-gradient(ellipse 50% 40% at 85% 95%, rgba(140,70,255,.10), transparent 70%),
+    radial-gradient(ellipse 45% 35% at 10% 90%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
+}
+.contact-field-tint{ /* vinheta fixa: bordas escuras, centro livre para o conteúdo */
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 85% 70% at 50% 45%, transparent 45%, rgba(5,8,16,.5) 100%),
+    linear-gradient(180deg, rgba(5,8,16,.55) 0%, transparent 18%);
+}
+body.page-contact #contact-hero,
+body.page-contact footer{ position:relative; z-index:1; }
+body.page-contact .contact-pin-wrap.compact{ background-color: transparent; }
+body.page-contact footer{ background: color-mix(in srgb, var(--bg) 82%, transparent); }
+
+.contact-info-lead{ color: var(--text-dim); font-size:.92rem; line-height:1.6; max-width:38ch; margin: -.6rem 0 1.4rem; }
+.contact-pin-wrap.compact .contact-info-lead{ font-size:.84rem; margin-bottom:.8rem; }
+
+/* ---- cartão ---- */
+body.page-contact .terminal-card{
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 40px 90px -40px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.02) inset;
+  transition: border-color .4s, box-shadow .4s;
+}
+.is-safari body.page-contact .terminal-card{ -webkit-backdrop-filter:none; backdrop-filter:none; background: color-mix(in srgb, var(--surface) 95%, transparent); }
+body.page-contact .terminal-card:focus-within{ border-color: color-mix(in srgb, var(--accent-2) 35%, transparent); box-shadow: 0 40px 90px -40px rgba(0,0,0,.85), 0 0 60px -20px color-mix(in srgb, var(--accent-2) 30%, transparent); }
+.terminal-topbar{ position:relative; }
+.terminal-path b{ color: var(--text-dim); font-weight:500; }
+.terminal-status{
+  margin-left:auto;
+  display:inline-flex; align-items:center; gap:.45rem;
+  font-size:.66rem; letter-spacing:.04em; color: var(--text-faint);
+}
+.terminal-status i{ width:6px; height:6px; border-radius:50%; background: var(--text-faint); transition: background .3s, box-shadow .3s; }
+.terminal-status.is-ready{ color: var(--accent-2); }
+.terminal-status.is-ready i{ background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); }
+.terminal-progress{ position:absolute; left:0; right:0; bottom:-1px; height:2px; overflow:hidden; }
+.terminal-progress i{
+  display:block; height:100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 12px var(--accent-2);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform .6s var(--ease-out);
+}
+
+/* ---- campos ---- */
+.form-trap{ position:absolute !important; left:-9999px; width:1px; height:1px; overflow:hidden; } /* honeypot (não confundir com .hp-field do painel do hero) */
+fieldset.form-group{ border:0; padding:0; margin-inline:0; min-width:0; }
+fieldset.form-group legend{ padding:0; margin-bottom:.55rem; }
+.form-label .ln{ color: var(--accent-2); opacity:.55; margin-right:.6rem; font-size:.64rem; }
+.form-label .opt{ margin-left:.4rem; font-size:.6rem; letter-spacing:.06em; text-transform:uppercase; color: var(--text-faint); opacity:.7; }
+.field{ position:relative; }
+.field::after{ /* sublinhado que acende no foco */
+  content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform .45s var(--ease-out);
+}
+.form-group.is-focus .field::after{ transform: scaleX(1); }
+.form-group.is-err .field::after{ transform: scaleX(1); background:#ff7b7b; }
+.field .form-input{ padding-right: 1.8rem; }
+.form-group.is-ok .form-input{ border-bottom-color: color-mix(in srgb, var(--accent-2) 45%, transparent); }
+.form-group.is-err .form-input{ border-bottom-color: rgba(255,123,123,.6); }
+.field-state{
+  position:absolute; right:.1rem; top:50%; transform: translateY(-50%);
+  width:16px; height:16px; border-radius:50%;
+  display:grid; place-items:center;
+  font-size:.62rem; line-height:1;
+  opacity:0; transition: opacity .25s, transform .3s var(--ease-out);
+}
+.form-textarea + .field-state{ top:1.1rem; }
+.form-group.is-ok .field-state{ opacity:1; color: var(--bg); background: var(--accent-2); }
+.form-group.is-ok .field-state::before{ content:"✓"; font-weight:700; }
+.form-group.is-err .field-state{ opacity:1; color:#ff7b7b; border:1px solid rgba(255,123,123,.6); }
+.form-group.is-err .field-state::before{ content:"!"; font-weight:700; }
+.form-group.is-pending .field-state{ opacity:1; border:1.5px solid color-mix(in srgb, var(--accent-2) 30%, transparent); border-top-color: var(--accent-2); animation: field-spin .8s linear infinite; }
+@keyframes field-spin{ to{ transform: translateY(-50%) rotate(360deg); } }
+.field-msg{ min-height:1.1em; font-size:.66rem; line-height:1.4; color:#ff9a9a; }
+.field-msg .dim{ color: var(--text-faint); }
+.field-msg .ok{ color: var(--accent-2); opacity:.8; }
+.field-msg b{ color: var(--text); font-weight:500; }
+.email-fix{
+  font: inherit; color: var(--accent-2);
+  text-decoration: underline; text-underline-offset: 3px;
+  padding:0; margin-left:.2rem; cursor:pointer;
+}
+.contact-pin-wrap.compact .form-group{ gap:.3rem; }
+
+/* chips (tipo de projeto / origem) */
+.chips{ display:flex; flex-wrap:wrap; gap:.45rem; }
+.chip{ position:relative; cursor:pointer; }
+.chip input{ position:absolute; opacity:0; width:1px; height:1px; }
+.chip span{
+  display:inline-block;
+  padding:.45rem .85rem;
+  border:1px solid var(--border-strong); border-radius: var(--r-full);
+  font-family: var(--f-mono); font-size:.72rem; color: var(--text-dim);
+  transition: color .25s, background .25s, border-color .25s, transform .25s var(--ease-out);
+}
+.chip:hover span{ border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); color: var(--text); }
+.chip input:checked + span{ background: var(--accent-2); border-color: var(--accent-2); color: var(--bg); transform: translateY(-1px); }
+.chip input:focus-visible + span{ outline:2px solid var(--accent-2); outline-offset:2px; }
+.chips--sm .chip span{ padding:.32rem .7rem; font-size:.66rem; }
+.form-group.is-err .chip span{ border-color: rgba(255,123,123,.45); }
+
+/* rodapé do formulário */
+.form-footer{ gap:1rem; }
+.char-count{ display:inline-flex; align-items:center; gap:.45rem; }
+.char-ring{ width:16px; height:16px; transform: rotate(-90deg); }
+.char-ring circle{ fill:none; stroke-width:2; stroke: var(--border-strong); }
+.char-ring circle + circle{ stroke: var(--accent-2); transition: stroke-dashoffset .2s; }
+.char-count.is-near .char-ring circle + circle{ stroke:#ffbd2e; }
+.kbd-hint{ margin-left:auto; font-size:.62rem; color: var(--text-faint); }
+.kbd-hint kbd{ font: inherit; padding:.1rem .35rem; border:1px solid var(--border-strong); border-radius:4px; }
+@media (pointer: coarse){ .kbd-hint{ display:none; } }
+.btn-send{ position:relative; overflow:hidden; }
+.btn-send-bar{
+  position:absolute; left:0; bottom:0; height:2px; width:40%;
+  background: rgba(255,255,255,.85);
+  transform: translateX(-120%); opacity:0;
+}
+.btn-send.is-busy{ opacity:.85 !important; }
+.btn-send.is-busy .btn-send-bar{ opacity:1; animation: send-bar 1s ease-in-out infinite; }
+@keyframes send-bar{ to{ transform: translateX(260%); } }
+.form-error{ line-height:1.5; }
+.form-error a{ color: var(--accent-2); text-decoration: underline; }
+
+.terminal-card.is-shake{ animation: card-shake .45s cubic-bezier(.36,.07,.19,.97); }
+@keyframes card-shake{
+  15%, 85%{ transform: translateX(-2px); }
+  30%, 70%{ transform: translateX(4px); }
+  45%, 55%{ transform: translateX(-6px); }
+}
+
+/* sucesso */
+.terminal-success{ gap:.2rem; }
+.terminal-log{
+  align-self:stretch;
+  margin:0 0 1.6rem; padding: .9rem 1rem;
+  min-height: 7.6em;
+  text-align:left; white-space:pre-wrap;
+  font-size:.72rem; line-height:1.6;
+  color: var(--accent-2);
+  background: rgba(0,0,0,.28);
+  border:1px solid var(--border); border-radius: var(--r-md);
+}
+.terminal-card.is-sent{ border-color: color-mix(in srgb, var(--accent-2) 45%, transparent); }
+.terminal-again{
+  margin-top:1.4rem; font-size:.72rem; color: var(--text-dim);
+  text-decoration: underline; text-underline-offset: 4px;
+}
+.terminal-again:hover{ color: var(--accent-2); }
+
+@media (prefers-reduced-motion: reduce){
+  .terminal-card.is-shake{ animation:none; }
+  .form-group.is-pending .field-state{ animation:none; }
+}
+
+/* título do contato: duas linhas (a regra genérica .title-line passou a valer só no #hero) */
+.contact-hero-title .title-line{ display:block; }
+@media (max-width: 600px){
+  .contact-hero-title{ font-size: clamp(2.4rem, 12.5vw, 3.4rem); }
+  .terminal-path{ display:none; }
+  .terminal-status{ white-space:nowrap; }
+}

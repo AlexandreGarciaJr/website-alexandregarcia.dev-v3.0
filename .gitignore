@@ -1,0 +1,24 @@
+# PHP fica fora do repositório (credenciais e backend)
+*.php
+!config.example.php
+PHPMailer/
+PHPMAiler
+
+# Dependencies
+node_modules/
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+*.env
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Uploads / cache
+*.log

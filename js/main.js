@@ -10,6 +10,9 @@
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isTouch = window.matchMedia("(pointer: coarse)").matches;
   const isNarrow = window.matchMedia("(max-width: 900px)").matches;
+  // Safari (macOS/iOS) — usado só para contornar bugs de renderização do WebKit
+  const isSafari = /^((?!chrome|chromium|crios|fxios|android|edg).)*safari/i.test(navigator.userAgent);
+  if (isSafari) document.documentElement.classList.add("is-safari");
 
   /* ---------------------------------------------------------
      TEMAS — hex correspondentes usados nas cenas 3D (WebGL não
@@ -38,16 +41,20 @@
   });
 
   // entrada suave da página — roda em toda navegação, não só na primeira carga
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => { document.body.classList.add("page-ready"); });
-  });
-  // restaurada do cache do navegador (botão voltar/avançar): garante que não fique presa invisível
-  window.addEventListener("pageshow", (e) => {
-    if (e.persisted){
-      document.body.classList.remove("page-exit");
+  const root = document.documentElement;
+  function reveal(){
+    root.classList.remove("is-leaving");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      root.classList.add("is-revealed");
       document.body.classList.add("page-ready");
-    }
-  });
+    }));
+  }
+  // espera as fontes (até 600 ms) para o texto não "pular" logo depois do fade
+  if (document.fonts && document.fonts.ready){
+    Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 600))]).then(reveal);
+  } else reveal();
+  // restaurada do cache do navegador (voltar/avançar): não fica presa atrás do véu
+  window.addEventListener("pageshow", (e) => { if (e.persisted) reveal(); });
 
   /* ---------------------------------------------------------
      transição suave entre páginas do site: ao clicar num link
@@ -296,19 +303,22 @@
   }
 
   function initPageTransitions(){
-    if (reduceMotion) return;
     document.addEventListener("click", (e) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = e.target.closest("a");
       if (!a) return;
       const href = a.getAttribute("href");
       if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
-      if (/^https?:\/\//i.test(href) || a.target === "_blank") return; // externo: navega normal
+      if (a.target === "_blank" || a.hasAttribute("download")) return;
+      let url;
+      try { url = new URL(href, location.href); } catch (_){ return; }
+      if (url.origin !== location.origin) return;                            // externo: navega normal
+      if (url.pathname === location.pathname && url.hash) return;           // âncora na mesma página: só rola
       e.preventDefault();
       AudioEngine.saveResumeState(); // guarda a posição da música pra continuar na próxima página
-      document.body.classList.remove("page-ready");
-      document.body.classList.add("page-exit");
-      setTimeout(() => { window.location.href = href; }, 340);
+      root.classList.add("is-leaving");
+      root.classList.remove("is-revealed");
+      setTimeout(() => { window.location.href = href; }, reduceMotion ? 60 : 460);
     });
   }
 
@@ -643,6 +653,7 @@
       return;
     }
     gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.config({ ignoreMobileResize: true });
     lenis = new Lenis({
       duration: 1.05,
       smoothWheel: true,
@@ -751,18 +762,6 @@
      está visível (economiza recursos, mesmo padrão usado nas outras
      cenas do site)
      --------------------------------------------------------- */
-  function initContactBgVideo(){
-    const video = document.getElementById("contactBgVideo");
-    const section = document.getElementById("contact");
-    if (!video || !section || reduceMotion) return;
-    if ("IntersectionObserver" in window){
-      new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) video.play().catch(() => {});
-        else video.pause();
-      }, { threshold: 0 }).observe(section);
-    }
-  }
-
   function initGlitchText(){
     // elementos onde o texto já está isolado — aplica o glitch direto
     document.querySelectorAll(".btn-primary, .btn-outline, .btn-send-label, .fullmenu-link-text, .hamburger-label, .track-name, .audio-toggle, .measure-flyout button, .footer-nav-links a, .contact-info-value, .hero-index a").forEach((el) => {
@@ -977,17 +976,23 @@
     // e o contador soma as horas das linhas marcadas naquele instante ----
     if (!reduceMotion && typeof gsap !== "undefined" && window.ScrollTrigger){
       const counterObj = { v: 0 };
+      const counterBox = counterEl ? counterEl.closest(".edu-split-counter") : null;
       function recompute(){
         let sum = 0;
         hourRows.forEach((r) => { if (r.classList.contains("is-counted")) sum += Number(r.dataset.hours); });
         gsap.to(counterObj, {
-          v: sum, duration: 0.4, ease: "power1.out",
-          onUpdate: () => { if (counterEl) counterEl.textContent = String(Math.round(counterObj.v)); },
+          v: sum, duration: 0.5, ease: "power1.out", overwrite: true,
+          onUpdate: () => {
+            if (counterEl) counterEl.textContent = String(Math.round(counterObj.v));
+            if (counterBox) counterBox.style.setProperty("--p", (counterObj.v / TOTAL_HOURS).toFixed(3));
+          },
         });
       }
+      // celular: o contador é uma pílula fixa no topo — cada curso conta assim
+      // que entra na parte de baixo da tela (antes: só no centro, tarde demais)
       allRows.forEach((row) => {
         ScrollTrigger.create({
-          trigger: row, start: "center center",
+          trigger: row, start: isNarrow ? "top 78%" : "center center",
           onEnter: () => { row.classList.add("is-counted"); recompute(); },
           onEnterBack: () => { row.classList.add("is-counted"); recompute(); },
           onLeaveBack: () => { row.classList.remove("is-counted"); recompute(); },
@@ -1347,9 +1352,13 @@
   function initHeroPinSequence(){
     const heroEl = document.getElementById("hero");
     if (!heroEl || typeof gsap === "undefined" || !window.ScrollTrigger) return;
-    if (reduceMotion || isNarrow) return; // mantém o hero estático e legível
+    if (reduceMotion) return; // mantém o hero estático e legível
 
-    splitTitleIntoChars();
+    // celular: mesma sequência (maquete → planta → código), pin mais curto;
+    // só ALEXANDRE se dispersa — GARCIA e o texto de apresentação continuam
+    // logo abaixo quando o pin solta
+    const M = isNarrow;
+    splitTitleIntoChars(M ? ["titleLine1"] : undefined);
     const chars = Array.from(heroEl.querySelectorAll(".tchar"));
     // a cena 3D (js/hero3d.js, módulo) lê este objeto a cada frame:
     // p 0 → .42: maquete desce para planta baixa (corte + vista de cima)
@@ -1361,8 +1370,8 @@
       scrollTrigger: {
         trigger: heroEl,
         start: "top top",
-        end: "+=260%",
-        scrub: 0.7,
+        end: M ? "+=190%" : "+=260%",
+        scrub: M ? 0.5 : 0.7,
         pin: true,
         anticipatePin: 1,
       },
@@ -1371,15 +1380,16 @@
     tl.to(proxy, { p: 1, duration: 6, ease: "none" }, 0);
 
     // 1) copy, índice e painel saem de cena
-    tl.to("#heroCopy > *, .hero-index", {
+    if (!M) tl.to("#heroCopy > *, .hero-index", {
       opacity: 0, y: -16, duration: 1.1, ease: "power1.in", stagger: 0.03,
     }, 0);
     tl.to("#heroPanel", { opacity: 0, y: 24, duration: 1.2, ease: "power1.in" }, 0.15);
 
     // 2) letras do título se dispersam em 3D
     chars.forEach((ch, i) => {
-      const dx = (Math.sin(i * 12.9) * 60) - 10;
-      const dy = (Math.cos(i * 7.3) * 40) - 30;
+      const k = M ? 0.45 : 1;
+      const dx = ((Math.sin(i * 12.9) * 60) - 10) * k;
+      const dy = ((Math.cos(i * 7.3) * 40) - 30) * k;
       const dz = -80 - (i % 5) * 20;
       const rot = (i % 2 === 0 ? 1 : -1) * (40 + (i % 6) * 12);
       tl.to(ch, {
@@ -1428,24 +1438,6 @@
   /* ---------------------------------------------------------
      10.b) helper — interpola cor ao longo de paradas hex
      --------------------------------------------------------- */
-  function lerpColorStops(stops, t){
-    const n = stops.length - 1;
-    const seg = Math.min(Math.floor(t * n), n - 1);
-    const localT = (t * n) - seg;
-    const a = stops[seg], b = stops[seg + 1];
-    const r = Math.round(a[0] + (b[0] - a[0]) * localT);
-    const g = Math.round(a[1] + (b[1] - a[1]) * localT);
-    const bl = Math.round(a[2] + (b[2] - a[2]) * localT);
-    return `rgb(${r}, ${g}, ${bl})`;
-  }
-  const EXP_COLOR_STOPS = [
-    [7, 11, 21],     // navy base (var(--bg-soft))
-    [16, 20, 46],    // indigo
-    [32, 18, 58],    // violeta profundo
-    [12, 30, 58],    // azul elétrico escurecido
-    [8, 34, 46],     // ciano escurecido
-    [7, 11, 21],      // volta ao navy base
-  ];
 
   /* ---------------------------------------------------------
      9.d) PROJECTS — tilt 3D + glare seguindo o cursor
@@ -1508,120 +1500,6 @@
   /* ---------------------------------------------------------
      9.g) PÁGINA DE CONTATO — formulário (enviar.php) + char count
      --------------------------------------------------------- */
-  function initContactForm(){
-    const form = document.getElementById("contactForm");
-    if (!form) return;
-    const card = document.getElementById("terminalCard");
-    const msg = document.getElementById("msgArea");
-    const charCount = document.getElementById("charCount");
-    const errorEl = document.getElementById("formError");
-    const successEl = document.getElementById("formSuccess");
-    const btn = document.getElementById("btnSend");
-    const btnLabel = btn ? btn.querySelector(".btn-send-label") : null;
-
-    if (msg && charCount){
-      msg.addEventListener("input", () => { charCount.textContent = String(msg.value.length); });
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (errorEl) errorEl.classList.remove("is-visible");
-      if (btn){ btn.disabled = true; }
-      if (btnLabel) btnLabel.textContent = "enviando...";
-
-      try {
-        const data = new FormData(form);
-        const res = await fetch("enviar.php", { method: "POST", body: data });
-        if (!res.ok) throw new Error("bad status");
-        form.style.display = "none";
-        if (successEl) successEl.classList.add("is-visible");
-      } catch (err) {
-        if (errorEl) errorEl.classList.add("is-visible");
-        if (btn){ btn.disabled = false; }
-        if (btnLabel) btnLabel.textContent = "enviar mensagem";
-      }
-    });
-  }
-
-  /* ---------------------------------------------------------
-     9.h) PÁGINA DE CONTATO — a tela muda de cor conforme o scroll
-     --------------------------------------------------------- */
-  /* ---------------------------------------------------------
-     9.i) PÁGINA DE CONTATO — hero e formulário como um só
-     momento fixado: o título some, o formulário se cria
-     --------------------------------------------------------- */
-  /* ---------------------------------------------------------
-     9.i.1) PÁGINA DE CONTATO — mesmo fundo de pontinhos flutuantes
-     usado no "Quem sou eu", atrás do texto do hero
-     --------------------------------------------------------- */
-  function initContactParticles(){
-    const canvas = document.getElementById("contactCanvas");
-    const container = document.getElementById("contactHeroContent");
-    if (!canvas || !container || typeof THREE === "undefined") return null;
-
-    let width = container.clientWidth || window.innerWidth;
-    let height = container.clientHeight || window.innerHeight;
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(adaptiveFov(62, width, height), width / height, 0.1, 120);
-    camera.position.set(0, 2.4, 11.5);
-    camera.lookAt(0, -0.35, 0);
-
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(width, height);
-
-    const SEG = isNarrow ? 26 : 46;
-    const waveGeo = new THREE.PlaneGeometry(52, 34, SEG, SEG);
-    const waveMat = new THREE.PointsMaterial({ color: 0x3d6bff, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false });
-    registerThemeColor(waveMat, "accent");
-    const waveMesh = new THREE.Points(waveGeo, waveMat);
-    waveMesh.rotation.x = -Math.PI / 2.3;
-    waveMesh.position.y = -2.6;
-    scene.add(waveMesh);
-    const posAttr = waveGeo.attributes.position;
-    const basePos = Float32Array.from(posAttr.array);
-    const amp = isTouch ? 0.3 : 0.5;
-
-    function resize(){
-      width = container.clientWidth || window.innerWidth;
-      height = container.clientHeight || window.innerHeight;
-      camera.aspect = width / height;
-      camera.fov = adaptiveFov(62, width, height);
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    }
-    window.addEventListener("resize", resize);
-
-    let raf, t0 = performance.now();
-    function animate(){
-      raf = requestAnimationFrame(animate);
-      if (!reduceMotion){
-        const t = (performance.now() - t0) / 1000;
-        for (let i = 0; i < posAttr.count; i++){
-          const ix = i * 3;
-          const x = basePos[ix], y = basePos[ix + 1];
-          posAttr.array[ix + 2] = Math.sin(x * 0.35 + t * 0.6) * amp + Math.cos(y * 0.3 + t * 0.4) * amp * 0.6;
-        }
-        posAttr.needsUpdate = true;
-      }
-      renderer.render(scene, camera);
-    }
-    animate();
-    let contactVisible = true;
-    if ("IntersectionObserver" in window){
-      new IntersectionObserver((entries) => {
-        contactVisible = entries[0].isIntersecting;
-        if (!contactVisible) cancelAnimationFrame(raf);
-        else if (!document.hidden) animate();
-      }, { threshold: 0 }).observe(container);
-    }
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) cancelAnimationFrame(raf); else if (contactVisible) animate();
-    });
-
-    return waveMat; // exposto pra ser desvanecido junto do texto no scroll
-  }
-
   function initContactReveal(){
     const wrap = document.getElementById("contactPinWrap");
     const heroContent = document.getElementById("contactHeroContent");
@@ -1629,74 +1507,320 @@
     const gridStand = document.getElementById("contactGridStand");
     if (!wrap || !heroContent || !formStage) return;
 
-    const waveMat = initContactParticles(); // pontinhos flutuantes atrás do texto, sempre visíveis de início
+    // campo de pontos da página (js/contato.js)
+    const field = window.ContactFX && window.ContactFX.get ? window.ContactFX.get() : null;
 
     const capable = !isNarrow && !reduceMotion && typeof gsap !== "undefined" && !!window.ScrollTrigger;
-    if (!capable) return; // mobile/reduced-motion: fluxo normal, sem pin
+    if (!capable){
+      // celular / reduced-motion: fluxo normal; a malha vira prancheta conforme se rola até o formulário
+      if (field && typeof gsap !== "undefined" && window.ScrollTrigger && !reduceMotion){
+        ScrollTrigger.create({
+          trigger: formStage, start: "top 90%", end: "top 30%", scrub: 0.5,
+          onUpdate: (self) => field.setTilt(self.progress),
+        });
+      }
+      return;
+    }
 
     wrap.classList.add("compact");
     splitTitleIntoChars(["contactTitleLine1", "contactTitleLine2"]);
     const chars = Array.from(heroContent.querySelectorAll(".tchar"));
+    const infoRows = Array.from(formStage.querySelectorAll(".contact-info-title, .contact-info-lead, .contact-info-row, .contact-info-note"));
+    const card = document.getElementById("terminalCard");
+    const groups = card ? Array.from(card.querySelectorAll(".terminal-form > .form-row > .form-group, .terminal-form > .form-group, .form-footer")) : [];
+    const tilt = { v: 0 };
 
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: wrap, start: "top top", end: "+=140%",
+        trigger: wrap, start: "top top", end: "+=170%",
         pin: true, scrub: 0.6, anticipatePin: 1,
       },
     });
 
-    // 1) kicker, descrição, badge e dica somem em grupo, abrindo espaço
+    // 1) kicker, descrição, badge e dica saem
     tl.fromTo([".contact-hero-main .section-kicker", ".contact-hero-desc", ".contact-hero-main .eyebrow-badge", ".contact-hero-hint"].join(","),
       { opacity: 1, y: 0 },
-      { opacity: 0, y: -16, duration: 1.0, ease: "power1.in", stagger: 0.03 },
-    0.15);
+      { opacity: 0, y: -16, duration: 0.9, ease: "power1.in", stagger: 0.03 },
+    0.1);
 
-    // 2) letras do título se dispersam em 3D — mesmo efeito do Hero
+    // 2) letras do título se dispersam em 3D (mesmo gesto do Hero)
     chars.forEach((ch, i) => {
       const dx = (Math.sin(i * 12.9) * 60) - 10;
       const dy = (Math.cos(i * 7.3) * 40) - 30;
       const dz = -80 - (i % 5) * 20;
       const rot = (i % 2 === 0 ? 1 : -1) * (40 + (i % 6) * 12);
-      tl.to(ch, {
-        x: dx, y: dy, z: dz,
-        rotationX: rot, rotationY: rot * 0.6,
-        opacity: 0,
-        duration: 1.6,
-        ease: "power2.in",
-      }, 0.15 + i * 0.022);
+      tl.to(ch, { x: dx, y: dy, z: dz, rotationX: rot, rotationY: rot * 0.6, opacity: 0, duration: 1.4, ease: "power2.in" }, 0.1 + i * 0.02);
     });
+    tl.set(heroContent, { pointerEvents: "none" }, 1.4);
 
-    tl.set(heroContent, { pointerEvents: "none" }, 1.5); // some visualmente, mas também para de bloquear cliques no formulário
-    if (waveMat) tl.to(waveMat, { opacity: 0, duration: 1.0, ease: "power1.in" }, 0.3); // pontinhos somem junto com o texto
+    // 3) a câmera sobe: do horizonte para a vista de cima — a malha
+    //    ondulada vira uma prancheta de pontos alinhados
+    if (field){
+      tl.to(tilt, { v: 1, duration: 1.5, ease: "power2.inOut", onUpdate: () => field.setTilt(tilt.v) }, 0.35);
+    }
 
-    // cor do ambiente — bem chamativa na transição, termina em preto puro
-    // exatamente quando o formulário acaba de se levantar
-    tl.to(wrap, { backgroundColor: "#4a1268", duration: 1.0, ease: "none" }, 0.2);
-    tl.to(wrap, { backgroundColor: "#0d3f8f", duration: 1.0, ease: "none" }, 1.2);
-    tl.to(wrap, { backgroundColor: "#000000", duration: 0.8, ease: "none" }, 1.9);
-
-    tl.fromTo(formStage, { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.75);
+    // 4) o formulário "é desenhado" sobre a prancheta
+    tl.fromTo(formStage, { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.15);
     if (gridStand){
-      // o formulário está "deitado" e se levanta, dobradiça na base, como se ganhasse vida
-      tl.fromTo(gridStand,
-        { rotationX: 72, transformPerspective: 1600, y: 70 },
-        { rotationX: 0, y: 0, duration: 1.7, ease: "power3.out" },
-      0.8);
+      tl.fromTo(gridStand, { rotationX: 38, transformPerspective: 1600, y: 60, scale: 0.94 },
+        { rotationX: 0, y: 0, scale: 1, duration: 1.1, ease: "power3.out" }, 1.15);
+    }
+    if (card){
+      // o cartão abre de uma linha central (como uma tela ligando)
+      tl.fromTo(card, { clipPath: "inset(49% 0% 49% 0% round 14px)" }, { clipPath: "inset(0% 0% 0% 0% round 14px)", duration: 0.7, ease: "power3.inOut" }, 1.3);
+    }
+    tl.fromTo(infoRows, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.06, ease: "power2.out" }, 1.35);
+    tl.fromTo(groups, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.07, ease: "power2.out" }, 1.55);
+    tl.to({}, { duration: 0.35 }, 2.45); // respiro: formulário parado antes de soltar o pin
+  }
+
+
+  function initSignatureSpotlight(){
+    const section = document.getElementById("contact");
+    const wrap = document.getElementById("signatureWrap");
+    const fill = document.getElementById("signatureFill");
+    if (!wrap || !fill || !section) return;
+    const base = wrap.querySelector(".signature-watermark:not(.fill)");
+
+    // ---- tamanho: a assinatura ocupa a largura disponível sem cortar
+    // (no celular vira duas linhas, via CSS) e a seção reserva o espaço dela ----
+    function fit(){
+      const avail = section.clientWidth * (isNarrow ? 0.9 : 0.94);
+      wrap.style.setProperty("--sig-fs", "100px");
+      // mede os próprios spans (o bloco absoluto é limitado pela largura da seção
+      // e esconderia o transbordo)
+      const lines = Array.from(base.querySelectorAll("span"));
+      const rs = lines.map((l) => l.getBoundingClientRect());
+      const stacked = rs.length > 1 && Math.abs(rs[0].top - rs[1].top) > 2;
+      const w = stacked ? Math.max(...rs.map((r) => r.width)) : (rs[rs.length - 1].right - rs[0].left);
+      const fs = Math.min(100 * avail / Math.max(1, w), 192);
+      wrap.style.setProperty("--sig-fs", fs.toFixed(1) + "px");
+      section.style.setProperty("--sig-h", Math.round(base.getBoundingClientRect().height * 0.8) + "px");
+      wrap.style.setProperty("--sr", Math.round(Math.max(110, fs * 1.25)) + "px");
+    }
+    fit();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fit(); if (window.ScrollTrigger) ScrollTrigger.refresh(); });
+    let ft;
+    window.addEventListener("resize", () => { clearTimeout(ft); ft = setTimeout(fit, 150); });
+
+    // ---- brilho: segue o mouse; sem mouse (ou no toque), passeia sozinho pelo nome ----
+    let hover = false, t0 = performance.now(), running = false, raf = 0;
+    function setAt(x, y){
+      const r = fill.getBoundingClientRect();
+      wrap.style.setProperty("--sx", `${x - r.left}px`);
+      wrap.style.setProperty("--sy", `${y - r.top}px`);
+    }
+    function sweep(now){
+      raf = requestAnimationFrame(sweep);
+      if (hover) return;
+      const r = fill.getBoundingClientRect();
+      const k = ((now - t0) / 1000) * 0.22;           // ~4,5 s por travessia
+      const u = 0.5 - 0.5 * Math.cos(k * Math.PI * 2); // vai e volta, suave
+      wrap.style.setProperty("--sx", `${r.width * (0.04 + u * 0.92)}px`);
+      wrap.style.setProperty("--sy", `${r.height * (0.45 + Math.sin(k * 5.3) * 0.2)}px`);
+    }
+    function start(){ if (running || reduceMotion) return; running = true; raf = requestAnimationFrame(sweep); }
+    function stop(){ running = false; cancelAnimationFrame(raf); }
+    if (reduceMotion){ // sem movimento: brilho parado no centro do nome
+      requestAnimationFrame(() => { const r = fill.getBoundingClientRect(); wrap.style.setProperty("--sx", `${r.width / 2}px`); wrap.style.setProperty("--sy", `${r.height / 2}px`); });
+    } else if ("IntersectionObserver" in window){
+      new IntersectionObserver((en) => { en[0].isIntersecting ? start() : stop(); }, { threshold: 0 }).observe(section);
+    } else start();
+
+    if (!isTouch){
+      section.addEventListener("mousemove", (e) => {
+        if (section.classList.contains("is-playing")) return;
+        const r = wrap.getBoundingClientRect();
+        // só "pega" o brilho quando o mouse está perto do nome
+        hover = e.clientY > r.bottom - (fill.getBoundingClientRect().height + 160);
+        if (hover) setAt(e.clientX, e.clientY);
+      });
+      section.addEventListener("mouseleave", () => { hover = false; });
     }
   }
 
-  function initSignatureSpotlight(){
-    const wrap = document.getElementById("signatureWrap");
-    const fill = document.getElementById("signatureFill");
-    if (!wrap || !fill || isTouch) return;
-    wrap.addEventListener("mousemove", (e) => {
-      const r = fill.getBoundingClientRect(); // mask-image usa a caixa do próprio elemento
-      wrap.style.setProperty("--sx", `${e.clientX - r.left}px`);
-      wrap.style.setProperty("--sy", `${e.clientY - r.top}px`);
+  /* ---------------------------------------------------------
+     CONTATO — fundo em shader (substitui o vídeo). WebGL puro, sem
+     three.js: um único triângulo em tela cheia, renderizado a ~35% da
+     resolução e no máximo 30 fps. Só roda com a seção visível e com o
+     jogo fechado; com reduced-motion desenha um quadro só.
+     --------------------------------------------------------- */
+  function initContactShader(){
+    const section = document.getElementById("contact");
+    const canvas = document.getElementById("contactShader");
+    if (!section || !canvas) return null;
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, powerPreference: "low-power" });
+    if (!gl) return null; // fica o gradiente do CSS
+
+    const vs = "attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }";
+    const fs = `
+      precision mediump float;
+      uniform vec2 uRes, uMouse;
+      uniform float uTime;
+      uniform vec3 uA, uB, uC;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float noise(vec2 p){
+        vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
+        return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+      }
+      float fbm(vec2 p){
+        float v = 0.0, a = 0.5;
+        for (int i = 0; i < 4; i++){ v += a * noise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }
+        return v;
+      }
+      void main(){
+        vec2 uv = gl_FragCoord.xy / uRes;
+        vec2 p = uv * vec2(uRes.x / uRes.y, 1.0);
+        float t = uTime * 0.045;
+        // aurora: ruído deformado por ruído (domain warping), bem devagar
+        vec2 q = vec2(fbm(p * 1.3 + t), fbm(p * 1.3 - t + 3.1));
+        float n = fbm(p * 1.7 + 2.3 * q + vec2(t * 0.7, -t * 0.5));
+        vec3 col = vec3(0.018, 0.026, 0.055);
+        col += uA * smoothstep(0.38, 0.92, n) * 0.42;
+        col += uC * smoothstep(0.45, 1.0, q.x * n * 1.7) * 0.38;
+        col += uB * pow(smoothstep(0.55, 0.95, n * q.y * 1.7), 2.0) * 0.4;
+        // linha de varredura discreta (eco do jogo / terminal)
+        float scan = smoothstep(0.012, 0.0, abs(uv.y - fract(uTime * 0.035)));
+        col += uB * scan * 0.06;
+        // brilho que acompanha o mouse
+        float m = exp(-length((uv - uMouse) * vec2(uRes.x / uRes.y, 1.0)) * 3.2);
+        col += uB * m * 0.16;
+        // vinheta
+        col *= smoothstep(1.3, 0.2, length((uv - 0.5) * vec2(1.25, 1.6)));
+        gl_FragColor = vec4(col, 1.0);
+      }`;
+    function sh(type, src){ const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); return o; }
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+    gl.useProgram(prog);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const U = {};
+    ["uRes", "uMouse", "uTime", "uA", "uB", "uC"].forEach((k) => { U[k] = gl.getUniformLocation(prog, k); });
+
+    function hex(v){ const c = v.trim().replace("#", ""); const n = parseInt(c.length === 3 ? c.split("").map((x) => x + x).join("") : c, 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; }
+    function readColors(){
+      const cs = getComputedStyle(document.documentElement);
+      const a = cs.getPropertyValue("--accent") || "#3d6bff";
+      const b = cs.getPropertyValue("--accent-2") || "#7dd8ff";
+      try { gl.uniform3fv(U.uA, hex(a)); gl.uniform3fv(U.uB, hex(b)); } catch (e){ gl.uniform3fv(U.uA, [0.24, 0.42, 1]); gl.uniform3fv(U.uB, [0.49, 0.85, 1]); }
+      gl.uniform3fv(U.uC, [0.55, 0.27, 1.0]); // violeta dos tijolos
+    }
+    readColors();
+    document.addEventListener("themechange", () => { readColors(); if (!running) draw(); });
+
+    const SCALE = 0.35;
+    function resize(){
+      const w = Math.max(2, Math.round(section.clientWidth * SCALE));
+      const h = Math.max(2, Math.round(section.clientHeight * SCALE));
+      if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
+      gl.viewport(0, 0, w, h);
+      gl.uniform2f(U.uRes, w, h);
+    }
+    const mouse = { x: 0.5, y: 0.55, tx: 0.5, ty: 0.55 };
+    if (!isTouch){
+      section.addEventListener("mousemove", (e) => {
+        const r = section.getBoundingClientRect();
+        mouse.tx = (e.clientX - r.left) / r.width;
+        mouse.ty = 1 - (e.clientY - r.top) / r.height;
+      });
+    }
+    let t = 12, last = 0, raf = 0, running = false, visible = false, paused = false;
+    function draw(){
+      mouse.x += (mouse.tx - mouse.x) * 0.06;
+      mouse.y += (mouse.ty - mouse.y) * 0.06;
+      gl.uniform1f(U.uTime, t);
+      gl.uniform2f(U.uMouse, mouse.x, mouse.y);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    function loop(now){
+      raf = requestAnimationFrame(loop);
+      if (now - last < 33) return; // ~30 fps é suficiente para algo tão lento
+      t += Math.min(0.1, (now - last) / 1000 || 0.033);
+      last = now;
+      draw();
+    }
+    function update(){
+      const should = visible && !paused && !document.hidden && !reduceMotion;
+      if (should && !running){ running = true; last = performance.now(); raf = requestAnimationFrame(loop); }
+      else if (!should && running){ running = false; cancelAnimationFrame(raf); }
+    }
+    new ResizeObserver(() => { resize(); draw(); }).observe(section);
+    resize(); draw();
+    if ("IntersectionObserver" in window){
+      new IntersectionObserver((en) => { visible = en[0].isIntersecting; update(); }, { threshold: 0 }).observe(section);
+    } else { visible = true; update(); }
+    document.addEventListener("visibilitychange", update);
+    return { pause(v){ paused = v; update(); } };
+  }
+
+  /* ---------------------------------------------------------
+     CONTATO — quebra-blocos de fundo + modo jogo
+     --------------------------------------------------------- */
+  function initContactGame(){
+    const shader = initContactShader();
+    const section = document.getElementById("contact");
+    const canvas = document.getElementById("brickCanvas");
+    const playBtn = document.getElementById("contactPlay");
+    const closeBtn = document.getElementById("contactGameClose");
+    const bar = document.getElementById("contactGameBar");
+    if (!section || !canvas || !playBtn || typeof window.createBrickGame !== "function"){
+      if (playBtn) playBtn.hidden = true;
+      return;
+    }
+    const cs = getComputedStyle(document.documentElement);
+    const acc2 = cs.getPropertyValue("--accent-2").trim() || "#7dd8ff";
+    const portrait = isNarrow && window.innerHeight > window.innerWidth;
+    const game = window.createBrickGame(canvas, {
+      ...(portrait ? { width: 620, height: 900, cols: 6 } : {}),
+      transparent: true,        // o vídeo da seção aparece por trás
+      hue: 196, hueStep: 16,    // azul → violeta, na paleta do site
+      font: "'Space Grotesk', system-ui, sans-serif",
+      mono: "'IBM Plex Mono', ui-monospace, monospace",
+      colors: { accent: acc2, paddle: "#e8ecf4", text: "#e8ecf4", muted: "#8b93a7", wall: "rgba(125,216,255,.18)" },
     });
-    wrap.addEventListener("mouseleave", () => {
-      wrap.style.setProperty("--sx", "-9999px");
-      wrap.style.setProperty("--sy", "-9999px");
+    canvas.tabIndex = -1; // fora da ordem de tab enquanto é só fundo
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => game.redraw());
+
+    function scrollToSection(){
+      if (lenis) lenis.scrollTo(section, { offset: 0, duration: 0.9 });
+      else section.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    }
+    function open(){
+      if (shader) shader.pause(true); // o jogo tem a GPU só para ele
+      section.classList.add("is-playing");
+      document.documentElement.classList.add("game-on");
+      bar.hidden = false;
+      canvas.tabIndex = 0;
+      game.reset();
+      requestAnimationFrame(() => { game.redraw(); game.focus(); });
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+      scrollToSection();
+    }
+    function close(){
+      game.pause();
+      game.reset();
+      section.classList.remove("is-playing");
+      document.documentElement.classList.remove("game-on");
+      if (shader) shader.pause(false);
+      bar.hidden = true;
+      canvas.tabIndex = -1;
+      requestAnimationFrame(() => game.redraw());
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+      playBtn.focus({ preventScroll: true });
+    }
+    playBtn.addEventListener("click", open);
+    closeBtn.addEventListener("click", close);
+    // Esc duas vezes: a primeira pausa (dentro do jogo); com o jogo pausado, encerra
+    section.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && section.classList.contains("is-playing") && document.activeElement !== canvas) close();
     });
   }
 
@@ -1754,10 +1878,14 @@
       });
     }
 
-    if (!section || !wrap || !track || typeof gsap === "undefined" || !window.ScrollTrigger) return;
-    if (reduceMotion || isNarrow){ section.classList.add("exp-static-on"); return; }
+    if (!section || !wrap || !track || typeof gsap === "undefined" || !window.ScrollTrigger){ section && section.classList.add("exp-static-on"); return; }
+    if (reduceMotion){ section.classList.add("exp-static-on"); return; }
 
+    // celular/tablet estreito: mesma história (vídeo → título na mão → cards),
+    // com frames leves em retrato, pin mais curto e cards em "baralho"
+    const MOBILE = isNarrow;
     section.classList.add("exp-cine");
+    if (MOBILE) section.classList.add("exp-mobile");
     // emenda com o pin do Sobre: a seção sobe uma tela por cima do final dele
     const aboutMain = document.querySelector("#about .about-main.compact");
     const overlap = !!aboutMain;
@@ -1765,17 +1893,31 @@
     applyOverlap();
 
     // ----- fundo em sequência de frames num <canvas> (o scroll escolhe o frame) -----
-    const FRAME_COUNT = 192;
-    const SKIP_FRAMES = 19;          // frame_020 = o mesmo quadro que termina o "mergulho" no notebook
+    // desktop: 192 frames 1600×900 · mobile: 96 frames 600×900 recortados em retrato (~6 MB)
+    const FRAME_COUNT = MOBILE ? 96 : 192;
+    const SKIP_FRAMES = MOBILE ? 10 : 19; // frame_020 = o mesmo quadro que termina o "mergulho" no notebook
     const LAST = FRAME_COUNT - 1;
-    const FRAME_BASE = "./assets/video/frames/frame_";
+    const FRAME_BASE = MOBILE ? "./assets/video/frames-m/frame_" : "./assets/video/frames/frame_";
     const frames = [];
     for (let i = 1; i <= FRAME_COUNT; i++){
       const img = new Image();
       img.decoding = "async";
-      img.src = `${FRAME_BASE}${String(i).padStart(3, "0")}.jpg`;
       frames.push(img);
     }
+    let framesRequested = false;
+    function requestFrames(){
+      if (framesRequested) return;
+      framesRequested = true;
+      // primeiro o quadro de abertura, depois o resto em ordem
+      // frames antes de SKIP_FRAMES nunca são desenhados (e nem existem mais na pasta)
+      const order = [SKIP_FRAMES, ...frames.map((_, i) => i).filter((i) => i > SKIP_FRAMES)];
+      order.forEach((i) => { frames[i].src = `${FRAME_BASE}${String(i + 1).padStart(3, "0")}.jpg`; });
+    }
+    if (MOBILE && "IntersectionObserver" in window){
+      // no celular só baixa quando a seção se aproxima (não compete com o hero)
+      const io = new IntersectionObserver((en) => { if (en[0].isIntersecting){ requestFrames(); io.disconnect(); } }, { rootMargin: "150% 0px" });
+      io.observe(section);
+    } else requestFrames();
 
     const ctx = canvas ? canvas.getContext("2d") : null;
     let currentFrameIdx = SKIP_FRAMES;
@@ -1814,7 +1956,7 @@
     }
     function resizeCanvas(){
       if (!canvas) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, MOBILE ? 1.5 : 2);
       canvas.width = canvas.clientWidth * dpr;
       canvas.height = canvas.clientHeight * dpr;
       drawFrame(currentFrameIdx);
@@ -1829,7 +1971,7 @@
        .66  – .84  trilha desliza; a experiência atual entra por último
        .90  – 1.0  respiro final                                            */
     const VIDEO_END = 0.9;
-    const pOfFrame = (f) => ((f - 1 - SKIP_FRAMES) / (LAST - SKIP_FRAMES)) * VIDEO_END;
+    const pOfFrame = (f) => ((f - 20) / (192 - 20)) * VIDEO_END; // f = nº do frame no vídeo original
     const T_HAND = pOfFrame(62);               // primeiro frame em que a mão entra
     const chrome = wrap.querySelectorAll(".exp-progress, .exp-hint");
     const kicker = intro ? intro.querySelector(".exp-intro-kicker") : null;
@@ -1875,11 +2017,11 @@
       applyOverlap();
       const cs = getComputedStyle(track);
       const padR = parseFloat(cs.paddingRight) || 0;
-      const distance = Math.max(0, track.scrollWidth - window.innerWidth + padR * 0.2);
-      const totalLen = Math.max(window.innerHeight * 5.2, 4200);
+      const distance = MOBILE ? 0 : Math.max(0, track.scrollWidth - window.innerWidth + padR * 0.2);
+      const totalLen = MOBILE ? Math.max(window.innerHeight * 4.4, 3200) : Math.max(window.innerHeight * 5.2, 4200);
 
       gsap.set(track, { x: 0 });
-      gsap.set(cards, { opacity: 0 });
+      gsap.set(cards, MOBILE ? { opacity: 0, xPercent: -50, yPercent: -50 } : { opacity: 0 });
       resizeCanvas();
       drawFrame(SKIP_FRAMES);
 
@@ -1891,7 +2033,8 @@
           start: "top top",
           end: () => `+=${totalLen}`,
           pin: true,
-          scrub: 0.6,
+          anticipatePin: 1,
+          scrub: MOBILE ? 0.4 : 0.6,
           invalidateOnRefresh: true,
           onUpdate: (self) => { if (fill) fill.style.width = `${self.progress * 100}%`; },
         },
@@ -1936,16 +2079,39 @@
       }
 
       // cards: três abrem com o vídeo rodando; a trilha desliza e a atual entra por último
-      const starts = [0.48, 0.545, 0.61, 0.715];
-      cards.forEach((card, i) => { tl.add(cardReveal(card), starts[Math.min(i, starts.length - 1)] + Math.max(0, i - 3) * 0.06); });
-      if (distance > 0) tl.to(track, { x: -distance, duration: 0.18, ease: "power1.inOut" }, 0.665);
+      if (MOBILE){
+        // baralho: um card por vez no centro; o anterior sobe, encolhe e sai
+        const mStarts = [0.49, 0.6, 0.71, 0.82];
+        cards.forEach((card, i) => {
+          const t = mStarts[Math.min(i, mStarts.length - 1)];
+          if (i > 0) tl.to(cards[i - 1], { y: -70, scale: 0.9, opacity: 0, duration: 0.04, ease: "power2.in" }, t - 0.012);
+          tl.add(cardReveal(card).timeScale(1.45), t); // abertura mais curta → mais tempo de leitura
+        });
+      } else {
+        const starts = [0.48, 0.545, 0.61, 0.715];
+        cards.forEach((card, i) => { tl.add(cardReveal(card), starts[Math.min(i, starts.length - 1)] + Math.max(0, i - 3) * 0.06); });
+        if (distance > 0) tl.to(track, { x: -distance, duration: 0.18, ease: "power1.inOut" }, 0.665);
+      }
 
       tlRef = tl;
       return tl;
     }
+    // celular: a "tela" liga ao entrar — faixa fina que abre até cobrir tudo (mesma
+    // linguagem da abertura dos cards; substitui o mergulho do notebook do desktop)
+    if (MOBILE && canvas){
+      gsap.fromTo(canvas,
+        { clipPath: "inset(46% 6% 46% 6% round 14px)", scale: 1.08 },
+        { clipPath: "inset(0% 0% 0% 0% round 0px)", scale: 1, ease: "power2.out",
+          scrollTrigger: { trigger: section, start: "top 85%", end: "top top", scrub: 0.4 } });
+    }
     build();
-    let rt;
-    window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { build(); ScrollTrigger.refresh(); }, 150); });
+    let rt, lastW = window.innerWidth;
+    window.addEventListener("resize", () => {
+      // celular: a barra de endereço muda a altura o tempo todo — só reconstrói se a largura mudar
+      if (MOBILE && window.innerWidth === lastW) return;
+      lastW = window.innerWidth;
+      clearTimeout(rt); rt = setTimeout(() => { build(); ScrollTrigger.refresh(); }, 150);
+    });
   }
 
   /* ---------------------------------------------------------
@@ -1959,7 +2125,6 @@
     initSettingsPanel();
     initMusicToggleFab();
     initGlitchText();
-    initContactBgVideo();
     initTitleGlitch();
     initSmoothScroll();
     initNav();
@@ -1978,7 +2143,7 @@
     initScanlineTransitions();
     initExpCardFx();
     initSignatureSpotlight();
-    initContactForm();
+    initContactGame();
     initContactReveal();
     initExperiencePin();
     initProjectTilt();

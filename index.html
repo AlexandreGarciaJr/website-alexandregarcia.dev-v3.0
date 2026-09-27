@@ -23,6 +23,15 @@
 <link rel="preload" href="./assets/fonts/archivo-wdth-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/models/casa.glb" as="fetch" type="model/gltf-binary" crossorigin>
 <link rel="stylesheet" href="./css/style.css">
+<script>
+  // Safari < 16.4 não entende import maps: carrega o polyfill só nesses casos
+  if (!(HTMLScriptElement.supports && HTMLScriptElement.supports("importmap"))){
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js";
+    document.head.appendChild(s);
+  }
+</script>
 <script type="importmap">
 {
   "imports": {
@@ -244,7 +253,7 @@
       </button>
     </header>
 
-    <div class="hp-field hp-field--build">
+    <div class="hp-field hp-field--build" data-tab="Obra">
       <div class="hp-row">
         <label for="hpBuild">Construção</label>
         <output class="mono" id="hpBuildOut" for="hpBuild">Terreno</output>
@@ -255,7 +264,7 @@
       </div>
     </div>
 
-    <div class="hp-field">
+    <div class="hp-field" data-tab="Horário">
       <div class="hp-row">
         <label for="hpTime">Horário</label>
         <output class="mono" id="hpTimeOut" for="hpTime">21:15</output>
@@ -265,7 +274,7 @@
       </div>
     </div>
 
-    <div class="hp-field">
+    <div class="hp-field" data-tab="Corte">
       <div class="hp-row">
         <label for="hpCut">Corte de seção</label>
         <output class="mono" id="hpCutOut" for="hpCut">sem corte</output>
@@ -275,7 +284,7 @@
       </div>
     </div>
 
-    <div class="hp-field">
+    <div class="hp-field" data-tab="Linguagem">
       <div class="hp-row">
         <span class="hp-label" id="hpMatLabel">Linguagem</span>
         <output class="mono" id="hpModeOut">arquitetura</output>
@@ -287,7 +296,7 @@
       </div>
     </div>
 
-    <div class="hp-field hp-row">
+    <div class="hp-field hp-row hp-field--rot">
       <span class="hp-label" id="hpRotLabel">Rotação automática</span>
       <button type="button" class="hp-switch" id="hpRotate" role="switch" aria-checked="true" aria-labelledby="hpRotLabel"><span></span></button>
     </div>
@@ -690,15 +699,27 @@
 
 <!-- ============ CONTACT ============ -->
 <section id="contact">
-  <video class="contact-bg-video" id="contactBgVideo" autoplay muted loop playsinline aria-hidden="true">
-    <source src="./assets/video/contact-bg.webm" type="video/webm">
-    <source src="./assets/video/contact-bg.mp4" type="video/mp4">
-  </video>
+  <!-- fundo: shader leve (WebGL puro, baixa resolução) — só roda com a seção visível e o jogo fechado -->
+  <canvas class="contact-shader" id="contactShader" aria-hidden="true"></canvas>
   <div class="contact-vignette" aria-hidden="true"></div>
   <div class="contact-glow" aria-hidden="true"></div>
+
+  <!-- quebra-blocos: fica de fundo (esmaecido) e vira o palco ao clicar em jogar -->
+  <div class="contact-game" id="contactGame">
+    <canvas id="brickCanvas" aria-label="Jogo Quebra-Blocos. Use o mouse, o toque ou as setas para mover a raquete."></canvas>
+    <div class="contact-game-bar" id="contactGameBar" hidden>
+      <p class="contact-game-help mono">
+        <span class="k-desk"><b>mouse</b> ou <b>← →</b> movem a raquete · <b>clique</b> ou <b>espaço</b> lança · <b>P</b> pausa</span>
+        <span class="k-touch"><b>arraste</b> para mover · <b>toque</b> para lançar</span>
+        <span class="contact-game-tip">pegue as cápsulas <b>+1</b> para ganhar bolas extras</span>
+      </p>
+      <button type="button" class="contact-game-close" id="contactGameClose">Encerrar jogo <span aria-hidden="true">✕</span></button>
+    </div>
+  </div>
+
   <div class="signature-watermark-wrap" id="signatureWrap">
-    <div class="signature-watermark" aria-hidden="true">ALEXANDRE GARCIA</div>
-    <div class="signature-watermark fill" aria-hidden="true" id="signatureFill">ALEXANDRE GARCIA</div>
+    <div class="signature-watermark" aria-hidden="true"><span>ALEXANDRE</span> <span>GARCIA</span></div>
+    <div class="signature-watermark fill" aria-hidden="true" id="signatureFill"><span>ALEXANDRE</span> <span>GARCIA</span></div>
   </div>
   <div class="contact-inner">
     <span class="section-kicker reveal">contato</span>
@@ -710,6 +731,10 @@
       <a class="contact-link" href="https://github.com/AlexandreGarciaJr" target="_blank" rel="noopener"><span class="ic">⌥</span>GitHub</a>
     </div>
     <a href="contato.html" class="btn-primary reveal">Entre em contato</a>
+    <button type="button" class="contact-play reveal" id="contactPlay">
+      <span class="contact-play-ico" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="contact-play-txt">Enquanto não conversamos, <b>clique para jogar quebra-blocos</b></span>
+    </button>
   </div>
 </section>
 
@@ -746,6 +771,7 @@
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
 <script src="./js/main.js"></script>
+<script src="./js/quebra-blocos.js"></script>
 <script type="module" src="./js/hero3d.js"></script>
 </body>
 </html>

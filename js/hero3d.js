@@ -50,6 +50,54 @@ function main(){
   };
   panel?.classList.add("is-loading");
 
+  /* ---------- celular: painel vira dock com abas sobre o palco da casa ---------- */
+  const dock = { fields: [], tabs: [], rot: null };
+  function initDock(){
+    if (!isNarrow || !panel) return;
+    dock.fields = Array.from(panel.querySelectorAll(".hp-field[data-tab]"));
+    if (!dock.fields.length) return;
+    const bar = document.createElement("div");
+    bar.className = "hp-tabs";
+    bar.setAttribute("role", "tablist");
+    bar.setAttribute("aria-label", "Parâmetros da maquete");
+    dock.fields.forEach((f, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "hp-tab";
+      b.textContent = f.dataset.tab;
+      b.setAttribute("role", "tab");
+      b.addEventListener("click", () => selectTab(i));
+      bar.appendChild(b);
+      dock.tabs.push(b);
+    });
+    // girar sozinha + recentralizar viram ícones na própria barra
+    const rot = document.createElement("button");
+    rot.type = "button";
+    rot.className = "hp-tab-ico";
+    rot.setAttribute("aria-label", "Rotação automática");
+    rot.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>';
+    rot.addEventListener("click", () => { ui.rotate?.click(); syncDockRot(); });
+    bar.appendChild(rot);
+    dock.rot = rot;
+    panel.insertBefore(bar, dock.fields[0]);
+    selectTab(0);
+    syncDockRot();
+  }
+  function selectTab(i){
+    dock.fields.forEach((f, j) => f.classList.toggle("is-tab", i === j));
+    dock.tabs.forEach((t, j) => t.setAttribute("aria-selected", String(i === j)));
+  }
+  function syncDockRot(){ if (dock.rot && ui.rotate) dock.rot.setAttribute("aria-pressed", ui.rotate.getAttribute("aria-checked")); }
+  // posiciona o dock na base do palco (entre a casa e GARCIA)
+  function placeDock(){
+    if (!isNarrow || !panel) return;
+    const st = heroEl.querySelector(".hero-stage");
+    if (!st) return;
+    const hr = heroEl.getBoundingClientRect(), sr = st.getBoundingClientRect();
+    panel.style.top = Math.round(sr.bottom - hr.top - panel.offsetHeight - 6) + "px";
+  }
+  initDock();
+
   /* ---------------- renderer ---------------- */
   let renderer;
   try {
@@ -495,6 +543,7 @@ function main(){
     applyBuild(state.build);
     state.ready = true;
     panel?.classList.remove("is-loading");
+    placeDock();
     setStatus(isTouch ? "maquete pronta" : "arraste para girar");
     canvas.classList.add("is-ready");
     renderer.shadowMap.needsUpdate = true;
@@ -1034,8 +1083,11 @@ function main(){
     U.uPR.value = dpr;
     U.uScale.value = h * 0.5 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.06;
     if (glyphs) layoutCode(true);
+    placeDock();
   }
   new ResizeObserver(resize).observe(canvas);
+  document.fonts?.ready.then(() => requestAnimationFrame(placeDock));
+  window.addEventListener("load", placeDock);
   resize();
 
   /* ---------------- loop ---------------- */
