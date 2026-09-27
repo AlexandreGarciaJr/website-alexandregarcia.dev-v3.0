@@ -10,6 +10,7 @@
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isTouch = window.matchMedia("(pointer: coarse)").matches;
   const isNarrow = window.matchMedia("(max-width: 900px)").matches;
+  const T = (s, v) => (window.I18N ? window.I18N.t(s, v) : s); // i18n (js/i18n.js)
   // Safari (macOS/iOS) — usado só para contornar bugs de renderização do WebKit
   const isSafari = /^((?!chrome|chromium|crios|fxios|android|edg).)*safari/i.test(navigator.userAgent);
   if (isSafari) document.documentElement.classList.add("is-safari");
@@ -508,7 +509,7 @@
       "> renderizando notebook.obj",
       "> montando seções [ok]",
       "> pronto.",
-    ];
+    ].map((s) => T(s));
 
     function finish(){
       loader.classList.add("is-done");
@@ -597,10 +598,10 @@
     tl.to(laptop.glowMat, { opacity: 1, duration: 0.5 }, 1.9);
     tl.call(() => {
       screen.typeLines([
-        { text: "> seja bem-vindo(a)", color: "#7dd8ff" },
+        { text: T("> seja bem-vindo(a)"), color: "#7dd8ff" },
         { text: "  alexandregarcia.dev", color: "#e2ecff" },
         { text: "", color: "#e2ecff" },
-        { text: "> carregando experiência...", color: "#576079" },
+        { text: T("> carregando experiência..."), color: "#576079" },
       ], { charDelay: 30 });
     }, [], 2.1);
     tl.to(counter, {
@@ -896,7 +897,7 @@
     const el = document.getElementById("typingText");
     if (!el) return;
     const cursorSpan = el.querySelector(".typing-cursor");
-    const phrases = ["Full Stack Developer", "React · Java · Spring Boot"];
+    const phrases = [T("Full Stack Developer"), "React · Java · Spring Boot"];
     if (reduceMotion){
       el.textContent = phrases[0];
       return;
@@ -1195,8 +1196,8 @@
     tl.to(laptop.glowMat, { opacity: 1, duration: 0.8 }, 5.2);
     tl.call(() => {
       screen.typeLines([
-        { text: "> status: pronto", color: "#7dd8ff" },
-        { text: "  stack carregada", color: "#e2ecff" },
+        { text: T("> status: pronto"), color: "#7dd8ff" },
+        { text: T("  stack carregada"), color: "#e2ecff" },
       ], { charDelay: 32 });
     }, [], 5.3);
 

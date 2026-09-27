@@ -138,6 +138,14 @@
     </nav>
   </div>
 
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[04]</span> idioma</div>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
+      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
+      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
+    </div>
+  </div>
   <div class="settings-status mono"><span class="settings-status-dot"></span>system active</div>
 </div>
 
@@ -483,7 +491,7 @@
         <h2 class="section-heading reveal">Projetos</h2>
       </div>
       <div class="proj-head-right reveal">
-        <p class="section-body" style="text-align:right;">Unindo <strong>Backend</strong>, <strong>Frontend</strong> e a visão analítica da <strong>Arquitetura de Software</strong>.</p>
+        <p class="section-body" style="text-align:right;" data-i18n-html="proj.lead">Unindo <strong>Backend</strong>, <strong>Frontend</strong> e a visão analítica da <strong>Arquitetura de Software</strong>.</p>
         <a href="https://github.com/AlexandreGarciaJr" target="_blank" rel="noopener" class="github-all">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
           Ver todos no GitHub
@@ -654,7 +662,7 @@
   <div class="section-wrap edu-intro-wrap">
     <span class="section-kicker reveal">formação</span>
     <h2 class="section-heading reveal">Formação</h2>
-    <p class="section-body edu-intro reveal" style="margin-top:1.4rem;max-width:62ch;">Estudante de <strong>Análise e Desenvolvimento de Sistemas</strong> pela instituição <strong>SENAC</strong>, com foco em <strong>Backend</strong> e <strong>Frontend</strong>. Formado em <strong>Arquitetura e Urbanismo</strong> pela Universidade Nove de Julho, com 12 anos de experiência na área de construção civil.</p>
+    <p class="section-body edu-intro reveal" style="margin-top:1.4rem;max-width:62ch;" data-i18n-html="edu.intro">Estudante de <strong>Análise e Desenvolvimento de Sistemas</strong> pela instituição <strong>SENAC</strong>, com foco em <strong>Backend</strong> e <strong>Frontend</strong>. Formado em <strong>Arquitetura e Urbanismo</strong> pela Universidade Nove de Julho, com 12 anos de experiência na área de construção civil.</p>
   </div>
 
   <div class="edu-split" id="eduSplit">
@@ -693,8 +701,8 @@
 
 <!-- ============ SIGNAL — momento de assinatura ============ -->
 <section id="signal">
-  <p class="signal-line reveal">Toda <b>planta</b> começa com um risco no papel.</p>
-  <p class="signal-line accent-line reveal">Toda <b>função</b> termina em entrega.</p>
+  <p class="signal-line reveal" data-i18n-html="signal.1">Toda <b>planta</b> começa com um risco no papel.</p>
+  <p class="signal-line accent-line reveal" data-i18n-html="signal.2">Toda <b>função</b> termina em entrega.</p>
 </section>
 
 <!-- ============ CONTACT ============ -->
@@ -709,9 +717,9 @@
     <canvas id="brickCanvas" aria-label="Jogo Quebra-Blocos. Use o mouse, o toque ou as setas para mover a raquete."></canvas>
     <div class="contact-game-bar" id="contactGameBar" hidden>
       <p class="contact-game-help mono">
-        <span class="k-desk"><b>mouse</b> ou <b>← →</b> movem a raquete · <b>clique</b> ou <b>espaço</b> lança · <b>P</b> pausa</span>
-        <span class="k-touch"><b>arraste</b> para mover · <b>toque</b> para lançar</span>
-        <span class="contact-game-tip">pegue as cápsulas <b>+1</b> para ganhar bolas extras</span>
+        <span class="k-desk" data-i18n-html="game.desk"><b>mouse</b> ou <b>← →</b> movem a raquete · <b>clique</b> ou <b>espaço</b> lança · <b>P</b> pausa</span>
+        <span class="k-touch" data-i18n-html="game.touch"><b>arraste</b> para mover · <b>toque</b> para lançar</span>
+        <span class="contact-game-tip" data-i18n-html="game.tip">pegue as cápsulas <b>+1</b> para ganhar bolas extras</span>
       </p>
       <button type="button" class="contact-game-close" id="contactGameClose">Encerrar jogo <span aria-hidden="true">✕</span></button>
     </div>
@@ -733,7 +741,7 @@
     <a href="contato.html" class="btn-primary reveal">Entre em contato</a>
     <button type="button" class="contact-play reveal" id="contactPlay">
       <span class="contact-play-ico" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-      <span class="contact-play-txt">Enquanto não conversamos, <b>clique para jogar quebra-blocos</b></span>
+      <span class="contact-play-txt" data-i18n-html="game.play">Enquanto não conversamos, <b>clique para jogar quebra-blocos</b></span>
     </button>
   </div>
 </section>
@@ -770,6 +778,7 @@
 <script src="./assets/vendor/gsap.min.js"></script>
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
+<script src="./js/i18n.js"></script>
 <script src="./js/main.js"></script>
 <script src="./js/quebra-blocos.js"></script>
 <script type="module" src="./js/hero3d.js"></script>

@@ -101,6 +101,14 @@
     </nav>
   </div>
 
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[04]</span> idioma</div>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
+      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
+      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
+    </div>
+  </div>
   <div class="settings-status mono"><span class="settings-status-dot"></span>system active</div>
 </div>
 
@@ -299,7 +307,7 @@
               <pre class="terminal-log mono" id="successLog" aria-hidden="true"></pre>
               <div class="terminal-success-icon" aria-hidden="true">✓</div>
               <div class="terminal-success-title">mensagem enviada.</div>
-              <p class="terminal-success-desc">Obrigado pelo contato, <span id="successName">tudo certo</span>. Respondo em até 24h úteis no e-mail informado.</p>
+              <p class="terminal-success-desc" data-i18n-html="form.success">Obrigado pelo contato, <span id="successName">tudo certo</span>. Respondo em até 24h úteis no e-mail informado.</p>
               <button type="button" class="terminal-again mono" id="formAgain">enviar outra mensagem</button>
             </div>
           </div>
@@ -343,6 +351,7 @@
 <script src="./assets/vendor/gsap.min.js"></script>
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
+<script src="./js/i18n.js"></script>
 <script src="./js/main.js"></script>
 <script src="./js/contato.js"></script>
 </body>

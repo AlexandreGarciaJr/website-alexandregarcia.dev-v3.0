@@ -5,6 +5,7 @@
    Controles: mouse / toque / ← → (ou A D) · espaço/enter/clique lança
    · P pausa. Pausa sozinho ao sair da tela ou trocar de aba.
    ================================================================ */
+const TT = (s) => (window.I18N ? window.I18N.t(s) : s); // i18n (js/i18n.js)
 function createBrickGame(canvas, opts = {}) {
   // ---------- constantes ----------
   // campo lógico configurável: paisagem (padrão) ou retrato no celular
@@ -307,8 +308,8 @@ function createBrickGame(canvas, opts = {}) {
     ctx.fillStyle = C.text; ctx.textAlign = 'left';
     ctx.fillText(String(score).padStart(5, '0'), 24, 42);
     ctx.font = '400 13px ' + MONO; ctx.fillStyle = C.muted;
-    ctx.fillText('RECORDE ' + best, 110, 41);
-    centerText('NÍVEL ' + level, 42, '600 16px ' + FONT, C.muted);
+    ctx.fillText(TT('RECORDE ') + best, 110, 41);
+    centerText(TT('NÍVEL ') + level, 42, '600 16px ' + FONT, C.muted);
     for (let i = 0; i < START_LIVES; i++) {
       ctx.beginPath(); ctx.arc(W - 30 - i * 24, 35, 7, 0, Math.PI * 2);
       ctx.fillStyle = i < lives ? C.accent : 'rgba(255,255,255,0.12)'; ctx.fill();
@@ -387,12 +388,12 @@ function createBrickGame(canvas, opts = {}) {
 
     // telas de estado (estáticas, sem piscar)
     if (state === 'ready') {
-      if (level > 1 && score > 0 && lives > 0) centerText('Nível ' + level, H * 0.66, '700 30px ' + FONT, C.text);
-      centerText('Clique, toque ou aperte espaço para lançar', H * 0.72, '400 18px ' + FONT, C.muted);
+      if (level > 1 && score > 0 && lives > 0) centerText(TT('Nível ') + level, H * 0.66, '700 30px ' + FONT, C.text);
+      centerText(TT('Clique, toque ou aperte espaço para lançar'), H * 0.72, '400 18px ' + FONT, C.muted);
     } else if (state === 'paused') {
-      overlay('Pausado', ['Clique ou aperte espaço para continuar']);
+      overlay(TT('Pausado'), [TT('Clique ou aperte espaço para continuar')]);
     } else if (state === 'over') {
-      overlay('Fim de jogo', ['Pontos: ' + score + '   ·   Recorde: ' + best, 'Clique ou aperte espaço para jogar de novo']);
+      overlay(TT('Fim de jogo'), [TT('Pontos: ') + score + TT('   ·   Recorde: ') + best, TT('Clique ou aperte espaço para jogar de novo')]);
     }
   }
 

@@ -33,6 +33,7 @@ A proposta visual combina uma estética **dark-tech / terminal** com elementos d
 * Sistema de temas visuais
 * Player de áudio ambiente com diferentes trilhas
 * Controle de volume e preferências persistentes
+* **Três idiomas** — Português, English e Español, escolhidos no menu de configurações (ou detectados pelo navegador na primeira visita)
 * Suporte à preferência `prefers-reduced-motion` em toda a experiência 3D e nas animações de scroll
 * Mini-jogo **Quebra-Blocos** (Canvas 2D) no fundo da seção de contato — um clique transforma a seção em tela de jogo, com instruções e botão de encerrar
 * Página dedicada para contato
@@ -42,6 +43,13 @@ A proposta visual combina uma estética **dark-tech / terminal** com elementos d
 ---
 
 ![alt text](./assets/img/image-site.png)
+
+<video src="./assets/video/gravacao-tela-1.5x.mp4" width="100%"
+  controls
+  muted
+  loop
+  playsinline>
+</video>
 
 ---
 
@@ -130,6 +138,7 @@ alexandregarcia-site/
 │   └── hero3d.js         # cena 3D do hero (ES module, Three.js via CDN)
 │   └── quebra-blocos.js  # jogo Quebra-Blocos da seção de contato
 │   └── contato.js        # página de contato: campo de pontos + validação do formulário
+│   └── i18n.js           # traduções PT / EN / ES (dicionário + troca de idioma)
 │
 └── assets/
     ├── audio/
@@ -250,3 +259,11 @@ Se quiser conversar sobre projetos, oportunidades ou colaboração:
 Este projeto representa meu portfólio pessoal e profissional.
 
 O código pode ser utilizado como referência para estudos, mas os conteúdos, imagens, identidade visual e materiais pessoais apresentados no site não devem ser reutilizados sem autorização.
+
+---
+
+## 🌐 Idiomas (i18n)
+
+O HTML é escrito em português e `js/i18n.js` traduz a página para inglês ou espanhol antes dos efeitos iniciarem. O dicionário usa o próprio texto em português como chave (`"Ver Projetos": ["View Projects", "Ver Proyectos"]`); trechos com negrito usam `data-i18n-html`. Textos gerados por JavaScript passam por `window.I18N.t("…")`. A escolha fica salva no navegador (`localStorage.agLang`).
+
+Para traduzir um texto novo: adicione a linha no objeto `D` de `js/i18n.js`.

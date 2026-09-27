@@ -24,6 +24,8 @@ const GLSL_HASH = /* glsl */`
   float h13(vec3 p){ p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 `;
 
+const T = (s, v) => (window.I18N ? window.I18N.t(s, v) : s); // i18n (js/i18n.js)
+const LANG = (window.I18N && window.I18N.lang) || "pt";
 const canvas = document.getElementById("heroCanvas");
 const heroEl = document.getElementById("hero");
 const panel = document.getElementById("heroPanel");
@@ -59,12 +61,12 @@ function main(){
     const bar = document.createElement("div");
     bar.className = "hp-tabs";
     bar.setAttribute("role", "tablist");
-    bar.setAttribute("aria-label", "Parâmetros da maquete");
+    bar.setAttribute("aria-label", T("Parâmetros da maquete"));
     dock.fields.forEach((f, i) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "hp-tab";
-      b.textContent = f.dataset.tab;
+      b.textContent = T(f.dataset.tab);
       b.setAttribute("role", "tab");
       b.addEventListener("click", () => selectTab(i));
       bar.appendChild(b);
@@ -74,7 +76,7 @@ function main(){
     const rot = document.createElement("button");
     rot.type = "button";
     rot.className = "hp-tab-ico";
-    rot.setAttribute("aria-label", "Rotação automática");
+    rot.setAttribute("aria-label", T("Rotação automática"));
     rot.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>';
     rot.addEventListener("click", () => { ui.rotate?.click(); syncDockRot(); });
     bar.appendChild(rot);
@@ -103,7 +105,7 @@ function main(){
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: !LOW, alpha: true, powerPreference: "high-performance" });
   } catch (err){
-    fail("3D indisponível neste dispositivo");
+    fail(T("3D indisponível neste dispositivo"));
     return;
   }
   let dpr = Math.min(window.devicePixelRatio || 1, LOW ? 1.25 : 1.6);
@@ -544,15 +546,15 @@ function main(){
     state.ready = true;
     panel?.classList.remove("is-loading");
     placeDock();
-    setStatus(isTouch ? "maquete pronta" : "arraste para girar");
+    setStatus(T(isTouch ? "maquete pronta" : "arraste para girar"));
     canvas.classList.add("is-ready");
     renderer.shadowMap.needsUpdate = true;
     maybeIntro();
   }, (xhr) => {
-    if (xhr.lengthComputable) setStatus(`carregando modelo ${Math.round(xhr.loaded / xhr.total * 100)}%`);
+    if (xhr.lengthComputable) setStatus(`${T("carregando modelo")} ${Math.round(xhr.loaded / xhr.total * 100)}%`);
   }, (err) => {
     console.error("[hero3d] falha ao carregar o modelo", err);
-    fail("não foi possível carregar a maquete");
+    fail(T("não foi possível carregar a maquete"));
   });
   const houseBox = new THREE.Box3(new THREE.Vector3(-7, -1, -12), new THREE.Vector3(7, 9, 12));
 
@@ -575,22 +577,29 @@ function main(){
   function codeString(){
     const idx = Math.min(STAGES.length - 1, Math.floor(state.build * STAGES.length * 0.9999));
     const cut = state.cut >= 0.995 ? "null" : lerp(1.2, U.uYMax.value + 0.4, state.cut).toFixed(2);
+    // o código "fala" o idioma do site (chaves, valores e comentários)
+    const KS = {
+      pt: { c1: "// casa_01.js · da planta ao código", mod: "arquitetura", cls: "Projeto", v: "casa", autor: "autor", de: "de", para: "para", deV: "arquitetura", etapa: "etapa", hora: "horario", corte: "corte", rot: "rotacao", c2: "// arquiteto -> desenvolvedor" },
+      en: { c1: "// house_01.js · from floor plan to code", mod: "architecture", cls: "Project", v: "house", autor: "author", de: "from", para: "to", deV: "architecture", etapa: "stage", hora: "time", corte: "cut", rot: "rotation", c2: "// architect -> developer" },
+      es: { c1: "// casa_01.js · del plano al código", mod: "arquitectura", cls: "Proyecto", v: "casa", autor: "autor", de: "de", para: "a", deV: "arquitectura", etapa: "etapa", hora: "horario", corte: "corte", rot: "rotacion", c2: "// arquitecto -> desarrollador" },
+    };
+    const k = KS[LANG] || KS.pt;
     return [
-      "// casa_01.js · da planta ao código",
-      'import { Projeto } from "@ag/arquitetura";',
+      k.c1,
+      `import { ${k.cls} } from "@ag/${k.mod}";`,
       "",
-      "export const casa = new Projeto({",
-      '  autor: "Alexandre Garcia",',
-      '  de: "arquitetura",',
-      '  para: "software",',
-      `  etapa: "${STAGES[idx]}",`,
-      `  horario: "${fmtHour(state.time)}",`,
-      `  corte: ${cut},`,
-      `  rotacao: ${state.autoRotate},`,
+      `export const ${k.v} = new ${k.cls}({`,
+      `  ${k.autor}: "Alexandre Garcia",`,
+      `  ${k.de}: "${k.deV}",`,
+      `  ${k.para}: "software",`,
+      `  ${k.etapa}: "${T(STAGES[idx])}",`,
+      `  ${k.hora}: "${fmtHour(state.time)}",`,
+      `  ${k.corte}: ${cut},`,
+      `  ${k.rot}: ${state.autoRotate},`,
       "});",
       "",
-      'casa.render({ engine: "three@0.186" });',
-      "// arquiteto -> desenvolvedor",
+      `${k.v}.render({ engine: "three@0.186" });`,
+      k.c2,
     ].join("\n");
   }
 
@@ -896,7 +905,7 @@ function main(){
     U.uLand.value = ss(b, 0.70, 0.90);
     U.uLight.value = ss(b, 0.86, 1.0);
     const idx = Math.min(STAGES.length - 1, Math.floor(b * STAGES.length * 0.9999));
-    if (ui.buildOut) ui.buildOut.textContent = STAGES[idx];
+    if (ui.buildOut) ui.buildOut.textContent = T(STAGES[idx]);
     ui.ticks.forEach((t, i) => t.classList.toggle("on", i <= idx));
     syncRange(ui.build, b);
     updateLights();
@@ -973,7 +982,7 @@ function main(){
     const on = v < 0.995;
     U.uCutY.value = on ? y : 999;
     U.uCutOn.value = on ? 1 : 0;
-    if (ui.cutOut) ui.cutOut.textContent = state.cut >= 0.995 ? "sem corte" : `+${lerp(1.2, U.uYMax.value + 0.4, state.cut).toFixed(2)} m`;
+    if (ui.cutOut) ui.cutOut.textContent = state.cut >= 0.995 ? T("sem corte") : `+${lerp(1.2, U.uYMax.value + 0.4, state.cut).toFixed(2)} m`;
     renderer.shadowMap.needsUpdate = true;
   }
 
@@ -987,7 +996,7 @@ function main(){
     const prev = state.mode;
     state.mode = m;
     ui.seg.forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.mat === m)));
-    if (ui.modeOut) ui.modeOut.textContent = m === 2 ? "código-fonte" : "arquitetura";
+    if (ui.modeOut) ui.modeOut.textContent = T(m === 2 ? "código-fonte" : "arquitetura");
     if (m !== 2) setNatural(m === 1);
     const to = m === 2 ? 1 : 0;
     if (to === 1 && prev !== 2) layoutCode(true);

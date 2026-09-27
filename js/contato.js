@@ -19,6 +19,7 @@
   const reduceMotion = mq("(prefers-reduced-motion: reduce)");
   const isTouch = mq("(pointer: coarse)");
   const isNarrow = mq("(max-width: 900px)");
+  const T = (str, v) => (window.I18N ? window.I18N.t(str, v) : str); // i18n (js/i18n.js)
 
   /* ==============================================================
      1) CAMPO DE PONTOS
@@ -337,7 +338,7 @@
       const done = REQUIRED.filter((k) => status[k] === "ok").length;
       if (progressEl) progressEl.style.transform = `scaleX(${done / REQUIRED.length})`;
       if (statusEl){
-        statusEl.querySelector("span").textContent = done === REQUIRED.length ? "pronto para enviar" : `${done} / ${REQUIRED.length} campos`;
+        statusEl.querySelector("span").textContent = done === REQUIRED.length ? T("pronto para enviar") : `${done} / ${REQUIRED.length} ${T("campos")}`;
         statusEl.classList.toggle("is-ready", done === REQUIRED.length);
       }
     }
@@ -346,35 +347,35 @@
     const V = {
       nome(){
         const v = f.nome.value.trim().replace(/\s+/g, " ");
-        if (!v) return ["err", "// informe seu nome"];
-        if (v.replace(/[^\p{L}]/gu, "").length < 3) return ["err", "// nome muito curto"];
-        if (/[<>{}[\]\\/@#$%^*=_|~`0-9]/.test(v)) return ["err", "// use apenas letras"];
+        if (!v) return ["err", T("// informe seu nome")];
+        if (v.replace(/[^\p{L}]/gu, "").length < 3) return ["err", T("// nome muito curto")];
+        if (/[<>{}[\]\\/@#$%^*=_|~`0-9]/.test(v)) return ["err", T("// use apenas letras")];
         return ["ok", ""];
       },
       email(){
         const v = f.email.value.trim();
-        if (!v) return ["err", "// informe seu e-mail"];
-        if (!EMAIL_RE.test(v)) return ["err", "// formato inválido — ex.: voce@empresa.com"];
+        if (!v) return ["err", T("// informe seu e-mail")];
+        if (!EMAIL_RE.test(v)) return ["err", T("// formato inválido — ex.: voce@empresa.com")];
         return ["check", ""];
       },
       telefone(){
         const d = f.telefone.value.replace(/\D/g, "");
         if (!d) return ["", ""];                                          // opcional
-        if (d.length < 10) return ["err", "// incompleto — (DDD) + número"];
+        if (d.length < 10) return ["err", T("// incompleto — (DDD) + número")];
         const ddd = +d.slice(0, 2);
-        if (!DDD.has(ddd)) return ["err", `// DDD ${d.slice(0, 2)} não existe`];
-        if (d.length === 11 && d[2] !== "9") return ["err", "// celular começa com 9 depois do DDD"];
-        if (d.length === 10 && !/[2-5]/.test(d[2])) return ["err", "// fixo começa com 2, 3, 4 ou 5"];
-        if (/^(\d)\1+$/.test(d.slice(2))) return ["err", "// número inválido"];
+        if (!DDD.has(ddd)) return ["err", T("// DDD {d} não existe", { d: d.slice(0, 2) })];
+        if (d.length === 11 && d[2] !== "9") return ["err", T("// celular começa com 9 depois do DDD")];
+        if (d.length === 10 && !/[2-5]/.test(d[2])) return ["err", T("// fixo começa com 2, 3, 4 ou 5")];
+        if (/^(\d)\1+$/.test(d.slice(2))) return ["err", T("// número inválido")];
         return ["ok", ""];
       },
       tipo(){
-        return form.querySelector('input[name="tipo"]:checked') ? ["ok", ""] : ["err", "// escolha uma opção"];
+        return form.querySelector('input[name="tipo"]:checked') ? ["ok", ""] : ["err", T("// escolha uma opção")];
       },
       mensagem(){
         const n = f.mensagem.value.trim().length;
-        if (!n) return ["err", "// escreva sua mensagem"];
-        if (n < 20) return ["err", `// mais ${20 - n} caracteres, por favor`];
+        if (!n) return ["err", T("// escreva sua mensagem")];
+        if (n < 20) return ["err", T("// mais {n} caracteres, por favor", { n: 20 - n })];
         return ["ok", ""];
       },
     };
@@ -387,20 +388,20 @@
         const domain = v.split("@")[1];
         const sug = suggestDomain(domain);
         const seq = ++emailSeq;
-        if (show) setState("email", "pending", "", '<span class="dim">// verificando domínio…</span>');
+        if (show) setState("email", "pending", "", `<span class="dim">${T("// verificando domínio…")}</span>`);
         const res = await checkDomain(domain);
         if (seq !== emailSeq) return status.email;                         // chegou outra digitação
         if (res === "invalid"){
-          const fix = sug ? ` <button type="button" class="email-fix" data-fix="${escapeHTML(v.split("@")[0] + "@" + sug)}">usar @${sug}?</button>` : "";
-          setState("email", "err", "", `// o domínio <b>@${escapeHTML(domain)}</b> não recebe e-mails.${fix}`);
+          const fix = sug ? ` <button type="button" class="email-fix" data-fix="${escapeHTML(v.split("@")[0] + "@" + sug)}>${T("usar {d}?", { d: "@" + sug })}</button>` : "";
+          setState("email", "err", "", T("// o domínio {d} não recebe e-mails.", { d: `<b>@${escapeHTML(domain)}</b>` }) + fix);
           return "err";
         }
         if (sug){
           // domínio existe, mas parece erro de digitação: avisa sem bloquear
-          setState("email", "ok", "", `<span class="dim">// quis dizer</span> <button type="button" class="email-fix" data-fix="${escapeHTML(v.split("@")[0] + "@" + sug)}">@${sug}</button><span class="dim">?</span>`);
+          setState("email", "ok", "", `<span class="dim">${T("// quis dizer")}</span> <button type="button" class="email-fix" data-fix="${escapeHTML(v.split("@")[0] + "@" + sug)}">@${sug}</button><span class="dim">?</span>`);
           return "ok";
         }
-        setState("email", "ok", "", res === "valid" ? '<span class="ok">// domínio verificado</span>' : "");
+        setState("email", "ok", "", res === "valid" ? `<span class="ok">${T("// domínio verificado")}</span>` : "");
         return "ok";
       }
       if (show || st === "ok") setState(name, st, st === "err" ? msg : "");
@@ -473,14 +474,14 @@
     function setBusy(on, label){
       btn.disabled = on;
       btn.classList.toggle("is-busy", on);
-      btnLabel.textContent = label || "enviar mensagem";
+      btnLabel.textContent = label || T("enviar mensagem");
     }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorEl.classList.remove("is-visible");
       REQUIRED.concat("telefone").forEach((n) => touched.add(n));
-      setBusy(true, "validando…");
+      setBusy(true, T("validando…"));
       const results = await Promise.all(["nome", "email", "telefone", "tipo", "mensagem"].map((n) => validate(n)));
       const firstBad = ["nome", "email", "telefone", "tipo", "mensagem"].find((n, i) => results[i] === "err");
       if (firstBad){
@@ -489,11 +490,11 @@
         const g = group(firstBad);
         const target = g.querySelector("input:not([type=hidden]), textarea");
         if (target) target.focus({ preventScroll: false });
-        errorEl.textContent = "// confira os campos destacados.";
+        errorEl.textContent = T("// confira os campos destacados.");
         errorEl.classList.add("is-visible");
         return;
       }
-      setBusy(true, "enviando…");
+      setBusy(true, T("enviando…"));
       tInput.value = String(Math.round((Date.now() - (startedAt || Date.now())) / 1000));
       try {
         const res = await fetch(form.getAttribute("action") || "enviar.php", {
@@ -510,15 +511,17 @@
       } catch (err){
         setBusy(false);
         shake();
-        if (err.campo && group(err.campo)){ touched.add(err.campo); setState(err.campo, "err", "// " + err.message); }
-        errorEl.innerHTML = `// ${escapeHTML(err.message || "algo deu errado")}. Se preferir, escreva direto para <a href="mailto:alexandregojunior@gmail.com">alexandregojunior@gmail.com</a>.`;
+        const dm = /O domínio (@\S+) não recebe e-mails\./.exec(err.message || "");
+        const msg = dm ? T("// o domínio {d} não recebe e-mails.", { d: dm[1] }).replace(/^\/\/ /, "") : T(err.message || "algo deu errado");
+        if (err.campo && group(err.campo)){ touched.add(err.campo); setState(err.campo, "err", "// " + msg); }
+        errorEl.innerHTML = `// ${escapeHTML(msg.replace(/\.$/, ""))}. ${T("Se preferir, escreva direto para")} <a href="mailto:alexandregojunior@gmail.com">alexandregojunior@gmail.com</a>.`;
         errorEl.classList.add("is-visible");
       }
     });
 
     function success(){
       const first = f.nome.value.trim().split(" ")[0] || "";
-      if (successName) successName.textContent = first || "tudo certo";
+      if (successName) successName.textContent = first || T("tudo certo");
       card.classList.add("is-sent");
       form.hidden = true;
       successEl.classList.add("is-visible");
@@ -526,11 +529,11 @@
       if (field) field.pulseEl(btn, 2.2);
       // log de "terminal" digitado linha a linha
       const lines = [
-        "$ npm run enviar -- --para alexandre",
-        "> validando campos ........ ok",
-        "> verificando e-mail ...... ok",
+        T("$ npm run enviar -- --para alexandre"),
+        T("> validando campos ........ ok"),
+        T("> verificando e-mail ...... ok"),
         "> POST /enviar.php ........ 200",
-        "> mensagem entregue ✓",
+        T("> mensagem entregue ✓"),
       ];
       successLog.textContent = "";
       if (reduceMotion){ successLog.textContent = lines.join("\n"); return; }
