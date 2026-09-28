@@ -341,7 +341,12 @@
   <canvas id="aboutCanvas" aria-hidden="true"></canvas>
   <div class="hero-grid-fade-like" aria-hidden="true"></div>
   <div class="section-wrap about-hero-wrap">
-    <div class="about-giant-bg" aria-hidden="true" id="aboutGiantBg">QUEM<br>SOU EU</div>
+    <div class="about-giant-bg" aria-hidden="true" id="aboutGiantBg">
+      <div class="agb-inner" id="aboutGiantInner">
+        <div class="agb-layer agb-base"><span>QUEM</span><span>SOU EU</span></div>
+        <div class="agb-layer agb-fill" id="aboutGiantFill"><span>QUEM</span><span>SOU EU</span></div>
+      </div>
+    </div>
 
     <div class="about-photo reveal" id="aboutPhotoStage">
       <img src="./assets/img/foto-perfil-normal.png" alt="Alexandre Garcia" id="aboutPhotoImg" class="about-photo-cutout">
@@ -484,6 +489,11 @@
 
 <!-- ============ PROJECTS ============ -->
 <section id="projects">
+  <div class="proj-backdrop" id="projBackdrop" aria-hidden="true">
+    <div class="pbg-tint" id="projTint"></div>
+    <div class="pbg-grid"></div>
+    <div class="pbg-lamp"></div>
+  </div>
   <div class="section-wrap">
     <div class="proj-head">
       <div>

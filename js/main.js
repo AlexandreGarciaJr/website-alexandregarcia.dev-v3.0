@@ -1064,6 +1064,215 @@
      7.d) ABOUT — sequência única: conteúdo some, notebook nasce,
      cor do ambiente muda — tudo dentro da própria seção
      --------------------------------------------------------- */
+  /* ---------------------------------------------------------
+     SOBRE — campo de pontos (porta do shader da página de contato)
+     --------------------------------------------------------- */
+  function createAboutField(){
+    // trapézio que acompanha a abertura da câmera até o horizonte:
+    // denso perto, mais espaçado ao fundo (onde a perspectiva já junta os pontos)
+    const BASE = isNarrow ? 0.62 : 0.42;
+    const Z0 = -112, Z1 = 7;
+    const pos = [], rnd = [];
+    for (let z = Z1; z >= Z0; ){
+      const step = BASE * (z > -36 ? 1 : 1 + (-36 - z) / 60);
+      const half = (isNarrow ? 9 : 16) + (Z1 - z) * (isNarrow ? 0.75 : 1.05);
+      for (let x = -half; x <= half; x += step){
+        pos.push(x + (Math.random() - 0.5) * step * 0.2, 0, z + (Math.random() - 0.5) * step * 0.2);
+        rnd.push(Math.random());
+      }
+      z -= step;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("aRand", new THREE.Float32BufferAttribute(rnd, 1));
+
+    const MAX_PULSES = 5;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const U = {
+      uTime: { value: 0 },
+      uAmp: { value: 1 },
+      uPR: { value: DPR },
+      uSize: { value: isNarrow ? 2.6 : 2.3 },
+      uMouse: { value: new THREE.Vector3(0, 0, -9999) },
+      uMouseOn: { value: 0 },
+      uPulses: { value: Array.from({ length: MAX_PULSES }, () => new THREE.Vector4(0, 0, -99, 0)) },
+      uColA: { value: new THREE.Color("#3d6bff") },
+      uColB: { value: new THREE.Color("#7dd8ff") },
+      uAlpha: { value: 1 },
+    };
+    const mat = new THREE.ShaderMaterial({
+      uniforms: U,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `
+        uniform float uTime, uAmp, uPR, uSize, uMouseOn, uAlpha;
+        uniform vec3 uMouse, uColA, uColB;
+        uniform vec4 uPulses[${MAX_PULSES}];
+        attribute float aRand;
+        varying float vA;
+        varying vec3 vCol;
+        void main(){
+          vec3 p = position;
+          float w = sin(p.x * 0.22 + uTime * 0.55) * 0.42
+                  + cos(p.z * 0.27 + uTime * 0.42) * 0.3
+                  + sin((p.x + p.z) * 0.09 + uTime * 0.27) * 0.38;
+          p.y += w * uAmp;
+
+          vec2 d = p.xz - uMouse.xz;
+          float dist = length(d);
+          float infl = exp(-(dist * dist) / 6.0) * uMouseOn;
+          p.y += infl * 1.3;
+          p.xz += (d / max(dist, 0.001)) * infl * 0.6;
+          float glow = infl;
+
+          for (int i = 0; i < ${MAX_PULSES}; i++){
+            vec4 P = uPulses[i];
+            float age = uTime - P.z;
+            if (age < 0.0 || age > 4.0) continue;
+            float r = age * (5.0 + P.w * 2.0);
+            float band = length(p.xz - P.xy) - r;
+            float ring = exp(-(band * band) / (0.6 + age * 0.4)) * (1.0 - age / 4.0) * P.w;
+            p.y += ring * 0.9;
+            glow += ring;
+          }
+
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_Position = projectionMatrix * mv;
+          float depth = -mv.z;
+          float sz = uSize * (0.55 + aRand * 0.7) * (1.0 + glow * 1.4);
+          gl_PointSize = clamp(sz * uPR * (14.0 / depth), 0.9 * uPR, 7.0 * uPR);
+
+          float fog = smoothstep(122.0, 16.0, depth) * smoothstep(0.8, 3.5, depth);
+          float crest = clamp(w * 0.7 + 0.5, 0.0, 1.0) * uAmp;
+          vA = (0.38 + aRand * 0.4 + crest * 0.35 + glow * 1.1) * fog * uAlpha;
+          vCol = mix(uColA, uColB, clamp(glow * 1.2 + crest * 0.35 + aRand * 0.15, 0.0, 1.0));
+        }`,
+      fragmentShader: `
+        varying float vA;
+        varying vec3 vCol;
+        void main(){
+          vec2 c = gl_PointCoord - 0.5;
+          float d = length(c);
+          if (d > 0.5) discard;
+          gl_FragColor = vec4(vCol, smoothstep(0.5, 0.05, d) * vA);
+        }`,
+    });
+    const points = new THREE.Points(geo, mat);
+    points.position.y = -2.6;
+    points.frustumCulled = false;
+
+    function readTheme(){
+      const cs = getComputedStyle(document.documentElement);
+      const a = cs.getPropertyValue("--accent").trim(), b = cs.getPropertyValue("--accent-2").trim();
+      if (a) U.uColA.value.set(a);
+      if (b) U.uColB.value.set(b);
+    }
+    readTheme();
+    document.addEventListener("themechange", () => requestAnimationFrame(readTheme));
+
+    // mouse → ponto no plano do campo
+    const ray = new THREE.Raycaster();
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 2.6);
+    const ndc = new THREE.Vector2(), hit = new THREE.Vector3();
+    const mouseT = new THREE.Vector3(0, 0, -9999);
+    let mouseOnT = 0, cam = null, cvs = null, pi = 0;
+    function toPlane(cx, cy, out){
+      if (!cam || !cvs) return null;
+      const r = cvs.getBoundingClientRect();
+      if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return null;
+      ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, cam);
+      return ray.ray.intersectPlane(plane, out);
+    }
+    const about = document.getElementById("about");
+    if (about && !reduceMotion){
+      about.addEventListener("pointermove", (e) => {
+        if (toPlane(e.clientX, e.clientY, hit)){ mouseT.set(hit.x, 0, hit.z); mouseOnT = 1; }
+        else mouseOnT = 0;
+      }, { passive: true });
+      about.addEventListener("pointerleave", () => { mouseOnT = 0; });
+      about.addEventListener("pointerdown", (e) => {
+        if (e.target.closest && e.target.closest("a, button, input, textarea")) return;
+        if (!toPlane(e.clientX, e.clientY, hit)) return;
+        U.uPulses.value[pi].set(hit.x, hit.z, U.uTime.value, 1);
+        pi = (pi + 1) % MAX_PULSES;
+      }, { passive: true });
+      if (isTouch) about.addEventListener("touchend", () => { mouseOnT = 0; }, { passive: true });
+    }
+
+    function tick(dt, camera, canvas){
+      cam = camera; cvs = canvas;
+      U.uTime.value += dt;
+      if (U.uMouse.value.z < -9000) U.uMouse.value.copy(mouseT);
+      U.uMouse.value.lerp(mouseT, 1 - Math.exp(-dt * 8));
+      U.uMouseOn.value += (mouseOnT - U.uMouseOn.value) * (1 - Math.exp(-dt * 5));
+    }
+    return { points, U, tick };
+  }
+
+  /* ---------------------------------------------------------
+     SOBRE — brilho no "QUEM SOU EU" (mesma técnica da assinatura).
+     Mede o texto já traduzido: a fonte encolhe se a linha mais longa
+     não couber na coluna, e o raio do brilho acompanha o tamanho.
+     --------------------------------------------------------- */
+  function initAboutGiantGlow(){
+    const box = document.getElementById("aboutGiantBg");
+    const inner = document.getElementById("aboutGiantInner");
+    const fill = document.getElementById("aboutGiantFill");
+    const main = document.querySelector("#about .about-main");
+    if (!box || !inner || !fill || !main) return;
+    const base = inner.querySelector(".agb-base");
+
+    function fit(){
+      box.style.fontSize = "";
+      const cs = getComputedStyle(box);
+      const avail = box.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+      const lines = Array.from(base.querySelectorAll("span"));
+      const w = Math.max(...lines.map((l) => l.getBoundingClientRect().width));
+      const fs = parseFloat(cs.fontSize) || 60;
+      if (w > avail && avail > 0) box.style.fontSize = (fs * avail / w * 0.98).toFixed(1) + "px";
+      const size = parseFloat(getComputedStyle(box).fontSize) || fs;
+      box.style.setProperty("--sr", Math.round(Math.max(90, size * 1.35)) + "px");
+    }
+    fit();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    let ft;
+    window.addEventListener("resize", () => { clearTimeout(ft); ft = setTimeout(fit, 150); });
+
+    let hover = false, t0 = performance.now(), running = false, raf = 0;
+    function setAt(x, y){
+      const r = fill.getBoundingClientRect();
+      box.style.setProperty("--sx", `${x - r.left}px`);
+      box.style.setProperty("--sy", `${y - r.top}px`);
+    }
+    function sweep(now){
+      raf = requestAnimationFrame(sweep);
+      if (hover) return;
+      const r = fill.getBoundingClientRect();
+      const k = ((now - t0) / 1000) * 0.2;
+      const u = 0.5 - 0.5 * Math.cos(k * Math.PI * 2);
+      const v = 0.5 - 0.5 * Math.cos(k * Math.PI * 1.3); // desce e sobe pelas linhas
+      box.style.setProperty("--sx", `${r.width * (0.05 + u * 0.9)}px`);
+      box.style.setProperty("--sy", `${r.height * (0.2 + v * 0.6)}px`);
+    }
+    function start(){ if (running || reduceMotion) return; running = true; raf = requestAnimationFrame(sweep); }
+    function stop(){ running = false; cancelAnimationFrame(raf); }
+    if (reduceMotion){
+      requestAnimationFrame(() => { const r = fill.getBoundingClientRect(); box.style.setProperty("--sx", `${r.width / 2}px`); box.style.setProperty("--sy", `${r.height / 2}px`); });
+    } else if ("IntersectionObserver" in window){
+      new IntersectionObserver((en) => { en[0].isIntersecting ? start() : stop(); }, { threshold: 0 }).observe(box);
+    } else start();
+
+    if (!isTouch){
+      main.addEventListener("mousemove", (e) => {
+        const r = fill.getBoundingClientRect();
+        const pad = Math.max(60, r.height * 0.35);
+        hover = e.clientX > r.left - pad && e.clientX < r.right + pad && e.clientY > r.top - pad && e.clientY < r.bottom + pad;
+        if (hover) setAt(e.clientX, e.clientY);
+      });
+      main.addEventListener("mouseleave", () => { hover = false; });
+    }
+  }
+
   function initAboutSequence(){
     const mainEl = document.querySelector("#about .about-main");
     const canvas = document.getElementById("aboutCanvas");
@@ -1089,17 +1298,11 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
 
-    const SEG = isNarrow ? 26 : 46;
-    const waveGeo = new THREE.PlaneGeometry(52, 34, SEG, SEG);
-    const waveMat = new THREE.PointsMaterial({ color: 0x3d6bff, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false });
-    registerThemeColor(waveMat, "accent");
-    const waveMesh = new THREE.Points(waveGeo, waveMat);
-    waveMesh.rotation.x = -Math.PI / 2.3;
-    waveMesh.position.y = -2.6;
-    scene.add(waveMesh);
-    const posAttr = waveGeo.attributes.position;
-    const basePos = Float32Array.from(posAttr.array);
-    const waveState = { amp: isTouch ? 0.3 : 0.5 };
+    /* campo de pontos em shader (mesmo do contato): ondas na GPU, relevo
+       seguindo o mouse e ondas de clique. uAlpha/uAmp são animados pelo pin. */
+    const field = createAboutField();
+    scene.add(field.points);
+    const U = field.U;
 
     const laptop = buildLaptopModel({});
     laptop.group.scale.setScalar(0.001);
@@ -1123,13 +1326,9 @@
     function animate(){
       raf = requestAnimationFrame(animate);
       if (!reduceMotion){
-        const t = (performance.now() - t0) / 1000;
-        for (let i = 0; i < posAttr.count; i++){
-          const ix = i * 3;
-          const x = basePos[ix], y = basePos[ix + 1];
-          posAttr.array[ix + 2] = Math.sin(x * 0.35 + t * 0.6) * waveState.amp + Math.cos(y * 0.3 + t * 0.4) * waveState.amp * 0.6;
-        }
-        posAttr.needsUpdate = true;
+        const now = performance.now();
+        const dt = Math.min(0.05, (now - t0) / 1000); t0 = now;
+        field.tick(dt, camera, canvas);
         if (!capable) laptop.group.rotation.y += 0.0013; // giro contínuo só quando NÃO há pin/scroll controlando
       }
       renderer.render(scene, camera);
@@ -1181,8 +1380,8 @@
       { opacity: 0, y: -26, scale: 0.96, duration: 2, ease: "power1.in", stagger: 0.1 },
     1.0);
     tl.set([photoWrap, copy, stack, giantBg], { visibility: "hidden" }, 3.3); // some de vez (evita "fantasmas" de composição)
-    tl.to(waveMat, { opacity: 0, duration: 1.6 }, 1.2);
-    tl.to(waveState, { amp: 0, duration: 1.6 }, 1.2);
+    tl.to(U.uAlpha, { value: 0, duration: 1.6 }, 1.2);
+    tl.to(U.uAmp, { value: 0, duration: 1.6 }, 1.2);
 
     // 2) o ambiente muda de cor
     tl.to(mainEl, { backgroundColor: BG_1, duration: 3.2, ease: "none" }, 1.8);
@@ -1241,7 +1440,7 @@
     tl.to(vidMat, { opacity: 1, duration: 1.3, ease: "power1.inOut" }, 16.4);
     tl.to(laptop.glowMat, { opacity: 0, duration: 0.6 }, 17.6);
     tl.to(dive, { k: 1, duration: 2.6, ease: "power2.inOut", onUpdate: applyDive }, 16.5);
-    tl.to(canvas, { opacity: 1, duration: 2.2, ease: "power1.inOut" }, 16.6); // canvas do Sobre fica a 55%: a tela final precisa do brilho cheio
+    tl.to(canvas, { opacity: 1, duration: 2.2, ease: "power1.inOut" }, 16.6); // canvas do Sobre fica a 90%: a tela final precisa do brilho cheio
     tl.to([laptop.lineMat, laptop.hingeLineMat], { opacity: 0, duration: 0.7 }, 18.3);
     tl.to(mainEl, { backgroundColor: "#050810", duration: 2.4, ease: "none" }, 16.6);
     tl.to({}, { duration: 0.5 }, 19.1); // respiro: o quadro final "assenta" antes da troca
@@ -1443,6 +1642,143 @@
   /* ---------------------------------------------------------
      9.d) PROJECTS — tilt 3D + glare seguindo o cursor
      --------------------------------------------------------- */
+  /* ---------------------------------------------------------
+     9.d.0) PROJETOS — imagens: baixam antes de a seção chegar e só
+     fazem o "wipe" (esquerda → direita) depois de carregadas. Antes
+     o wipe começava com a imagem ainda baixando (lazy) e a foto
+     "estourava" pronta depois, sobre um bloco preto.
+     --------------------------------------------------------- */
+  function initProjectImages(){
+    const section = document.getElementById("projects");
+    const imgs = Array.from(document.querySelectorAll(".proj-shot img"));
+    if (!imgs.length) return;
+    imgs.forEach((img) => {
+      const shot = img.closest(".proj-shot");
+      const done = () => shot && shot.classList.add("is-loaded");
+      if (img.complete && img.naturalWidth) done();
+      else { img.addEventListener("load", done, { once: true }); img.addEventListener("error", done, { once: true }); }
+    });
+    // pede as imagens com antecedência (~1,5 tela antes da seção)
+    const eager = () => imgs.forEach((img) => { if (img.loading === "lazy") img.loading = "eager"; });
+    if (section && "IntersectionObserver" in window){
+      const io = new IntersectionObserver((en) => { if (en[0].isIntersecting){ eager(); io.disconnect(); } }, { rootMargin: "0px 0px 150% 0px" });
+      io.observe(section);
+    } else eager();
+  }
+
+  /* ---------------------------------------------------------
+     PROJETOS — fundo "prancheta" + luz na cor do projeto em foco
+     Desktop: a grade acende em volta do cursor; o card sob o mouse
+     tinge o fundo com a cor dominante da própria imagem.
+     Toque: o brilho da grade passeia sozinho e a luz segue o card
+     mais perto do centro da tela.
+     --------------------------------------------------------- */
+  function initProjectsBackdrop(){
+    const section = document.getElementById("projects");
+    const tint = document.getElementById("projTint");
+    if (!section || !tint) return;
+    const cards = Array.from(section.querySelectorAll(".proj-card"));
+    const FALLBACK = "125,216,255";
+
+    // cor dominante: média ponderada pela saturação (ignora cinzas/brancos)
+    function colorOf(card){
+      if (card.dataset.tint) return card.dataset.tint;
+      const img = card.querySelector("img");
+      if (!img || !img.complete || !img.naturalWidth) return FALLBACK;
+      try {
+        const c = document.createElement("canvas"); c.width = c.height = 24;
+        const x = c.getContext("2d", { willReadFrequently: true });
+        x.drawImage(img, 0, 0, 24, 24);
+        const d = x.getImageData(0, 0, 24, 24).data;
+        let r = 0, g = 0, b = 0, w = 0;
+        for (let i = 0; i < d.length; i += 4){
+          const R = d[i], G = d[i + 1], B = d[i + 2];
+          const mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+          const sat = mx ? (mx - mn) / mx : 0;
+          const wt = sat * sat * (mx / 255) + 0.002;
+          r += R * wt; g += G * wt; b += B * wt; w += wt;
+        }
+        r /= w; g /= w; b /= w;
+        const k = 235 / (Math.max(r, g, b) || 1); // mesma luminosidade para todos
+        card.dataset.tint = `${Math.round(r * k)},${Math.round(g * k)},${Math.round(b * k)}`;
+        return card.dataset.tint;
+      } catch (e){ return FALLBACK; }
+    }
+
+    let active = null;
+    function focus(card){
+      if (card === active) return;
+      active = card;
+      if (!card){ section.classList.remove("tint-on"); return; }
+      const sr = section.getBoundingClientRect(), cr = card.getBoundingClientRect();
+      const w = cr.width * 1.5, h = cr.height * 1.5;
+      tint.style.setProperty("--tw", `${w}px`);
+      tint.style.setProperty("--th", `${h}px`);
+      tint.style.setProperty("--tx", `${cr.left - sr.left + cr.width / 2 - w / 2}px`);
+      tint.style.setProperty("--ty", `${cr.top - sr.top + cr.height / 2 - h / 2}px`);
+      tint.style.color = `rgb(${colorOf(card)})`;
+      section.classList.add("tint-on");
+    }
+    // a cor pode ser lida só depois que a imagem carregar
+    cards.forEach((card) => {
+      const img = card.querySelector("img");
+      if (img && !img.complete) img.addEventListener("load", () => { if (active === card){ active = null; focus(card); } }, { once: true });
+    });
+
+    function setLamp(x, y){
+      section.style.setProperty("--gx", `${x}px`);
+      section.style.setProperty("--gy", `${y}px`);
+    }
+
+    if (!isTouch){
+      section.addEventListener("mousemove", (e) => {
+        const r = section.getBoundingClientRect();
+        if (!reduceMotion){ setLamp(e.clientX - r.left, e.clientY - r.top); section.classList.add("lamp-on"); }
+        focus(e.target.closest ? e.target.closest(".proj-card") : null);
+      }, { passive: true });
+      section.addEventListener("mouseleave", () => { section.classList.remove("lamp-on"); focus(null); });
+      return;
+    }
+
+    // ---- toque: sem cursor ----
+    let visible = false, raf = 0, t0 = performance.now();
+    function pickCenter(){
+      const mid = window.innerHeight / 2;
+      let best = null, bd = Infinity;
+      cards.forEach((c) => {
+        const r = c.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) return;
+        const d = Math.abs(r.top + r.height / 2 - mid);
+        if (d < bd){ bd = d; best = c; }
+      });
+      if (best && bd < window.innerHeight * 0.35){ active = null; focus(best); } else focus(null);
+    }
+    function drift(now){
+      raf = requestAnimationFrame(drift);
+      const r = section.getBoundingClientRect();
+      const t = (now - t0) / 1000;
+      // o brilho passeia pela parte visível da seção
+      const top = Math.max(0, -r.top), bottom = Math.min(r.height, window.innerHeight - r.top);
+      const x = r.width * (0.5 + 0.42 * Math.sin(t * 0.23));
+      const y = top + (bottom - top) * (0.5 + 0.38 * Math.sin(t * 0.17 + 1.3));
+      setLamp(x, y);
+    }
+    let st = 0;
+    window.addEventListener("scroll", () => {
+      if (!visible || st) return;
+      st = requestAnimationFrame(() => { st = 0; pickCenter(); });
+    }, { passive: true });
+    if ("IntersectionObserver" in window){
+      new IntersectionObserver((en) => {
+        visible = en[0].isIntersecting;
+        if (visible){
+          pickCenter();
+          if (!reduceMotion){ section.classList.add("lamp-on"); cancelAnimationFrame(raf); raf = requestAnimationFrame(drift); }
+        } else { cancelAnimationFrame(raf); section.classList.remove("lamp-on"); focus(null); }
+      }, { threshold: 0 }).observe(section);
+    }
+  }
+
   function initProjectTilt(){
     const cards = document.querySelectorAll(".proj-card");
     if (!cards.length || isTouch || reduceMotion) return;
@@ -1452,24 +1788,35 @@
       glare.className = "proj-glare";
       card.appendChild(glare);
 
+      // o tilt só liga depois que a entrada (fade + subida) terminou —
+      // antes, o transform do mouse brigava com o da animação de entrada
+      let ready = false;
+      card.addEventListener("transitionend", (e) => {
+        if (e.target === card && card.classList.contains("is-in")) ready = true;
+      });
+      setTimeout(() => { if (card.classList.contains("is-in")) ready = true; }, 1500);
+
       let raf = null;
-      let primed = false;
       card.addEventListener("mousemove", (e) => {
-        if (!primed){ card.style.transition = "transform .12s linear"; primed = true; }
+        if (!ready){ ready = card.classList.contains("is-in") && getComputedStyle(card).opacity === "1"; if (!ready) return; }
+        card.style.transition = "transform .15s linear, border-color .35s";
         if (raf) return;
         raf = requestAnimationFrame(() => {
           const r = card.getBoundingClientRect();
           const px = (e.clientX - r.left) / r.width;   // 0..1
           const py = (e.clientY - r.top) / r.height;   // 0..1
-          const rotY = (px - 0.5) * 26;
-          const rotX = (0.5 - py) * 20;
-          card.style.transform = `perspective(750px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.04)`;
+          // cards grandes inclinam menos (o grande girando 20° invadia os vizinhos)
+          const k = r.width > 600 ? 0.35 : r.width > 420 ? 0.6 : 1;
+          const rotY = (px - 0.5) * 22 * k;
+          const rotX = (0.5 - py) * 16 * k;
+          card.style.transform = `perspective(1100px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${1 + 0.03 * k})`;
           glare.style.background = `radial-gradient(circle at ${px * 100}% ${py * 100}%, rgba(125,216,255,.28), transparent 55%)`;
           raf = null;
         });
       });
       card.addEventListener("mouseleave", () => {
-        card.style.transform = "perspective(750px) rotateX(0deg) rotateY(0deg) scale(1)";
+        card.style.transition = "transform .6s cubic-bezier(.22,.61,.36,1), border-color .35s";
+        card.style.transform = "perspective(1100px) rotateX(0deg) rotateY(0deg) scale(1)";
       });
     });
   }
@@ -2140,6 +2487,7 @@
     initHeroPinSequence();
     initStatCounters();
     initAboutSequence();
+    initAboutGiantGlow();
     initAboutPhotoReveal();
     initScanlineTransitions();
     initExpCardFx();
@@ -2147,7 +2495,9 @@
     initContactGame();
     initContactReveal();
     initExperiencePin();
+    initProjectImages();
     initProjectTilt();
+    initProjectsBackdrop();
     initEducationSplit();
 
     runLoader(() => {
