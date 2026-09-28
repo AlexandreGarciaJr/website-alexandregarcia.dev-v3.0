@@ -3216,3 +3216,30 @@ fieldset.form-group legend{ padding:0; margin-bottom:.55rem; }
   /* o índice do hero não passa por baixo dos botões */
   .hero-index{ padding-right: 52px; }
 }
+
+/* ============================================================
+   SOBRE → TRAJETÓRIA no celular: notebook 3D pinado (main.js,
+   initAboutDiveMobile) que mergulha no 1º quadro do vídeo
+   ============================================================ */
+.about-dive-m{ position:relative; height:100svh; overflow:hidden; background:#0a0e1a; }
+.about-dive-m .adm-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+.adm-caption{
+  position:absolute; left:50%; top: 16svh; transform: translateX(-50%);
+  font-size:.74rem; color: var(--text-dim); white-space:nowrap; opacity:0; pointer-events:none;
+}
+.adm-caption .dim{ color: var(--accent-2); }
+#experience.exp-mobile.exp-joined{ background: transparent; }
+
+/* LOADER — cobre a tela inteira também no Safari do iPhone (a barra flutuante
+   deixa a área de baixo fora do "viewport pequeno" de um fixed inset:0) */
+#loader{ bottom:auto; height:100lvh; min-height:100%; box-shadow: 0 0 0 100vmax var(--bg); }
+html.is-booting body > *:not(#loader){ visibility:hidden; }
+
+/* SOM — enquanto o navegador não deixa tocar (antes do 1º toque), o botão pulsa de leve */
+.music-toggle-fab.needs-tap::after{
+  content:""; position:absolute; inset:-5px; border-radius:50%;
+  border:1px solid var(--accent-2); opacity:0;
+  animation: fab-hint 2.2s ease-out infinite; pointer-events:none;
+}
+@keyframes fab-hint{ 0%{ opacity:.7; transform:scale(.9); } 100%{ opacity:0; transform:scale(1.35); } }
+@media (prefers-reduced-motion: reduce){ .music-toggle-fab.needs-tap::after{ animation:none; opacity:.5; } }

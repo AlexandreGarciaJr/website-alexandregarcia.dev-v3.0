@@ -190,12 +190,14 @@
       if (el.paused){
         // se por algum motivo o autoplay mutado não rodou, tenta tocar agora
         // (esse gesto conta como legítimo, então deve ser aceito)
-        el.play().then(() => { started = true; }).catch(() => {});
+        el.play().then(() => { started = true; audible(); }).catch(() => {});
       } else {
         started = true;
+        audible();
       }
     }
 
+    function audible(){ document.dispatchEvent(new CustomEvent("agaudiostart")); }
     function setMuted(muted){
       prefs.muted = muted;
       savePrefs(prefs);
@@ -213,6 +215,7 @@
           if (el.paused) el.play().catch(() => {});
         }
         started = true;
+        audible();
       }
     }
 
@@ -506,7 +509,7 @@
   function runLoader(done){
     const loader = document.getElementById("loader");
     const canvas = document.getElementById("loaderCanvas");
-    if (!loader){ done(); return; }
+    if (!loader){ root.classList.remove("is-booting"); done(); return; }
 
     // já rodou nesta sessão (ex: navegação entre páginas) — pula, só roda na 1ª carga do site
     if (sessionStorage.getItem("agLoaderShown")){
@@ -514,10 +517,13 @@
       loader.style.opacity = "0";
       loader.style.visibility = "hidden";
       loader.style.pointerEvents = "none";
+      root.classList.remove("is-booting");
       done();
       return;
     }
     sessionStorage.setItem("agLoaderShown", "1");
+    root.classList.add("is-booting");
+    setTimeout(() => root.classList.remove("is-booting"), 12000); // segurança: nunca prende o site escondido
 
     const steps = [
       "> booting portfolio",
@@ -528,6 +534,7 @@
     ].map((s) => T(s));
 
     function finish(){
+      root.classList.remove("is-booting");
       loader.classList.add("is-done");
       setTimeout(done, 700);
     }
@@ -847,9 +854,13 @@
     const fab = document.getElementById("musicToggleFab");
     if (!fab) return;
     syncMusicUI();
+    // navegadores só liberam som depois de um toque/clique: até lá o botão pulsa de leve
+    if (!AudioEngine.isMuted()) fab.classList.add("needs-tap");
+    document.addEventListener("agaudiostart", () => fab.classList.remove("needs-tap"));
     fab.addEventListener("click", (e) => {
       e.stopPropagation(); // o "desbloqueio" de áudio do documento não roda depois do mudo
       AudioEngine.setMuted(!AudioEngine.isMuted());
+      fab.classList.remove("needs-tap");
       AudioEngine.clickSound();
       syncMusicUI();
     });
@@ -1301,6 +1312,122 @@
       });
       main.addEventListener("mouseleave", () => { hover = false; });
     }
+  }
+
+  /* ---------------------------------------------------------
+     SOBRE → TRAJETÓRIA no celular: bloco de 1 tela, pinado, com o
+     notebook 3D — nasce, abre, gira com o scroll e a câmera mergulha
+     na tela até o 1º quadro do vídeo mobile (frames-m/frame_011),
+     exatamente o quadro com que a Trajetória começa.
+     --------------------------------------------------------- */
+  function initAboutDiveMobile(){
+    const about = document.getElementById("about");
+    if (!about || !isNarrow || reduceMotion || typeof THREE === "undefined" || typeof gsap === "undefined" || !window.ScrollTrigger) return null;
+
+    const block = document.createElement("div");
+    block.className = "about-dive-m";
+    block.id = "aboutDiveM";
+    block.setAttribute("aria-hidden", "true");
+    block.innerHTML = '<canvas class="adm-canvas"></canvas><div class="adm-caption mono"><span class="dim">// </span>' + T("ambiente pronto para o próximo desafio") + '</div>';
+    about.appendChild(block);
+    const canvas = block.querySelector("canvas");
+    const caption = block.querySelector(".adm-caption");
+
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true }); }
+    catch (e){ block.remove(); return null; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+
+    let W = block.clientWidth, H = block.clientHeight;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, W / H, 0.05, 100);
+    const CAM0 = new THREE.Vector3(0, 2.2, 11.5), LOOK0 = new THREE.Vector3(0, -0.2, 0);
+    camera.position.copy(CAM0); camera.lookAt(LOOK0);
+    function resize(){
+      W = block.clientWidth; H = block.clientHeight;
+      renderer.setSize(W, H, false);
+      camera.aspect = W / H; camera.updateProjectionMatrix();
+      if (dive.k > 0) applyDive();
+      render();
+    }
+
+    const S = 1.25; // escala final: o notebook ocupa ~85% da largura
+    const laptop = buildLaptopModel({});
+    laptop.group.scale.setScalar(0.001);
+    laptop.group.position.y = -0.6;
+    scene.add(laptop.group);
+    const screen = createTypingScreen();
+    laptop.glow.material.map = screen.tex;
+    laptop.glow.material.color.set(0xffffff);
+    laptop.glow.material.needsUpdate = true;
+
+    // 1º quadro do vídeo mobile (retrato 600×900), centrado na tela do notebook
+    const vidTex = new THREE.TextureLoader().load("./assets/video/frames-m/frame_011.jpg");
+    const vidMat = new THREE.MeshBasicMaterial({ map: vidTex, transparent: true, opacity: 0, depthWrite: false });
+    const VH = 1.75, VW = VH * (600 / 900);
+    const vidPlane = new THREE.Mesh(new THREE.PlaneGeometry(VW, VH), vidMat);
+    vidPlane.position.set(0, 1.05, 0.048);
+    laptop.screenPivot.add(vidPlane);
+
+    const dive = { k: 0 };
+    const tmpPos = new THREE.Vector3(), tmpLook = new THREE.Vector3(), c = new THREE.Vector3();
+    function applyDive(){
+      c.set(0, laptop.group.position.y + S * 1.13, -S * 1.035);
+      const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      // "cover", igual ao drawCover da Trajetória
+      const d = Math.min((VH * S) / (2 * t), (VW * S) / (2 * t * camera.aspect)) * 0.995;
+      tmpPos.set(c.x, c.y, c.z + d);
+      camera.position.copy(CAM0).lerp(tmpPos, dive.k);
+      tmpLook.copy(LOOK0).lerp(c, dive.k);
+      camera.lookAt(tmpLook);
+    }
+
+    function render(){ renderer.render(scene, camera); }
+    let raf = 0, running = false;
+    function loop(){ raf = requestAnimationFrame(loop); render(); }
+    function start(){ if (running) return; running = true; raf = requestAnimationFrame(loop); }
+    function stop(){ running = false; cancelAnimationFrame(raf); }
+    if ("IntersectionObserver" in window){
+      new IntersectionObserver((en) => { en[0].isIntersecting ? start() : stop(); }, { threshold: 0 }).observe(block);
+    } else start();
+    document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
+    resize();
+    let lastW = window.innerWidth;
+    window.addEventListener("resize", () => { if (window.innerWidth !== lastW){ lastW = window.innerWidth; resize(); } });
+
+    const tl = gsap.timeline({
+      defaults: { ease: "none" },
+      scrollTrigger: { trigger: block, start: "top top", end: "+=300%", pin: true, scrub: 0.6, anticipatePin: 1 },
+    });
+    tl.set({}, {}, 10);
+    // nasce e abre
+    tl.to(laptop.group.scale, { x: S, y: S, z: S, duration: 2, ease: "back.out(1.3)" }, 0.2);
+    tl.to(laptop.group.position, { y: -1.4, duration: 2, ease: "power2.out" }, 0.2);
+    tl.to(laptop.lineMat, { opacity: 0.85, duration: 0.8 }, 0.4);
+    tl.to(laptop.hingeLineMat, { opacity: 0.5, duration: 0.8 }, 0.8);
+    tl.to(laptop.screenPivot.rotation, { x: -0.12, duration: 1.6, ease: "power2.inOut" }, 1.4);
+    tl.to(laptop.glowMat, { opacity: 1, duration: 0.6 }, 2.8);
+    tl.call(() => {
+      screen.typeLines([
+        { text: T("> status: pronto"), color: "#7dd8ff" },
+        { text: T("  stack carregada"), color: "#e2ecff" },
+      ], { charDelay: 32 });
+    }, [], 2.9);
+    // gira com o scroll (termina de frente: 4π) enquanto o fundo muda de cor
+    tl.to(laptop.group.rotation, { y: Math.PI * 4, duration: 4.6, ease: "power1.inOut" }, 3.2);
+    tl.to(block, { backgroundColor: "#1c1240", duration: 2.4 }, 3.2);
+    tl.to(block, { backgroundColor: "#0d2438", duration: 2.2 }, 5.6);
+    tl.fromTo(caption, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6 }, 4.6);
+    tl.to(caption, { opacity: 0, duration: 0.5 }, 7.0);
+    // mergulho na tela
+    tl.to(laptop.screenPivot.rotation, { x: 0, duration: 1, ease: "power2.inOut" }, 7.2);
+    tl.to(vidMat, { opacity: 1, duration: 0.9, ease: "power1.inOut" }, 7.7);
+    tl.to(laptop.glowMat, { opacity: 0, duration: 0.5 }, 8.5);
+    tl.to(dive, { k: 1, duration: 1.9, ease: "power2.inOut", onUpdate: applyDive }, 7.9);
+    tl.to([laptop.lineMat, laptop.hingeLineMat], { opacity: 0, duration: 0.5 }, 9.3);
+    tl.to(block, { backgroundColor: "#050810", duration: 1.6 }, 8.2);
+
+    return block;
   }
 
   function initAboutSequence(){
@@ -2265,8 +2392,9 @@
     section.classList.add("exp-cine");
     if (MOBILE) section.classList.add("exp-mobile");
     // emenda com o pin do Sobre: a seção sobe uma tela por cima do final dele
-    const aboutMain = document.querySelector("#about .about-main.compact");
+    const aboutMain = document.querySelector("#about .about-main.compact") || document.getElementById("aboutDiveM");
     const overlap = !!aboutMain;
+    if (overlap) section.classList.add("exp-joined");
     function applyOverlap(){ section.style.marginTop = overlap ? `-${aboutMain.offsetHeight}px` : ""; }
     applyOverlap();
 
@@ -2476,7 +2604,7 @@
     }
     // celular: a "tela" liga ao entrar — faixa fina que abre até cobrir tudo (mesma
     // linguagem da abertura dos cards; substitui o mergulho do notebook do desktop)
-    if (MOBILE && canvas){
+    if (MOBILE && canvas && !overlap){
       gsap.fromTo(canvas,
         { clipPath: "inset(46% 6% 46% 6% round 14px)", scale: 1.08 },
         { clipPath: "inset(0% 0% 0% 0% round 0px)", scale: 1, ease: "power2.out",
@@ -2519,6 +2647,7 @@
     initStatCounters();
     initAboutSequence();
     initAboutGiantGlow();
+    initAboutDiveMobile();
     initAboutPhotoReveal();
     initScanlineTransitions();
     initExpCardFx();
