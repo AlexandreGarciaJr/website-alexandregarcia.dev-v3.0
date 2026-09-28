@@ -1589,8 +1589,12 @@ section{ position:relative; }
   transition: opacity .8s var(--ease-out), transform .8s var(--ease-out), border-color .35s ease, box-shadow .35s ease;
 }
 .proj-card:hover{
-  border-color: var(--accent-2);
-  box-shadow: 0 0 0 1px var(--accent-2), 0 0 32px -4px var(--accent-2), 0 0 70px -20px var(--accent);
+  border-color: rgba(125,216,255,.55);
+  border-color: color-mix(in srgb, var(--accent-2) 60%, transparent);
+  box-shadow: 0 0 0 1px rgba(125,216,255,.25), 0 0 22px -8px rgba(125,216,255,.4), 0 0 60px -28px rgba(61,107,255,.45);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-2) 28%, transparent),
+              0 0 22px -8px color-mix(in srgb, var(--accent-2) 45%, transparent),
+              0 0 60px -28px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 @media (prefers-reduced-motion: reduce){
   .proj-card{ transition: opacity .8s var(--ease-out), transform .8s var(--ease-out); }
@@ -3184,4 +3188,31 @@ fieldset.form-group legend{ padding:0; margin-bottom:.55rem; }
 @media (prefers-reduced-motion: reduce){
   .pbg-lamp{ display:none; }
   .pbg-tint{ transition: opacity .3s; }
+}
+
+/* ============================================================
+   CELULAR — hero sem sobreposição: dock ↔ GARCIA ↔ botões flutuantes
+   ============================================================ */
+@media (max-width: 900px){
+  /* o dock fica na base do palco; GARCIA começa depois dele */
+  #hero .title-line--b{ margin-top: .9rem; }
+  /* botões flutuantes menores e respeitando a área segura do iPhone */
+  .wa-float, .wa-pulse, .settings-fab, .music-toggle-fab{
+    width:44px; height:44px; right: 14px;
+  }
+  .wa-float, .wa-pulse{ bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .settings-fab{ bottom: calc(14px + 44px + 10px + env(safe-area-inset-bottom, 0px)); }
+  .music-toggle-fab{ bottom: calc(14px + (44px + 10px) * 2 + env(safe-area-inset-bottom, 0px)); }
+  .wa-float svg, .settings-fab svg, .music-toggle-fab svg{ width:19px; height:19px; }
+  .settings-fab, .wa-float, .wa-pulse, .music-toggle-fab{
+    transition: transform .35s var(--ease-out), opacity .3s ease, bottom .4s var(--ease-out), border-color .3s, color .3s;
+  }
+  /* primeira tela do hero: só o botão de som, sozinho no canto (não cobre o GARCIA nem o dock) */
+  html.fabs-hero .settings-fab,
+  html.fabs-hero .wa-float,
+  html.fabs-hero .wa-pulse{ opacity:0; transform: translateY(12px) scale(.9); pointer-events:none; }
+  html.fabs-hero .music-toggle-fab{ bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  html.fabs-hero .wa-pulse{ visibility:hidden; animation:none; }
+  /* o índice do hero não passa por baixo dos botões */
+  .hero-index{ padding-right: 52px; }
 }

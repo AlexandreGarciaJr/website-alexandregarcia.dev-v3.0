@@ -113,6 +113,10 @@
         a.loop = true;
         a.preload = "auto";
         a.volume = 0;
+        a.setAttribute("playsinline", "");
+        // trava de segurança: se qualquer coisa der play com o site mudo
+        // (retomada do sistema, bfcache, gesto atrasado), para na hora
+        a.addEventListener("play", () => { if (prefs.muted){ a.muted = true; a.pause(); } });
         els[n] = a;
       }
       return els[n];
@@ -127,10 +131,11 @@
       stopTrack();
       currentTrack = n;
       const el = getEl(n);
-      el.muted = false;
-      el.volume = prefs.muted ? 0 : prefs.vol;
+      // Safari no iPhone/iPad ignora .volume (só lê): o mudo precisa usar .muted/pause()
+      el.muted = prefs.muted;
+      el.volume = prefs.vol;
       try { el.currentTime = 0; } catch (e){}
-      el.play().catch(() => {});
+      if (!prefs.muted) el.play().catch(() => {});
       prefs.track = n;
       savePrefs(prefs);
     }
@@ -196,11 +201,18 @@
       savePrefs(prefs);
       const el = els[currentTrack];
       if (muted){
-        if (el) el.volume = 0;
+        // .volume = 0 não funciona no iOS (propriedade só-leitura no WebKit):
+        // silencia de verdade e pausa todas as trilhas (o play volta no clique)
+        Object.values(els).forEach((a) => { a.muted = true; try { a.pause(); } catch (e){} });
       } else {
         ensureCtx();
-        if (currentTrack === 0) playTrack(prefs.track || 1);
-        else if (el){ el.muted = false; el.volume = prefs.vol; }
+        if (currentTrack === 0 || !el) playTrack(prefs.track || 1);
+        else {
+          el.muted = false;
+          el.volume = prefs.vol;
+          if (el.paused) el.play().catch(() => {});
+        }
+        started = true;
       }
     }
 
@@ -262,6 +274,10 @@
       src.connect(filt); filt.connect(ng); ng.connect(sfxGain);
       src.start(now); src.stop(now + 0.06);
     }
+
+    window.addEventListener("pageshow", () => {
+      if (prefs.muted) Object.values(els).forEach((a) => { a.muted = true; try { a.pause(); } catch (e){} });
+    });
 
     return {
       start, playTrack, setMuted, primeMutedAutoplay, saveResumeState,
@@ -815,12 +831,26 @@
     setTimeout(loop, 2600); // primeira vez logo após o hero assentar
   }
 
+  function initFabsAtHero(){
+    if (!isNarrow) return;
+    let on = null;
+    const check = () => {
+      const v = window.scrollY < window.innerHeight * 0.45;
+      if (v !== on){ on = v; root.classList.toggle("fabs-hero", v); }
+    };
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+  }
+
   function initMusicToggleFab(){
     const fab = document.getElementById("musicToggleFab");
     if (!fab) return;
     syncMusicUI();
-    fab.addEventListener("click", () => {
+    fab.addEventListener("click", (e) => {
+      e.stopPropagation(); // o "desbloqueio" de áudio do documento não roda depois do mudo
       AudioEngine.setMuted(!AudioEngine.isMuted());
+      AudioEngine.clickSound();
       syncMusicUI();
     });
   }
@@ -1806,11 +1836,11 @@
           const px = (e.clientX - r.left) / r.width;   // 0..1
           const py = (e.clientY - r.top) / r.height;   // 0..1
           // cards grandes inclinam menos (o grande girando 20° invadia os vizinhos)
-          const k = r.width > 600 ? 0.35 : r.width > 420 ? 0.6 : 1;
+          const k = r.width > 600 ? 0.5 : r.width > 420 ? 0.78 : 1.15;
           const rotY = (px - 0.5) * 22 * k;
           const rotX = (0.5 - py) * 16 * k;
           card.style.transform = `perspective(1100px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${1 + 0.03 * k})`;
-          glare.style.background = `radial-gradient(circle at ${px * 100}% ${py * 100}%, rgba(125,216,255,.28), transparent 55%)`;
+          glare.style.background = `radial-gradient(circle at ${px * 100}% ${py * 100}%, rgba(125,216,255,.18), transparent 55%)`;
           raf = null;
         });
       });
@@ -2469,6 +2499,7 @@
     initCursor();
     initPageTransitions();
     initAudioUnlock();
+    initFabsAtHero();
     initUiSounds();
     initSettingsPanel();
     initMusicToggleFab();
