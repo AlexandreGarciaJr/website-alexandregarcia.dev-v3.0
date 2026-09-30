@@ -505,6 +505,7 @@
         if (!res.ok || !data || !data.ok){
           const err = new Error((data && data.erro) || `falha no envio (HTTP ${res.status})`);
           err.campo = data && data.campo;
+          err.server = res.status >= 500 || !data; // erro do servidor: não mostra detalhe técnico ao visitante
           throw err;
         }
         success();
@@ -512,7 +513,10 @@
         setBusy(false);
         shake();
         const dm = /O domínio (@\S+) não recebe e-mails\./.exec(err.message || "");
-        const msg = dm ? T("// o domínio {d} não recebe e-mails.", { d: dm[1] }).replace(/^\/\/ /, "") : T(err.message || "algo deu errado");
+        const generic = err.server || err instanceof TypeError; // 5xx ou rede fora do ar
+        const msg = dm ? T("// o domínio {d} não recebe e-mails.", { d: dm[1] }).replace(/^\/\/ /, "")
+          : generic ? T("não foi possível enviar agora")
+          : T(err.message || "algo deu errado");
         if (err.campo && group(err.campo)){ touched.add(err.campo); setState(err.campo, "err", "// " + msg); }
         errorEl.innerHTML = `// ${escapeHTML(msg.replace(/\.$/, ""))}. ${T("Se preferir, escreva direto para")} <a href="mailto:alexandregojunior@gmail.com">alexandregojunior@gmail.com</a>.`;
         errorEl.classList.add("is-visible");

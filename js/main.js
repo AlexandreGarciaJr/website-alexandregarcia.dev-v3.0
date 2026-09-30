@@ -850,6 +850,15 @@
     window.addEventListener("resize", check);
   }
 
+  function initFooterYear(){
+    const y = String(new Date().getFullYear());
+    document.querySelectorAll("footer span, footer p, footer div").forEach((el) => {
+      el.childNodes.forEach((n) => {
+        if (n.nodeType === 3 && /©\s*20\d\d/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace(/©\s*20\d\d/, "© " + y);
+      });
+    });
+  }
+
   function initMusicToggleFab(){
     const fab = document.getElementById("musicToggleFab");
     if (!fab) return;
@@ -873,10 +882,22 @@
     const closeBtn = document.getElementById("settingsClose");
     if (!fab || !panel) return;
 
+    panel.inert = true;
+    panel.setAttribute("aria-hidden", "true");
     function setOpen(open){
+      const was = panel.classList.contains("is-open");
       panel.classList.toggle("is-open", open);
       overlay.classList.toggle("is-open", open);
       fab.setAttribute("aria-expanded", String(open));
+      // fechado = fora da ordem do Tab; ao abrir o foco entra no painel, ao fechar volta ao botão
+      panel.inert = !open;
+      panel.setAttribute("aria-hidden", String(!open));
+      if (open && !was){ const c = document.getElementById("settingsClose"); if (c) setTimeout(() => c.focus({ preventScroll: true }), 300); }
+      else if (!open && was && panel.contains(document.activeElement)) fab.focus({ preventScroll: true });
+      // com o painel aberto a roda do mouse rola o painel, não a página por trás
+      root.classList.toggle("panel-open", open);
+      if (lenis){ open ? lenis.stop() : lenis.start(); }
+      if (open) panel.scrollTop = 0;
     }
     fab.addEventListener("click", () => setOpen(true));
     closeBtn.addEventListener("click", () => setOpen(false));
@@ -920,15 +941,29 @@
     const menu = document.getElementById("fullMenu");
     if (!btn || !menu) return;
     const label = btn.querySelector(".hamburger-label");
-    function setOpen(open){
+    // fechado = fora da ordem do Tab e dos leitores de tela
+    menu.inert = true;
+    menu.setAttribute("aria-hidden", "true");
+    function setOpen(open, { restoreFocus = true } = {}){
+      const was = menu.classList.contains("is-open");
       menu.classList.toggle("is-open", open);
       btn.classList.toggle("is-open", open);
       btn.setAttribute("aria-expanded", String(open));
-      if (label){ label.textContent = open ? "FECHAR" : "MENU"; label.setAttribute("data-glitch", label.textContent); }
+      menu.inert = !open;
+      menu.setAttribute("aria-hidden", String(!open));
+      if (label){ label.textContent = open ? T("FECHAR") : T("MENU"); label.setAttribute("data-glitch", label.textContent); }
       document.body.style.overflow = open ? "hidden" : "";
+      if (lenis){ open ? lenis.stop() : lenis.start(); }
+      if (open && !was){
+        const first = menu.querySelector("a");
+        if (first) setTimeout(() => first.focus({ preventScroll: true }), 350);
+      } else if (!open && was && restoreFocus && menu.contains(document.activeElement)){
+        btn.focus({ preventScroll: true });
+      }
     }
     btn.addEventListener("click", () => setOpen(!menu.classList.contains("is-open")));
-    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setOpen(false, { restoreFocus: false })));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && menu.classList.contains("is-open")) setOpen(false); });
   }
 
   /* ---------------------------------------------------------
@@ -1536,7 +1571,18 @@
       { opacity: 1, y: 0, scale: 1 },
       { opacity: 0, y: -26, scale: 0.96, duration: 2, ease: "power1.in", stagger: 0.1 },
     1.0);
-    tl.set([photoWrap, copy, stack, giantBg], { visibility: "hidden" }, 3.3); // some de vez (evita "fantasmas" de composição)
+    // some de vez (evita "fantasmas" de composição). O valor inicial é explícito: na 1ª visita
+    // o loader deixa a página com visibility:hidden (html.is-booting) e o GSAP gravaria esse
+    // "hidden" como estado original — o Sobre ficava invisível até recarregar a página.
+    // (sem tween de visibility: o GSAP gravaria o "hidden" do loader como estado original)
+    const ghostEls = [photoWrap, copy, stack, giantBg].filter(Boolean);
+    let ghostHidden = false;
+    tl.eventCallback("onUpdate", () => {
+      const hide = tl.time() >= 3.3;
+      if (hide === ghostHidden) return;
+      ghostHidden = hide;
+      ghostEls.forEach((el) => { el.style.visibility = hide ? "hidden" : ""; });
+    });
     tl.to(U.uAlpha, { value: 0, duration: 1.6 }, 1.2);
     tl.to(U.uAmp, { value: 0, duration: 1.6 }, 1.2);
 
@@ -1664,6 +1710,22 @@
       hero.style.setProperty("--fs-b", fsB.toFixed(2) + "px");
       let wb = b.getBoundingClientRect().width;
       if (wb > avail){ fsB *= avail / wb; hero.style.setProperty("--fs-b", fsB.toFixed(2) + "px"); wb = avail; }
+      // telas baixas (notebook): ALEXANDRE + índice + texto + GARCIA precisam caber
+      // na altura sem encavalar — se não cabem, as duas linhas encolhem juntas
+      const copy = hero.querySelector(".hero-copy"), idx = hero.querySelector(".hero-index");
+      if (hero.clientWidth > 900 && copy && idx){
+        const topPx = parseFloat(getComputedStyle(hero).getPropertyValue("--hero-top")) || 96;
+        const fixed = topPx + 17.6 + idx.offsetHeight + 28 + copy.offsetHeight + 35;
+        const room = hero.clientHeight - fixed;
+        const titles = fsA * 0.78 + fsB * 0.74;
+        if (titles > room){
+          const k = Math.max(0.55, room / titles);
+          fsA *= k; fsB *= k;
+          hero.style.setProperty("--fs-a", fsA.toFixed(2) + "px");
+          hero.style.setProperty("--fs-b", fsB.toFixed(2) + "px");
+          wb = b.getBoundingClientRect().width;
+        }
+      }
       const ls = Math.max(0, (avail - wb) / Math.max(1, n - 1));
       hero.style.setProperty("--ls-b", ls.toFixed(2) + "px");
     }
@@ -2015,7 +2077,11 @@
     // campo de pontos da página (js/contato.js)
     const field = window.ContactFX && window.ContactFX.get ? window.ContactFX.get() : null;
 
-    const capable = !isNarrow && !reduceMotion && typeof gsap !== "undefined" && !!window.ScrollTrigger;
+    // janelas baixas (notebook 1366×768 com barras do navegador ≈ 650 px): o formulário
+    // inteiro não cabe numa tela fixada — o botão de enviar ficava fora do alcance.
+    // Nesses casos usa o fluxo normal (o mesmo do celular), que rola até o fim do formulário.
+    const SHORT = window.innerHeight < 760;
+    const capable = !isNarrow && !SHORT && !reduceMotion && typeof gsap !== "undefined" && !!window.ScrollTrigger;
     if (!capable){
       // celular / reduced-motion: fluxo normal; a malha vira prancheta conforme se rola até o formulário
       if (field && typeof gsap !== "undefined" && window.ScrollTrigger && !reduceMotion){
@@ -2567,7 +2633,13 @@
       // título: traço desenhado → preenchimento → se espalha e dissolve
       if (intro && introText){
         const t0 = T_HAND - 0.005;
-        tl.set(intro, { visibility: "visible" }, t0);
+        // visibilidade do título calculada pela posição da linha do tempo (sem tween de visibility)
+        let introOn = null;
+        const tIntroEnd = 0.4 + 0.07;
+        tl.eventCallback("onUpdate", () => {
+          const t = tl.time(), on = t >= t0 && t < tIntroEnd;
+          if (on !== introOn){ introOn = on; intro.style.visibility = on ? "visible" : "hidden"; }
+        });
         if (kLine) tl.fromTo(kLine, { scaleX: 0 }, { scaleX: 1, duration: 0.03, ease: "power2.out" }, t0);
         if (kicker) tl.fromTo(kicker, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.025, ease: "power2.out" }, t0);
         tl.fromTo(introText, { strokeDashoffset: 1100, strokeOpacity: 1 },
@@ -2581,7 +2653,6 @@
         tl.to(introText, { fillOpacity: 0, strokeDashoffset: -1100, strokeOpacity: 1, duration: 0.06, ease: "power2.in" }, tOut);
         if (introSvg) tl.fromTo(introSvg, { filter: "blur(0px) drop-shadow(0 0 22px rgba(125,216,255,.28))" }, { filter: "blur(10px) drop-shadow(0 0 22px rgba(125,216,255,0))", duration: 0.06, ease: "power2.in" }, tOut);
         tl.to([kicker, sub].filter(Boolean), { opacity: 0, y: -12, duration: 0.04, ease: "power1.in" }, tOut);
-        tl.set(intro, { visibility: "hidden" }, tOut + 0.07);
       }
 
       // cards: três abrem com o vídeo rodando; a trilha desliza e a atual entra por último
@@ -2627,6 +2698,7 @@
     initCursor();
     initPageTransitions();
     initAudioUnlock();
+    initFooterYear();
     initFabsAtHero();
     initUiSounds();
     initSettingsPanel();

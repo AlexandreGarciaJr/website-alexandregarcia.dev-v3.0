@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="./css/style.css?v=20260928">
+<link rel="stylesheet" href="./css/style.css?v=20260930b">
 <link rel="icon" type="image/svg+xml" href="./assets/svg/favicon-laptop.svg">
 <link rel="icon" type="image/png" href="./assets/img/favicon-laptop-400.png">
 <script>try{var t=localStorage.getItem("agTheme");if(t&&t!=="blue")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
@@ -59,7 +59,7 @@
 </button>
 
 <div class="settings-overlay" id="settingsOverlay"></div>
-<div class="settings-panel" id="settingsPanel" role="dialog" aria-label="Configurações">
+<div class="settings-panel" id="settingsPanel" data-lenis-prevent role="dialog" aria-label="Configurações">
   <div class="settings-header">
     <div>
       <div class="settings-title">System</div>
@@ -81,7 +81,15 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-label mono"><span>[02]</span> trilha sonora <button class="settings-label-tag mono audio-toggle" id="audioToggle">on</button></div>
+    <div class="settings-label mono"><span>[02]</span> idioma</div>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
+      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
+      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[03]</span> trilha sonora <button class="settings-label-tag mono audio-toggle" id="audioToggle">on</button></div>
     <button class="track-card is-active" data-track="1">
       <span class="track-info"><span class="track-name">Sci-Fi Ambient</span><span class="track-tag mono">atmosférico · espaço</span></span>
       <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
@@ -93,7 +101,7 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-label mono"><span>[03]</span> navegar</div>
+    <div class="settings-label mono"><span>[04]</span> navegar</div>
     <nav class="settings-nav">
       <a href="index.html#hero" class="settings-nav-link"><span class="mono">01</span>Home</a>
       <a href="index.html#about" class="settings-nav-link"><span class="mono">02</span>Sobre</a>
@@ -102,14 +110,6 @@
     </nav>
   </div>
 
-  <div class="settings-section">
-    <div class="settings-label mono"><span>[04]</span> idioma</div>
-    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
-      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
-      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
-      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
-    </div>
-  </div>
   <div class="settings-status mono"><span class="settings-status-dot"></span>system active</div>
 </div>
 
@@ -122,7 +122,7 @@
   </button>
 </nav>
 
-<div class="fullmenu" id="fullMenu">
+<div class="fullmenu" id="fullMenu" data-lenis-prevent>
   <div class="fullmenu-giant-bg" aria-hidden="true">MENU</div>
   <nav class="fullmenu-links">
     <a href="index.html#about" class="fullmenu-link"><span class="fullmenu-num mono">01</span><span class="fullmenu-link-text">Sobre</span></a>
@@ -144,6 +144,7 @@
 </div>
 
 <!-- ============ CONTATO — HERO + FORMULÁRIO (scroll motion) ============ -->
+<main id="conteudo">
 <section id="contact-hero">
   <div class="contact-pin-wrap" id="contactPinWrap">
 
@@ -151,7 +152,7 @@
       <div class="contact-hero-inner">
         <div class="contact-hero-main">
           <span class="section-kicker reveal">// contato</span>
-          <h1 class="contact-hero-title reveal"><span class="title-line" id="contactTitleLine1">Vamos trabalhar</span><span class="title-line" id="contactTitleLine2"><span class="accent-text">juntos?</span></span></h1>
+          <h1 class="contact-hero-title reveal"><span class="title-line" id="contactTitleLine1">Vamos trabalhar</span> <span class="title-line" id="contactTitleLine2"><span class="accent-text">juntos?</span></span></h1>
           <p class="section-body reveal contact-hero-desc">Estou disponível para novos projetos, freelas e oportunidades. Role para abrir o formulário ou fale direto pelos canais.</p>
           <div class="eyebrow-badge mono reveal"><span class="eyebrow-dot"></span>disponível para novos projetos</div>
         </div>
@@ -320,6 +321,8 @@
   </div>
 </section>
 
+</main>
+
 <!-- ============ FOOTER ============ -->
 <footer id="footer">
   <div class="footer-inner">
@@ -352,8 +355,8 @@
 <script src="./assets/vendor/gsap.min.js"></script>
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
-<script src="./js/i18n.js?v=20260928"></script>
-<script src="./js/main.js?v=20260928"></script>
-<script src="./js/contato.js?v=20260928"></script>
+<script src="./js/i18n.js?v=20260930b"></script>
+<script src="./js/main.js?v=20260930b"></script>
+<script src="./js/contato.js?v=20260930b"></script>
 </body>
 </html>

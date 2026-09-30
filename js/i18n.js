@@ -49,6 +49,8 @@
     "Trajetória": ["Career", "Trayectoria"],
     "Menu": ["Menu", "Menú"],
     "MENU": ["MENU", "MENÚ"],
+    "FECHAR": ["CLOSE", "CERRAR"],
+    "não foi possível enviar agora": ["couldn't send it right now", "no fue posible enviarlo ahora"],
     "são paulo, brasil": ["são paulo, brazil", "são paulo, brasil"],
     "disponível para novos projetos": ["available for new projects", "disponible para nuevos proyectos"],
     "Disponível para novos projetos": ["Available for new projects", "Disponible para nuevos proyectos"],
@@ -359,7 +361,7 @@
 
   /* ---------- seletor de idioma (menu de configurações) ---------- */
   function initSwitch(){
-    document.querySelectorAll("[data-lang]").forEach((btn) => {
+    document.querySelectorAll(".lang-btn[data-lang]").forEach((btn) => { // só os botões (o <html> também tem data-lang)
       const on = btn.getAttribute("data-lang") === lang;
       btn.classList.toggle("is-active", on);
       btn.setAttribute("aria-pressed", String(on));

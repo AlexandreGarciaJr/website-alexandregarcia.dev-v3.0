@@ -22,7 +22,7 @@
 
 <link rel="preload" href="./assets/fonts/archivo-wdth-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/models/casa.glb" as="fetch" type="model/gltf-binary" crossorigin>
-<link rel="stylesheet" href="./css/style.css?v=20260928">
+<link rel="stylesheet" href="./css/style.css?v=20260930b">
 <script>
   // Safari < 16.4 não entende import maps: carrega o polyfill só nesses casos
   if (!(HTMLScriptElement.supports && HTMLScriptElement.supports("importmap"))){
@@ -96,7 +96,7 @@
 </button>
 
 <div class="settings-overlay" id="settingsOverlay"></div>
-<div class="settings-panel" id="settingsPanel" role="dialog" aria-label="Configurações">
+<div class="settings-panel" id="settingsPanel" data-lenis-prevent role="dialog" aria-label="Configurações">
   <div class="settings-header">
     <div>
       <div class="settings-title">System</div>
@@ -118,7 +118,15 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-label mono"><span>[02]</span> trilha sonora <button class="settings-label-tag mono audio-toggle" id="audioToggle">on</button></div>
+    <div class="settings-label mono"><span>[02]</span> idioma</div>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
+      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
+      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[03]</span> trilha sonora <button class="settings-label-tag mono audio-toggle" id="audioToggle">on</button></div>
     <button class="track-card is-active" data-track="1">
       <span class="track-info"><span class="track-name">Sci-Fi Ambient</span><span class="track-tag mono">atmosférico · espaço</span></span>
       <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
@@ -130,7 +138,7 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-label mono"><span>[03]</span> navegar</div>
+    <div class="settings-label mono"><span>[04]</span> navegar</div>
     <nav class="settings-nav">
       <a href="#hero" class="settings-nav-link"><span class="mono">01</span>Home</a>
       <a href="#about" class="settings-nav-link"><span class="mono">02</span>Sobre</a>
@@ -139,14 +147,6 @@
     </nav>
   </div>
 
-  <div class="settings-section">
-    <div class="settings-label mono"><span>[04]</span> idioma</div>
-    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
-      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
-      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
-      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
-    </div>
-  </div>
   <div class="settings-status mono"><span class="settings-status-dot"></span>system active</div>
 </div>
 
@@ -159,7 +159,7 @@
   </button>
 </nav>
 
-<div class="fullmenu" id="fullMenu">
+<div class="fullmenu" id="fullMenu" data-lenis-prevent>
   <div class="fullmenu-giant-bg" aria-hidden="true">MENU</div>
   <nav class="fullmenu-links">
     <a href="#about" class="fullmenu-link"><span class="fullmenu-num mono">01</span><span class="fullmenu-link-text">Sobre</span></a>
@@ -180,6 +180,7 @@
   </div>
 </div>
 
+<main id="conteudo">
 <!-- ============ HERO ============ -->
 <section id="hero" aria-label="Apresentação">
   <div class="hero-bg" aria-hidden="true"></div>
@@ -337,7 +338,8 @@
 </div>
 
 <!-- ============ ABOUT ============ -->
-<section id="about">
+<section id="about" aria-labelledby="aboutTitle">
+  <h2 class="visually-hidden" id="aboutTitle">Sobre</h2>
   <div class="about-main">
   <canvas id="aboutCanvas" aria-hidden="true"></canvas>
   <div class="hero-grid-fade-like" aria-hidden="true"></div>
@@ -757,6 +759,8 @@
   </div>
 </section>
 
+</main>
+
 <!-- ============ FOOTER ============ -->
 <footer>
   <div class="footer-inner">
@@ -789,9 +793,9 @@
 <script src="./assets/vendor/gsap.min.js"></script>
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
-<script src="./js/i18n.js?v=20260928"></script>
-<script src="./js/main.js?v=20260928"></script>
-<script src="./js/quebra-blocos.js?v=20260928"></script>
-<script type="module" src="./js/hero3d.js?v=20260928"></script>
+<script src="./js/i18n.js?v=20260930b"></script>
+<script src="./js/main.js?v=20260930b"></script>
+<script src="./js/quebra-blocos.js?v=20260930b"></script>
+<script type="module" src="./js/hero3d.js?v=20260930b"></script>
 </body>
 </html>

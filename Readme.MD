@@ -2,7 +2,7 @@
 
 > Portfólio profissional desenvolvido para apresentar minha trajetória, projetos, formação e atuação como desenvolvedor.
 
-🌐 **[Ver Protótipo](https://alexandregarcia.dev/)**
+🌐 **[Ver Website](https://alexandregarcia.dev/)**
 
 ---
 

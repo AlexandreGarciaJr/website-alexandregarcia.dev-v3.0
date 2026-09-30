@@ -1,12 +1,16 @@
 # PHP fica fora do repositório (credenciais e backend)
 *.php
 !config.example.php
+config.php
+enviar.php
 PHPMailer/
 PHPMAiler
+src/*.php
 
 # Dependencies
 node_modules/
-vendor/
+# só a pasta vendor/ da raiz (Composer); assets/vendor/ (GSAP, Lenis, three) é público e vai pro repo
+/vendor/
 
 # OS
 .DS_Store
