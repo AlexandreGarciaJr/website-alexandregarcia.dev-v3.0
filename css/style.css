@@ -3301,3 +3301,78 @@ html.is-booting body > *:not(#loader){ visibility:hidden; }
 /* estatísticas do painel 3D: é um <footer>, então herdava o padding lateral do rodapé do site
    (64 px de cada lado) e o texto saía descentralizado/para fora da caixa */
 #hero .hp-stats{ padding-left:0; padding-right:0; margin-left:0; margin-right:0; width:100%; justify-content:center; }
+
+/* ============================================================
+   SOM — dica "clique em qualquer lugar para ouvir" + controle de volume
+   ============================================================ */
+.sound-hint{
+  position:fixed; z-index:481; right:1.6rem; bottom:200px;   /* posição real vem do JS (acompanha o botão) */
+  display:flex; align-items:center; gap:.55rem;
+  padding:.6rem 1rem;
+  font-size:.72rem; letter-spacing:.04em; color: var(--text); white-space:nowrap;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent-2) 55%, transparent);
+  border-radius:999px;
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--accent-2) 60%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  pointer-events:none;
+  opacity:0; transform: translateY(8px);
+  transition: opacity .45s var(--ease-out), transform .45s var(--ease-out);
+}
+.sound-hint::after{ /* setinha apontando para o botão de som */
+  content:""; position:absolute; right:22px; bottom:-6px; width:10px; height:10px;
+  background: inherit; border-right:1px solid color-mix(in srgb, var(--accent-2) 55%, transparent); border-bottom:1px solid color-mix(in srgb, var(--accent-2) 55%, transparent);
+  transform: rotate(45deg);
+}
+.sound-hint.is-in{ opacity:1; transform:none; }
+.sound-hint.is-gone{ opacity:0; transform: translateY(6px); }
+.sound-hint-dot{ width:7px; height:7px; border-radius:50%; background: var(--accent-2); box-shadow:0 0 10px var(--accent-2); animation: hint-dot 1.6s ease-in-out infinite; }
+@keyframes hint-dot{ 50%{ opacity:.35; } }
+html.game-on .sound-hint, html.panel-open .sound-hint{ opacity:0; }
+@media (max-width: 900px){ .sound-hint{ font-size:.66rem; padding:.5rem .85rem; } .sound-hint::after{ right:16px; } }
+@media (prefers-reduced-motion: reduce){ .sound-hint, .sound-hint-dot{ transition:none; animation:none; } }
+
+/* barra de volume (mesmo estilo dos sliders do painel 3D) */
+.vol-range{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:18px; background:transparent; cursor:pointer; margin:0;
+}
+.vol-range::-webkit-slider-runnable-track{
+  height:3px; border-radius:3px;
+  background: linear-gradient(90deg, var(--accent-2) 0 var(--v,42%), rgba(226,236,255,.16) var(--v,42%) 100%);
+}
+.vol-range::-moz-range-track{ height:3px; border-radius:3px; background: rgba(226,236,255,.16); }
+.vol-range::-moz-range-progress{ height:3px; border-radius:3px; background: var(--accent-2); }
+.vol-range::-webkit-slider-thumb{
+  -webkit-appearance:none; width:13px; height:13px; margin-top:-5px; border-radius:50%;
+  background: var(--bg); border:2px solid var(--accent-2); box-shadow:0 0 10px color-mix(in srgb, var(--accent-2) 60%, transparent);
+}
+.vol-range::-moz-range-thumb{ width:11px; height:11px; border-radius:50%; background: var(--bg); border:2px solid var(--accent-2); }
+.vol-range:focus-visible{ outline:2px solid var(--accent-2); outline-offset:4px; border-radius:4px; }
+
+/* pop-out à esquerda do botão de som (desktop, com mouse) */
+.vol-pop{
+  position:fixed; z-index:480;
+  right: calc(1.6rem + 54px - 27px);
+  bottom: calc(1.6rem + 54px * 2 + 14px * 2);
+  height:54px; width:230px;
+  display:flex; align-items:center; gap:.7rem;
+  padding: 0 calc(27px + 1rem) 0 1.1rem;   /* o lado direito fica por baixo do botão */
+  background: #1c2333; border:1px solid var(--border-strong); border-radius:999px;
+  opacity:0; visibility:hidden; transform: translateX(14px) scaleX(.85); transform-origin: right center;
+  transition: opacity .3s var(--ease-out), transform .35s var(--ease-out), visibility .35s;
+}
+.vol-pop.is-open{ opacity:1; visibility:visible; transform:none; }
+.music-toggle-fab{ z-index:481; } /* o botão fica por cima da ponta da barra */
+.vol-pop .vol-val{ font-size:.66rem; color: var(--text-dim); min-width:3.2ch; text-align:right; }
+@media (max-width: 900px){
+  .vol-pop{ right: calc(14px + 22px); bottom: calc(14px + (44px + 10px) * 2 + env(safe-area-inset-bottom, 0px)); height:44px; padding-right: calc(22px + .9rem); }
+  html.fabs-hero .vol-pop{ bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+}
+html.game-on .vol-pop{ display:none; }
+
+/* barra no painel de configurações */
+.vol-row{ display:flex; align-items:center; gap:.9rem; margin: .2rem 0 1rem; }
+.vol-row .vol-label{ font-size:.7rem; color: var(--text-faint); letter-spacing:.06em; }
+.vol-row .vol-range{ flex:1; }
+.vol-row .vol-val{ font-size:.7rem; color: var(--text-dim); min-width:3.6ch; text-align:right; }

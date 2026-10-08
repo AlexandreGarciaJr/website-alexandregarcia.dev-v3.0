@@ -198,6 +198,17 @@
     }
 
     function audible(){ document.dispatchEvent(new CustomEvent("agaudiostart")); }
+    // volume da música (0–1). O iPhone/iPad ignora .volume (só-leitura) — lá o controle é escondido.
+    function setVolume(v){
+      v = Math.max(0, Math.min(1, Number(v) || 0));
+      prefs.vol = v;
+      savePrefs(prefs);
+      Object.values(els).forEach((a) => { try { a.volume = v; } catch (e){} });
+      if (v > 0 && prefs.muted) setMuted(false); // mexer no volume religa o som
+    }
+    const volumeWritable = (() => { try { const a = new Audio(); a.volume = 0.5; return Math.abs(a.volume - 0.5) < 0.01; } catch (e){ return false; } })();
+    function isStarted(){ return started && !prefs.muted && !!els[currentTrack] && !els[currentTrack].paused; }
+
     function setMuted(muted){
       prefs.muted = muted;
       savePrefs(prefs);
@@ -287,6 +298,7 @@
       hoverSound, clickSound,
       getPrefs: () => ({ ...prefs }),
       isMuted: () => prefs.muted,
+      setVolume, volumeWritable, isStarted,
     };
   })();
 
@@ -857,6 +869,101 @@
         if (n.nodeType === 3 && /©\s*20\d\d/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace(/©\s*20\d\d/, "© " + y);
       });
     });
+  }
+
+  /* "Clique em qualquer lugar para ouvir": aparece sobre o botão de som enquanto o
+     navegador ainda não liberou o áudio; some quando a música começa (ou se mutar). */
+  function initSoundHint(){
+    const fab = document.getElementById("musicToggleFab");
+    if (!fab || AudioEngine.isMuted()) return;
+    const hint = document.createElement("div");
+    hint.className = "sound-hint mono";
+    hint.setAttribute("role", "status");
+    hint.innerHTML = `<span class="sound-hint-dot" aria-hidden="true"></span>${isTouch ? T("Toque em qualquer lugar para ouvir") : T("Clique em qualquer lugar para ouvir")}`;
+    document.body.appendChild(hint);
+    let raf = 0, gone = false;
+    // acompanha o botão (ele muda de lugar no celular quando sai do hero)
+    function place(){
+      raf = requestAnimationFrame(place);
+      const r = fab.getBoundingClientRect();
+      hint.style.bottom = `${Math.round(window.innerHeight - r.top + 12)}px`;
+      hint.style.right = `${Math.round(window.innerWidth - r.right)}px`;
+    }
+    function hide(){
+      if (gone) return; gone = true;
+      hint.classList.add("is-gone");
+      setTimeout(() => { cancelAnimationFrame(raf); hint.remove(); }, 450);
+    }
+    place();
+    requestAnimationFrame(() => hint.classList.add("is-in"));
+    document.addEventListener("agaudiostart", hide);
+    fab.addEventListener("click", hide);
+    // segurança: se o áudio já estiver tocando (ex.: voltou de outra página), não mostra
+    setTimeout(() => { if (AudioEngine.isStarted()) hide(); }, 300);
+  }
+
+  /* volume: desliza do botão de som no hover (desktop) + barra no painel de configurações */
+  function initVolumeControl(){
+    const fab = document.getElementById("musicToggleFab");
+    if (!fab || !AudioEngine.volumeWritable) return; // iPhone/iPad: volume só pelos botões do aparelho
+    const pct = () => Math.round(AudioEngine.getPrefs().vol * 100);
+    const sliders = [];
+    function makeSlider(cls, label){
+      const input = document.createElement("input");
+      input.type = "range"; input.min = "0"; input.max = "100"; input.step = "1";
+      input.value = String(pct());
+      input.className = cls;
+      input.setAttribute("aria-label", label);
+      input.addEventListener("input", () => {
+        AudioEngine.setVolume(input.value / 100);
+        sliders.forEach((s) => { if (s !== input) s.value = input.value; paint(s); });
+        paint(input); syncMusicUI();
+        document.querySelectorAll(".vol-val").forEach((v) => { v.textContent = input.value + "%"; });
+      });
+      paint(input);
+      sliders.push(input);
+      return input;
+    }
+    function paint(input){ input.style.setProperty("--v", input.value + "%"); }
+
+    // 1) pop-out ao lado do botão (só com mouse)
+    if (!isTouch){
+      const pop = document.createElement("div");
+      pop.className = "vol-pop";
+      pop.appendChild(makeSlider("vol-range", T("Volume da música")));
+      const val = document.createElement("span"); val.className = "vol-val mono"; val.textContent = pct() + "%";
+      pop.appendChild(val);
+      document.body.appendChild(pop);
+      let t = 0;
+      const open = () => { clearTimeout(t); pop.classList.add("is-open"); };
+      const close = () => { clearTimeout(t); t = setTimeout(() => { if (!pop.matches(":focus-within")) pop.classList.remove("is-open"); }, 380); };
+      [fab, pop].forEach((el) => { el.addEventListener("mouseenter", open); el.addEventListener("mouseleave", close); });
+      pop.addEventListener("focusin", open);
+      pop.addEventListener("focusout", close);
+      fab.addEventListener("focus", open);
+      fab.addEventListener("blur", close);
+      // roda do mouse sobre o botão ou a barra ajusta o volume
+      [fab, pop].forEach((el) => el.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const s = sliders[0]; s.value = String(Math.max(0, Math.min(100, Number(s.value) - Math.sign(e.deltaY) * 5)));
+        s.dispatchEvent(new Event("input"));
+        open(); close();
+      }, { passive: false }));
+    }
+
+    // 2) barra dentro do painel (funciona no toque também)
+    const audioToggle = document.getElementById("audioToggle");
+    const section = audioToggle && audioToggle.closest(".settings-section");
+    if (section){
+      const row = document.createElement("div");
+      row.className = "vol-row";
+      row.innerHTML = `<span class="vol-label mono">${T("volume")}</span>`;
+      row.appendChild(makeSlider("vol-range", T("Volume da música")));
+      const val = document.createElement("span"); val.className = "vol-val mono"; val.textContent = pct() + "%";
+      row.appendChild(val);
+      const label = section.querySelector(".settings-label");
+      label.insertAdjacentElement("afterend", row);
+    }
   }
 
   function initMusicToggleFab(){
@@ -2658,7 +2765,9 @@
       // cards: três abrem com o vídeo rodando; a trilha desliza e a atual entra por último
       if (MOBILE){
         // baralho: um card por vez no centro; o anterior sobe, encolhe e sai
-        const mStarts = [0.49, 0.6, 0.71, 0.82];
+        // distribui os cards igualmente entre 0.47 e 0.84 (funciona com qualquer quantidade)
+        const nC = Math.max(1, cards.length);
+        const mStarts = cards.map((_, i) => 0.47 + (nC > 1 ? i * (0.37 / (nC - 1)) : 0));
         cards.forEach((card, i) => {
           const t = mStarts[Math.min(i, mStarts.length - 1)];
           if (i > 0) tl.to(cards[i - 1], { y: -70, scale: 0.9, opacity: 0, duration: 0.04, ease: "power2.in" }, t - 0.012);
@@ -2703,6 +2812,8 @@
     initUiSounds();
     initSettingsPanel();
     initMusicToggleFab();
+    initSoundHint();
+    initVolumeControl();
     initGlitchText();
     initTitleGlitch();
     initSmoothScroll();
