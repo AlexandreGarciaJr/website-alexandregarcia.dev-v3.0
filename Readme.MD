@@ -1,269 +1,173 @@
-# Alexandre Garcia — Portfólio
+<div align="center">
 
-> Portfólio profissional desenvolvido para apresentar minha trajetória, projetos, formação e atuação como desenvolvedor.
+# Alexandre Garcia
 
-🌐 **[Ver Website](https://alexandregarcia.dev/)**
+### Da planta ao código. Portfólio de um arquiteto que virou desenvolvedor.
 
----
+**[alexandregarcia.dev →](https://alexandregarcia.dev/)**
 
-## 📌 Sobre o projeto
+![HTML](https://img.shields.io/badge/HTML-E34F26?style=flat-square&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS-1572B6?style=flat-square&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+![Three.js](https://img.shields.io/badge/Three.js-000000?style=flat-square&logo=threedotjs&logoColor=white)
+![GSAP](https://img.shields.io/badge/GSAP-88CE02?style=flat-square&logo=greensock&logoColor=black)
+![WebGL](https://img.shields.io/badge/WebGL-990000?style=flat-square&logo=webgl&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=flat-square&logo=php&logoColor=white)
 
-Este projeto é o meu **portfólio pessoal como desenvolvedor**, criado para apresentar minha transição da área de Arquitetura e Urbanismo para o desenvolvimento de software.
+</div>
 
-O site reúne minha experiência profissional, formação, projetos acadêmicos e profissionais, além de canais de contato para oportunidades, freelas e colaborações.
+![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.png)
 
-A proposta visual combina uma estética **dark-tech / terminal** com elementos de interação, animações e experiências em 3D, buscando demonstrar não apenas os projetos desenvolvidos, mas também minha capacidade de criar interfaces modernas e experiências digitais. O hero, em especial, carrega o conceito central do site: uma maquete 3D de arquitetura que se transforma, diante do próprio visitante, em código-fonte — o resumo visual da minha própria transição de carreira.
+## Sobre
 
----
+Este é o meu portfólio pessoal. Sou formado em **Arquitetura e Urbanismo**, trabalhei 12 anos com projetos e obras e hoje sou desenvolvedor, estudando **Análise e Desenvolvimento de Sistemas no SENAC**.
 
-## ✨ Principais características
+O site conta essa história sem precisar de muito texto. Logo no topo há uma **maquete 3D de uma casa** e, quando você rola a página, ela se desfaz e vira **código-fonte**. É a minha transição de carreira acontecendo na tela.
 
-* Design responsivo para desktop, tablet e mobile
-* Interface dark-tech com identidade visual própria, tipografia grande e condensada no hero
-* **Maquete 3D interativa (Three.js/WebGL)** de uma casa, com painel de parâmetros ao vivo: etapa da construção, horário do dia, corte de seção, modo Holograma/Natural, rotação automática
-* **Casa → código-fonte**: no scroll ou por um botão do painel, a maquete se desfaz em glifos que voam e pousam formando um arquivo de código real, sincronizado com os parâmetros da cena
-* **Transição contínua Sobre → Trajetória**: o notebook 3D da seção Sobre "mergulha" na própria tela até virar o primeiro frame do vídeo da Trajetória, sem corte entre as seções
-* Sequência de vídeo (via frames) pinada por scroll na seção Trajetória, com título animado em SVG e cards de experiência com efeito de abertura de tela
-* Animações e transições de página
-* Scroll suave
-* Efeitos de entrada e revelação de elementos
-* Cursor e microinterações
-* Menu responsivo para dispositivos móveis
-* Efeitos visuais desenvolvidos com JavaScript e shaders GLSL customizados
-* Sistema de temas visuais
-* Player de áudio ambiente com diferentes trilhas
-* Controle de volume e preferências persistentes
-* **Três idiomas** — Português, English e Español, escolhidos no menu de configurações (ou detectados pelo navegador na primeira visita)
-* Suporte à preferência `prefers-reduced-motion` em toda a experiência 3D e nas animações de scroll
-* Mini-jogo **Quebra-Blocos** (Canvas 2D) no fundo da seção de contato — um clique transforma a seção em tela de jogo, com instruções e botão de encerrar
-* Página dedicada para contato
-* Links para GitHub, LinkedIn e contato direto
-* Estrutura sem frameworks de UI, utilizando tecnologias Web nativas
+Daí em diante, o site apresenta:
 
----
+- quem eu sou;
+- minha trajetória, de arquiteto a desenvolvedor na **New Arrays**;
+- os projetos que entreguei;
+- minha formação;
+- um jeito direto de falar comigo.
 
-![alt text](./assets/img/image-site.png)
+O site está em três idiomas e funciona bem do celular ao monitor grande.
 
-<video src="./assets/video/gravacao-tela-1.5x.mp4" width="100%"
-  controls
-  muted
-  loop
-  playsinline>
-</video>
+## Destaques
 
----
+**Uma casa que vira código.** O topo tem uma maquete 3D de verdade, feita em Three.js, com um painel de parâmetros ao vivo:
 
-## 🛠️ Tecnologias utilizadas
+- etapa da obra;
+- horário do dia (a luz muda junto);
+- corte de seção;
+- visual Holograma ou Natural;
+- rotação.
 
-### Front-end
+Ao rolar a página, ou ao clicar em "Código" no painel, a casa se desmancha em caracteres que voam e pousam formando um arquivo de código. Esse código usa os valores que estão no painel naquele momento.
 
-* HTML5
-* CSS3
-* JavaScript (ES Modules no hero)
-* Web Audio API
-* WebGL / GLSL (shaders customizados via `onBeforeCompile`)
+![A casa se desfazendo em caracteres até formar o código](.github/preview-casa-codigo.webp)
 
-### Bibliotecas
+**"Quem sou eu" com brilho próprio.** Um campo de partículas feito com shader, um brilho que acompanha o título em cada idioma e números que contam a minha história: anos de código, de obra, projetos e idiomas.
 
-* **Three.js** (r186, via CDN/import map) — maquete 3D do hero: OrbitControls, EffectComposer, RenderPass, UnrealBloomPass, GLTFLoader
-* **Three.js** (build local, `assets/vendor/three.min.js`) — cenas 3D das demais seções (Sobre, Contato)
-* **GSAP** — animações
-* **GSAP ScrollTrigger** — animações relacionadas ao scroll, incluindo as sequências pinadas do hero e da Trajetória
-* **Lenis** — scroll suave
+![Seção Sobre com foto, números e stack](.github/preview-sobre.webp)
 
-### Design
+**Do notebook para a Trajetória, sem corte.** O notebook 3D que fecha o "Sobre" gira e a câmera mergulha na tela dele. O que aparece lá dentro é o primeiro quadro do vídeo da Trajetória, então as duas seções emendam sem salto. O título "Trajetória" é desenhado traço a traço e os cartões de experiência entram em sequência, até chegar ao cargo atual na New Arrays.
 
-* Archivo (variável, título do hero) / Space Grotesk
-* IBM Plex Mono
-* CSS Custom Properties
-* Design responsivo
-* Dark UI / Dark Tech
+![Título da Trajetória e cartões de experiência](.github/preview-trajetoria.webp)
 
----
+**Projetos em prancheta.** Os projetos ficam num grid editorial de 12 colunas. Os cartões inclinam de leve sob o mouse, com reflexo de luz, e o fundo da seção acende na cor do projeto em que você está.
 
-## 🎨 Experiência visual
+![Grid de projetos](.github/preview-projetos.webp)
 
-O projeto foi desenvolvido com foco em uma experiência mais imersiva do que um portfólio tradicional.
+**Contato que também é jogo.**
 
-Entre os recursos utilizados estão:
+- **Formulário:** a página de contato tem um formulário completo, com validação em tempo real.
+- **Quebra-Blocos:** no fim da página inicial, um clique transforma o fundo da seção num jogo feito em Canvas 2D. Dá para jogar com mouse, toque ou setas.
 
-### Hero interativo — maquete 3D e código-fonte
+![Página de contato](.github/preview-contato.webp)
 
-A seção inicial apresenta uma tipografia gigante e um modelo 3D real de uma casa (`assets/models/casa.glb`, otimizado para poucos draw calls), com painel de parâmetros ao lado — construção, horário, corte de seção, material e rotação automática. Ao rolar a página, ou pelo botão "Código" do painel, a casa se desfaz e um bloco de código nasce das próprias arestas da maquete, letra por letra, como metáfora da transição de arquiteto para desenvolvedor.
+**Detalhes de interface.**
 
-### Transição Sobre → Trajetória
+- **Áudio:** duas trilhas ambientes (Sci-Fi e Synthwave), com mute e controle de volume. Um aviso discreto chama para o primeiro clique.
+- **Temas:** quatro cores de destaque (azul, esmeralda, âmbar e violeta).
+- **Configurações:** um painel que reúne tema, idioma e trilha.
+- **Loader:** desenhado com o logo do site.
 
-O notebook 3D que fecha a seção Sobre gira, sua tela se ajusta de frente para a câmera, e o mergulho na tela entrega exatamente o primeiro frame do vídeo que abre a Trajetória — as duas seções emendam sem vão perceptível. No frame em que uma mão aparece no vídeo, o título "Trajetória" é desenhado em SVG (traço → preenchimento) antes de dar lugar aos cards de experiência.
+## Feito com cuidado
 
-### Experiência 3D
+| | |
+|---|---|
+| **Sem build** | HTML, CSS e JavaScript puro, sem framework e sem `npm install` para rodar |
+| **Três idiomas** | Português, English e Español. Na primeira visita o idioma vem do navegador, e a escolha fica salva |
+| **Mobile de verdade** | Versão própria para celular, com hero em coluna, mergulho no notebook em retrato e quadros mais leves. Ajustes específicos para Safari/iOS e para notebooks de tela baixa |
+| **Acessibilidade** | `<main>` e títulos semânticos, menus que respeitam a tecla Esc e o foco do teclado, contraste revisado e respeito ao "reduzir movimento" do sistema |
+| **Testado** | QA automatizado com Playwright em desktop, notebook e celular, incluindo auditoria de acessibilidade com axe-core |
+| **Desempenho** | Maquete GLB otimizada para poucas chamadas de desenho, imagens comprimidas e carregamento sob demanda |
+| **Compartilhamento** | Open Graph completo, para o link aparecer com imagem e ícone no WhatsApp e no LinkedIn |
+| **Formulário seguro** | Validação no navegador e no servidor, checagem do domínio do e-mail, proteção contra robôs e envios repetidos. As credenciais nunca vão para o repositório |
 
-O site utiliza **Three.js** para criar elementos tridimensionais renderizados diretamente no navegador através de WebGL — tanto no hero (build via CDN/ES Modules) quanto nas demais seções (build local em `assets/vendor`).
+**Tecnologias:**
 
-### Animações
+- [Three.js](https://threejs.org) r186, com GLTFLoader, EffectComposer e UnrealBloom;
+- shaders GLSL próprios;
+- [GSAP](https://gsap.com) + ScrollTrigger;
+- [Lenis](https://lenis.darkroom.engineering);
+- Canvas 2D e Web Audio;
+- [PHPMailer](https://github.com/PHPMailer/PHPMailer).
 
-As animações são controladas principalmente através de **GSAP e ScrollTrigger**, permitindo criar transições e efeitos sincronizados com a navegação do usuário.
+![Versão para celular](.github/preview-mobile.webp)
 
-### Smooth Scroll
+## Rodar localmente
 
-O **Lenis** é utilizado para proporcionar uma experiência de rolagem mais fluida.
+Clone o repositório (ou baixe o .zip), entre na pasta e suba um servidor PHP:
 
-### Sistema de áudio
-
-O site possui uma experiência sonora opcional, com diferentes trilhas ambientes:
-
-* Sci-Fi Ambient
-* Synthwave
-
-As preferências do usuário são armazenadas localmente e o áudio pode ser controlado diretamente pela interface.
-
----
-
-## 📂 Estrutura do projeto
-
-```text
-alexandregarcia-site/
-│
-├── index.html
-├── contato.html
-├── enviar.php           # envio do formulário (PHPMailer) — fora do Git
-├── config.example.php   # modelo das credenciais SMTP
-├── sitemap.xml
-├── robots.txt
-│
-├── css/
-│   └── style.css
-│
-├── js/
-│   ├── main.js          # animações, scroll, seções, UI
-│   └── hero3d.js         # cena 3D do hero (ES module, Three.js via CDN)
-│   └── quebra-blocos.js  # jogo Quebra-Blocos da seção de contato
-│   └── contato.js        # página de contato: campo de pontos + validação do formulário
-│   └── i18n.js           # traduções PT / EN / ES (dicionário + troca de idioma)
-│
-└── assets/
-    ├── audio/
-    │   ├── scifi-ambient.mp3
-    │   └── synthwave.mp3
-    │
-    ├── fonts/
-    │   └── archivo-wdth-*.woff2   # fonte variável do título do hero
-    │
-    ├── models/
-    │   └── casa.glb                # maquete 3D otimizada da casa (hero)
-    │
-    ├── img/
-    │   ├── projetos
-    │   ├── fotos
-    │   └── imagens auxiliares
-    │
-    ├── svg/
-    │   ├── logos
-    │   └── favicon
-    │
-    ├── video/
-    │   └── frames/                 # sequência de frames da Trajetória
-    │   └── frames-m/               # frames leves em retrato (celular)
-    │
-    └── vendor/
-        ├── three.min.js            # Three.js (build local, demais seções)
-        ├── gsap.min.js
-        ├── ScrollTrigger.min.js
-        └── lenis.min.js
+```bash
+cd alexandregarcia-site
+php -S localhost:8000
 ```
 
----
+Abra **http://localhost:8000**. O Live Server do VS Code também funciona, mas sem o envio do formulário.
 
-## ✉️ Formulário de contato (PHP)
+Para o formulário enviar de verdade (o GitHub Pages não executa PHP):
 
-O formulário de `contato.html` é validado no navegador (`js/contato.js`: nome, e-mail com checagem do domínio via DNS, telefone brasileiro com máscara, tipo de projeto e mensagem) e enviado para `enviar.php`, que valida tudo de novo e envia por SMTP com [PHPMailer](https://github.com/PHPMailer/PHPMailer).
+1. Coloque o PHPMailer (`src/`) na raiz.
+2. Copie `config.example.php` para `config.php`.
+3. Preencha o `config.php` com o seu SMTP. No Gmail, use uma senha de app.
 
-Para funcionar é preciso uma hospedagem com PHP (o GitHub Pages não executa PHP):
+Os arquivos `.php` com dados sensíveis ficam fora do Git.
 
-1. Coloque a pasta `PHPMailer/` (com `src/`) na raiz do site.
-2. Copie `config.example.php` para `config.php` e preencha com o seu SMTP (no Gmail, use uma senha de app).
-3. `*.php` fica fora do Git — só o `config.example.php` é versionado.
+## Estrutura
 
----
+```text
+├── index.html              página principal
+├── contato.html            página de contato
+├── config.example.php      modelo das credenciais SMTP
+├── site.webmanifest        ícone e cores do site
+├── css/style.css           estilos
+├── js/
+│   ├── hero3d.js           maquete 3D e transformação em código
+│   ├── main.js             animações, seções, áudio, menus e painel
+│   ├── i18n.js             traduções PT / EN / ES
+│   ├── contato.js          formulário e campo de pontos
+│   └── quebra-blocos.js    mini-jogo da seção de contato
+└── assets/
+    ├── models/             maquete GLB da casa
+    ├── video/              quadros da Trajetória (desktop e celular)
+    ├── img/                fotos, projetos, logo e imagem de compartilhamento
+    ├── audio/              trilhas ambientes
+    ├── fonts/              Archivo variável
+    ├── svg/                logos e favicon
+    └── vendor/             GSAP, ScrollTrigger, Lenis e Three.js locais
+```
 
-## 💼 Projetos apresentados
+Para adicionar um projeto, copie um cartão em `index.html` e ajuste as classes `c-3` a `c-7` para que cada linha do grid some 12. Para adicionar uma tradução, inclua o texto em português e as versões em inglês e espanhol no objeto `D` de `js/i18n.js`.
 
-O portfólio apresenta diferentes projetos desenvolvidos durante minha formação e atuação como desenvolvedor, incluindo:
+## Projetos no site
 
-* **Teon App** — reformulação de UX/UI e funcionalidades do website
-* **NRA** — website institucional para empresa de Geologia, Hidrogeologia, Geofísica e Meio Ambiente
-* **Augusto Tomba** — portfólio artístico com estética minimalista japonesa
-* **Mão na Massa** — plataforma para conectar clientes e prestadores de serviços
-* **Bikecraft** — website voltado ao universo de bicicletas
-* **Personal Trainer** — website para profissional autônomo
-* **Foodi App** — aplicativo mobile de delivery desenvolvido com React Native
-* **Projeto Banco DIO** — API bancária desenvolvida com Java e Spring Boot
-* **Sistema de Loja de Eletrônicos** — API para controle de caixa desenvolvida com C#
+| Projeto | O que é | Stack |
+|---|---|---|
+| **New Arrays** | Site da agência de experiência digital | HTML, CSS, JS, PHP |
+| **Teon App** | Reformulação de UX e funcionalidades do site do app | React, Next, TypeScript |
+| **NRA Assessoria** | Site para empresa de geologia e meio ambiente | HTML, CSS, JS, PHP |
+| **Augusto Tomba** | Portfólio de artista com estética minimalista japonesa | HTML, CSS, JS, PHP |
+| **Maonamassa** | Plataforma que conecta clientes a prestadores de serviço | HTML, CSS, JS, PHP, SQL |
+| **Bikecraft** | Site para o universo das bicicletas | HTML, CSS, JS, PHP |
+| **Alexandre Personal** | Página de personal trainer autônomo | HTML, CSS, JS, PHP |
+| **Foodi App** | App de delivery em React Native (projeto acadêmico) | React Native, TypeScript |
+| **Banco DIO** | API bancária com documentação Swagger | Java, Spring Boot, MySQL |
+| **Loja de Eletrônicos** | API de controle de caixa | C#, MySQL |
 
----
+## Licença
 
-## 👨‍💻 Sobre mim
-
-Sou estudante de **Análise e Desenvolvimento de Sistemas pelo SENAC** e formado em **Arquitetura e Urbanismo pela Universidade Nove de Julho**.
-
-Possuo experiência profissional na área de construção civil e arquitetura, atuando durante aproximadamente 12 anos com projetos, gerenciamento de obras, organização de equipes e desenvolvimento de soluções para diferentes tipos de empreendimentos.
-
-Atualmente direciono essa experiência para a área de tecnologia, com foco no desenvolvimento de sistemas e aplicações Web.
-
-Tenho interesse especialmente em:
-
-* Desenvolvimento Front-end
-* Desenvolvimento Back-end
-* JavaScript
-* Node.js
-* APIs REST
-* Java
-* Spring Boot
-* Arquitetura de software
-* Desenvolvimento de aplicações Web
-
----
-
-## 🚀 Objetivo do projeto
-
-Além de funcionar como meu portfólio profissional, este projeto foi desenvolvido para aplicar na prática conceitos de:
-
-* Desenvolvimento Web
-* JavaScript
-* Manipulação do DOM
-* Responsividade
-* Animações
-* UX/UI
-* Performance
-* WebGL e shaders GLSL
-* Organização de código
-* Integração de bibliotecas
-* Acessibilidade
-* Experiência do usuário
+O código pode ser usado como referência para estudo. Textos, fotos, identidade visual e demais conteúdos pessoais não devem ser reutilizados sem autorização.
 
 ---
 
-## 📬 Contato
+<div align="center">
 
-Se quiser conversar sobre projetos, oportunidades ou colaboração:
+**[alexandregarcia.dev](https://alexandregarcia.dev/)**
 
-**E-mail:** [alexandregojunior@gmail.com](mailto:alexandregojunior@gmail.com)
+[LinkedIn](https://www.linkedin.com/in/alexandregarcia-junior/) · [GitHub](https://github.com/AlexandreGarciaJr) · [E-mail](mailto:alexandregojunior@gmail.com)
 
-**LinkedIn:** [Alexandre Garcia Junior](https://www.linkedin.com/in/alexandregarcia-junior/)
-
-**GitHub:** [AlexandreGarciaJr](https://github.com/AlexandreGarciaJr)
-
----
-
-## 📄 Licença
-
-Este projeto representa meu portfólio pessoal e profissional.
-
-O código pode ser utilizado como referência para estudos, mas os conteúdos, imagens, identidade visual e materiais pessoais apresentados no site não devem ser reutilizados sem autorização.
-
----
-
-## 🌐 Idiomas (i18n)
-
-O HTML é escrito em português e `js/i18n.js` traduz a página para inglês ou espanhol antes dos efeitos iniciarem. O dicionário usa o próprio texto em português como chave (`"Ver Projetos": ["View Projects", "Ver Proyectos"]`); trechos com negrito usam `data-i18n-html`. Textos gerados por JavaScript passam por `window.I18N.t("…")`. A escolha fica salva no navegador (`localStorage.agLang`).
-
-Para traduzir um texto novo: adicione a linha no objeto `D` de `js/i18n.js`.
+</div>
