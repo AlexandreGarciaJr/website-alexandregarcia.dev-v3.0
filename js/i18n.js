@@ -152,6 +152,7 @@
     "2024 — até o momento": ["2024 — present", "2024 — actualidad"],
     "2026 — até o momento": ["2026 — present", "2026 — actualidad"],
     "atual": ["current", "actual"],
+    "Site institucional e de captação da New Arrays, agência de Experiência Digital de Embu das Artes (SP), com atendimento remoto.": ["Corporate and lead-generation website for New Arrays, a Digital Experience agency from Embu das Artes (SP), serving clients remotely.", "Sitio institucional y de captación de New Arrays, agencia de Experiencia Digital de Embu das Artes (SP), con atención remota."],
     "Clique em qualquer lugar para ouvir": ["Click anywhere to listen", "Haz clic en cualquier lugar para escuchar"],
     "Toque em qualquer lugar para ouvir": ["Tap anywhere to listen", "Toca en cualquier lugar para escuchar"],
     "Volume da música": ["Music volume", "Volumen de la música"],

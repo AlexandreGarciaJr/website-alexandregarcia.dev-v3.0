@@ -1,0 +1,10 @@
+{
+  "name": "Alexandre Garcia — Full Stack Dev",
+  "short_name": "Alexandre Garcia",
+  "icons": [
+    { "src": "/assets/img/favicon-laptop-400.png", "sizes": "400x400", "type": "image/png" }
+  ],
+  "theme_color": "#050810",
+  "background_color": "#050810",
+  "display": "standalone"
+}
