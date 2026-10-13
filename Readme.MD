@@ -1,8 +1,14 @@
 <div align="center">
 
-# Alexandre Garcia
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset=".github/logo-light.png">
+  <img src=".github/logo-dark.png" alt="Alexandre Garcia · Full Stack Dev" width="560">
+</picture>
 
-### Da planta ao código. Portfólio de um arquiteto que virou desenvolvedor.
+# Da planta ao código
+
+Portfólio de um arquiteto que virou desenvolvedor.
 
 **[alexandregarcia.dev →](https://alexandregarcia.dev/)**
 
@@ -16,7 +22,7 @@
 
 </div>
 
-![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.png)
+![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.webp)
 
 ## Sobre
 
