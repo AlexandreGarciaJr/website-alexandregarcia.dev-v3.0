@@ -3376,3 +3376,34 @@ html.game-on .vol-pop{ display:none; }
 .vol-row .vol-label{ font-size:.7rem; color: var(--text-faint); letter-spacing:.06em; }
 .vol-row .vol-range{ flex:1; }
 .vol-row .vol-val{ font-size:.7rem; color: var(--text-dim); min-width:3.6ch; text-align:right; }
+
+/* ---------- tablet em retrato (iPad): o "baralho" do celular, em escala de tablet ----------
+   o modo celular vale até 900px; sem isto o card ficava preso em 440px (metade da tela do iPad) */
+@media (min-width: 600px) and (max-width: 900px){
+  .exp-mobile .exp-card{
+    width: min(80vw, 660px);
+    max-height: 70svh;
+    padding: 2.3rem 2.3rem 2.1rem;
+  }
+  .exp-mobile .exp-card-year{ font-size:3.2rem; top:1.4rem; right:1.7rem; }
+  .exp-mobile .exp-card-range{ font-size:.92rem; margin-bottom:1.3rem; }
+  .exp-mobile .exp-card-role{ font-size:1.6rem; }
+  .exp-mobile .exp-card-company{ font-size:1rem; margin-bottom:1.25rem; }
+  .exp-mobile .exp-card-desc{ font-size:1.1rem; line-height:1.62; }
+  .exp-mobile .exp-card-tags{ margin-top:1.5rem; gap:.6rem; }
+  .exp-mobile .exp-tag{ font-size:.82rem; padding:.36rem .8rem; }
+  .exp-mobile .exp-now{ font-size:.7rem; }
+  .exp-mobile .exp-intro-kicker{ font-size:.8rem; }
+  .exp-mobile .exp-intro-sub{ font-size:.82rem; }
+}
+
+/* tablet deitado (toque, 901–1366px): cards do modo cinema um pouco maiores e mais legíveis */
+@media (min-width: 901px) and (max-width: 1366px) and (hover: none) and (pointer: coarse){
+  .exp-cine .exp-card{ width: clamp(320px, 36vw, 470px); padding: 2.1rem 2rem; }
+  .exp-cine .exp-card-year{ font-size:3rem; }
+  .exp-cine .exp-card-range{ font-size:.84rem; }
+  .exp-cine .exp-card-role{ font-size:1.38rem; }
+  .exp-cine .exp-card-company{ font-size:.92rem; }
+  .exp-cine .exp-card-desc{ font-size:1rem; line-height:1.6; }
+  .exp-cine .exp-tag{ font-size:.76rem; padding:.32rem .7rem; }
+}
