@@ -6,18 +6,24 @@
 <title>Política de privacidade — Alexandre Garcia</title>
 <meta name="description" content="Como o site alexandregarcia.dev trata dados pessoais e cookies.">
 <meta name="robots" content="noindex, follow">
-<link rel="icon" type="image/png" sizes="400x400" href="/assets/img/favicon-laptop-400.png">
+
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./css/style.css?v=20261018">
-<script src="./js/tracking.js?v=20261018"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./css/style.css?v=20261024">
+<link rel="icon" type="image/png" sizes="400x400" href="/assets/img/favicon-laptop-400.png">
+<link rel="icon" type="image/svg+xml" href="/assets/svg/favicon-laptop.svg">
+<link rel="apple-touch-icon" href="/assets/img/favicon-laptop-400.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#050810">
+<script>try{var t=localStorage.getItem("agTheme");if(t&&t!=="blue")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<script>try{if(!sessionStorage.getItem("agLoaderShown"))document.documentElement.classList.add("is-booting");}catch(e){}</script>
+<script src="./js/tracking.js?v=20261024"></script>
 <style>
-  body{ background: var(--bg); color: var(--text); }
-  .pv{ max-width: 760px; margin: 0 auto; padding: 7rem var(--edge) 6rem; }
-  .pv-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:3.5rem; }
-  .pv-top img{ height:40px; }
-  .pv-top a.back{ font-family: var(--f-mono); font-size:.82rem; color: var(--accent-2); }
+
+  .pv{ max-width: 760px; margin: 0 auto; padding: 9rem var(--edge) 6rem; position:relative; z-index:6; }
   .pv h1{ font-size: clamp(2.2rem, 5vw, 3.2rem); line-height:1.05; margin: .6rem 0 1rem; }
   .pv h2{ font-size:1.25rem; margin: 2.4rem 0 .7rem; }
   .pv p, .pv li{ color: var(--text-dim); line-height:1.7; }
@@ -28,15 +34,131 @@
   .pv a{ color: var(--text); text-decoration: underline; text-underline-offset:3px; }
   .pv .kick{ font-family: var(--f-mono); font-size:.78rem; color: var(--accent-2); letter-spacing:.08em; }
   .pv .btn-primary{ margin-top:1rem; }
+  .pv-back{ display:inline-flex; gap:.5rem; align-items:center; font-family: var(--f-mono); font-size:.82rem; color: var(--accent-2) !important; text-decoration:none !important; margin-bottom:2.2rem; }
+  .pv-back:hover{ color: var(--text) !important; }
 </style>
 </head>
-<body>
-<main class="pv">
-  <div class="pv-top">
-    <a href="./"><img src="./assets/svg/logo-header-no1993.svg" alt="Alexandre Garcia"></a>
-    <a class="back" href="./">← voltar ao site</a>
+<body class="page-privacy">
+
+<!-- ============ LOADER ============ -->
+<div id="loader">
+  <canvas id="loaderCanvas" aria-hidden="true"></canvas>
+</div>
+
+<!-- ============ CURSOR ============ -->
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- ============ BLUEPRINT REGISTRATION MARKS ============ -->
+<div class="reg-marks" aria-hidden="true">
+  <span class="reg-mark tl"></span>
+  <span class="reg-mark tr"></span>
+  <span class="reg-mark bl"></span>
+  <span class="reg-mark br"></span>
+</div>
+
+<!-- ============ WHATSAPP ============ -->
+<div class="wa-pulse" aria-hidden="true"></div>
+<a class="wa-float" href="https://wa.me/5511986186964?text=Olá,%20preciso%20de%20mais%20informações." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- ============ CONFIGURAÇÕES (tema, música, navegação) ============ -->
+<button class="music-toggle-fab" id="musicToggleFab" aria-label="Ligar/desligar música" aria-pressed="true">
+  <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/></svg>
+  <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
+</button>
+<button class="settings-fab" id="settingsFab" aria-label="Abrir configurações" aria-expanded="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+</button>
+
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="settings-panel" id="settingsPanel" data-lenis-prevent role="dialog" aria-label="Configurações">
+  <div class="settings-header">
+    <div>
+      <div class="settings-title">System</div>
+      <div class="settings-subtitle mono">GLOBAL CONFIG</div>
+    </div>
+    <button class="settings-close" id="settingsClose" aria-label="Fechar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
   </div>
 
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[01]</span> tema <span class="settings-label-tag mono">core</span></div>
+    <div class="theme-swatches">
+      <button class="theme-swatch is-active" data-theme="blue" aria-label="Tema azul"><span style="--sw:#3d6bff"></span></button>
+      <button class="theme-swatch" data-theme="violet" aria-label="Tema violeta"><span style="--sw:#8b5cf6"></span></button>
+      <button class="theme-swatch" data-theme="emerald" aria-label="Tema esmeralda"><span style="--sw:#10b981"></span></button>
+      <button class="theme-swatch" data-theme="amber" aria-label="Tema âmbar"><span style="--sw:#f59e0b"></span></button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[02]</span> idioma</div>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
+      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
+      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[03]</span> trilha sonora <button class="settings-label-tag mono audio-toggle" id="audioToggle">on</button></div>
+    <button class="track-card is-active" data-track="1">
+      <span class="track-info"><span class="track-name">Sci-Fi Ambient</span><span class="track-tag mono">atmosférico · espaço</span></span>
+      <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </button>
+    <button class="track-card" data-track="2">
+      <span class="track-info"><span class="track-name">Synthwave</span><span class="track-tag mono">retro · sintetizador</span></span>
+      <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[04]</span> navegar</div>
+    <nav class="settings-nav">
+      <a href="index.html#hero" class="settings-nav-link"><span class="mono">01</span>Home</a>
+      <a href="index.html#about" class="settings-nav-link"><span class="mono">02</span>Sobre</a>
+      <a href="index.html#projects" class="settings-nav-link"><span class="mono">03</span>Projetos</a>
+      <a href="contato.html" class="settings-nav-link"><span class="mono">04</span>Contato</a>
+    </nav>
+  </div>
+
+  <div class="settings-status mono"><span class="settings-status-dot"></span>system active</div>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav id="mainNav">
+  <a href="index.html#hero" class="nav-logo"><img src="./assets/svg/logo-header-no1993.svg" alt="Logo Alexandre Garcia"></a>
+  <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+    <span class="hamburger-label mono">MENU</span>
+    <span class="hamburger-bars"><span></span><span></span><span></span></span>
+  </button>
+</nav>
+
+<div class="fullmenu" id="fullMenu" data-lenis-prevent>
+  <div class="fullmenu-giant-bg" aria-hidden="true">MENU</div>
+  <nav class="fullmenu-links">
+    <a href="index.html#about" class="fullmenu-link"><span class="fullmenu-num mono">01</span><span class="fullmenu-link-text">Sobre</span></a>
+    <a href="index.html#experience" class="fullmenu-link"><span class="fullmenu-num mono">02</span><span class="fullmenu-link-text">Experiência</span></a>
+    <a href="index.html#projects" class="fullmenu-link"><span class="fullmenu-num mono">03</span><span class="fullmenu-link-text">Projetos</span></a>
+    <a href="index.html#education" class="fullmenu-link"><span class="fullmenu-num mono">04</span><span class="fullmenu-link-text">Formação</span></a>
+    <a href="contato.html" class="fullmenu-link"><span class="fullmenu-num mono">05</span><span class="fullmenu-link-text">Contato</span></a>
+  </nav>
+  <div class="fullmenu-corner tl mono">// full stack dev</div>
+  <div class="fullmenu-corner tr mono">são paulo, brasil</div>
+  <div class="fullmenu-bottom">
+    <div class="fullmenu-socials mono">
+      <a href="mailto:alexandregojunior@gmail.com">E-mail</a>
+      <a href="https://linkedin.com/in/alexandregarcia-junior" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/AlexandreGarciaJr" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="fullmenu-badge mono"><span class="eyebrow-dot"></span>disponível para novos projetos</div>
+  </div>
+</div>
+
+<main id="conteudo" class="pv">
+  <a class="pv-back" href="index.html" data-back>← voltar ao site</a>
   <span class="kick">// privacidade · atualizada em outubro de 2026</span>
   <h1>Política de privacidade</h1>
   <p>Este site é o portfólio de Alexandre Garcia, desenvolvedor. Aqui explico quais dados são coletados, para quê e como você controla isso, de acordo com a Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018).</p>
@@ -48,17 +170,18 @@
   <p>Quando você envia o formulário, recebo por e-mail o nome, e-mail, telefone, tipo de projeto e mensagem que você escreveu. Uso esses dados só para responder ao seu contato e conversar sobre o projeto. Não vendo nem repasso a terceiros.</p>
 
   <h2>Cookies e medição</h2>
-  <p>Ferramentas de medição só são ativadas se você aceitar no aviso de cookies. Você pode mudar a escolha quando quiser.</p>
+  <p>O Google Analytics fica sempre ativo, com base no legítimo interesse (art. 7º, IX, da LGPD): serve só para contar visitas e contatos de forma agregada, não cria perfis e não é usado para anúncios. As ferramentas de publicidade e de gravação de navegação só são ativadas se você clicar em <strong>Aceitar</strong> no aviso de cookies. Você pode mudar a escolha quando quiser.</p>
   <table>
     <thead><tr><th>Categoria</th><th>Ferramenta</th><th>Para quê</th></tr></thead>
     <tbody>
       <tr><td>Essenciais</td><td>Armazenamento local do navegador</td><td>Guardar idioma, tema, volume da trilha e a sua escolha de cookies. Sempre ativos.</td></tr>
-      <tr><td>Análise</td><td>Google Analytics 4 (Google)</td><td>Contar visitas, páginas vistas, origem do tráfego e contatos gerados, de forma agregada.</td></tr>
-      <tr><td>Análise</td><td>Microsoft Clarity (Microsoft)</td><td>Mapas de calor e gravações anônimas de navegação, para encontrar problemas de uso. Campos de formulário são mascarados.</td></tr>
-      <tr><td>Marketing</td><td>Meta Pixel (Meta)</td><td>Medir visitas e contatos vindos de anúncios no Instagram e Facebook e criar públicos para anúncios.</td></tr>
-      <tr><td>Marketing</td><td>Google Ads (Google)</td><td>Medir contatos vindos de anúncios no Google, a partir dos dados do Google Analytics.</td></tr>
+      <tr><td>Medição (sempre ativa)</td><td>Google Analytics 4 (Google)</td><td>Contar visitas, páginas vistas, origem do tráfego e contatos gerados, de forma agregada. Sem uso para publicidade.</td></tr>
+      <tr><td>Com aceite</td><td>Microsoft Clarity (Microsoft)</td><td>Mapas de calor e gravações anônimas de navegação, para encontrar problemas de uso. Campos de formulário são mascarados.</td></tr>
+      <tr><td>Com aceite</td><td>Meta Pixel (Meta)</td><td>Medir visitas e contatos vindos de anúncios no Instagram e Facebook e criar públicos para anúncios.</td></tr>
+      <tr><td>Com aceite</td><td>Google Ads (Google)</td><td>Medir contatos vindos de anúncios no Google e permitir anúncios personalizados.</td></tr>
     </tbody>
   </table>
+  <p>Para não ser medido pelo Google Analytics, você pode usar o <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">complemento de desativação do Google</a> ou um bloqueador de rastreamento no navegador.</p>
   <button type="button" class="btn-primary" data-cookie-prefs>Alterar minhas preferências</button>
 
   <h2>Seus direitos</h2>
@@ -71,5 +194,40 @@
     <li><a href="https://www.facebook.com/privacy/policy" target="_blank" rel="noopener">Privacidade da Meta</a></li>
   </ul>
 </main>
+
+<!-- ============ FOOTER ============ -->
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+    <div class="footer-brand reveal">
+      <a href="index.html#hero"><img src="./assets/svg/logo-header-no1993.svg" alt="Logo Alexandre Garcia"></a>
+      <p class="footer-desc">Estou disponível para novos projetos, entre em contato e será um prazer atendê-lo(a).</p>
+      <div class="footer-badge"><span class="dot"></span>Disponível para novos projetos</div>
+    </div>
+    <div>
+      <div class="footer-nav-title mono">Menu</div>
+      <ul class="footer-nav-links">
+        <li><a href="index.html#about">Sobre</a></li>
+        <li><a href="index.html#experience">Experiência</a></li>
+        <li><a href="index.html#projects">Projetos</a></li>
+        <li><a href="index.html#education">Formação</a></li>
+        <li><a href="contato.html">Contato</a></li>
+      </ul>
+    </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Alexandre Garcia. Todos os direitos reservados.</span>
+    <span class="footer-legal"><a href="privacidade.html">Privacidade</a> · <button type="button" data-cookie-prefs>Cookies</button> · <span>Feito com ☕ e JavaScript</span></span>
+  </div>
+</footer>
+
+<!-- ============ VENDOR (local, sem CDN externo) ============ -->
+<script src="./assets/vendor/three.min.js"></script>
+<script src="./assets/vendor/gsap.min.js"></script>
+<script src="./assets/vendor/ScrollTrigger.min.js"></script>
+<script src="./assets/vendor/lenis.min.js"></script>
+<script src="./js/i18n.js?v=20261024"></script>
+<script src="./js/main.js?v=20261024"></script>
 </body>
 </html>

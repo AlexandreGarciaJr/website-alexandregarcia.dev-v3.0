@@ -22,7 +22,7 @@ Portfólio de um arquiteto que virou desenvolvedor.
 
 </div>
 
-![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.webp)
+![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.png)
 
 ## Sobre
 
@@ -91,6 +91,7 @@ Ao rolar a página, ou ao clicar em "Código" no painel, a casa se desmancha em 
 | **Testado** | QA automatizado com Playwright em desktop, notebook e celular, incluindo auditoria de acessibilidade com axe-core |
 | **Desempenho** | Maquete GLB otimizada para poucas chamadas de desenho, imagens comprimidas e carregamento sob demanda |
 | **Compartilhamento** | Open Graph completo, para o link aparecer com imagem e ícone no WhatsApp e no LinkedIn |
+| **SEO e medição** | URL canônica, dados estruturados, sitemap, GA4, Meta Pixel e Clarity com consentimento (LGPD), conversões prontas para Google Ads |
 | **Formulário seguro** | Validação no navegador e no servidor, checagem do domínio do e-mail, proteção contra robôs e envios repetidos. As credenciais nunca vão para o repositório |
 
 **Tecnologias:**
@@ -103,6 +104,20 @@ Ao rolar a página, ou ao clicar em "Código" no painel, a casa se desmancha em 
 - [PHPMailer](https://github.com/PHPMailer/PHPMailer).
 
 ![Versão para celular](.github/preview-mobile.webp)
+
+## Medição, anúncios e SEO
+
+O site está pronto para receber tráfego pago e ser encontrado no Google.
+
+- **Google Analytics 4:** sempre ativo, para medir visitas, origem do tráfego e contatos de forma agregada, sem uso em anúncios.
+- **Meta Pixel e Microsoft Clarity:** só carregam depois que a pessoa aceita no aviso de cookies (LGPD). O Pixel mede campanhas do Instagram e do Facebook; o Clarity mostra mapas de calor e gravações anônimas, com os campos do formulário mascarados.
+- **Consent Mode v2 do Google:** os sinais de publicidade começam negados e só são liberados com o aceite.
+- **Conversões separadas:** envio bem-sucedido do formulário (`generate_lead` / `Lead`) e clique no WhatsApp (`contact_whatsapp` / `Contact`), prontos para importar no Google Ads e usar nas campanhas da Meta.
+- **Aviso de cookies próprio:** no visual do site, em três idiomas, só com Aceitar e Recusar, e reaberto pelo link "Cookies" no rodapé. Aparece depois que o loader e a maquete 3D terminam de carregar, para não atrapalhar a primeira impressão.
+- **Página de privacidade** com as ferramentas usadas, a finalidade de cada uma e os direitos do titular.
+- **SEO técnico:** título e descrição por página, URL canônica, dados estruturados (Schema.org `Person` e `WebSite`), Open Graph, `sitemap.xml` e `robots.txt`.
+
+Toda a configuração fica em um arquivo, `js/tracking.js`: os IDs das ferramentas ficam no topo, e nenhum script de terceiros é colado direto no HTML.
 
 ## Rodar localmente
 
@@ -128,7 +143,9 @@ Os arquivos `.php` com dados sensíveis ficam fora do Git.
 ```text
 ├── index.html              página principal
 ├── contato.html            página de contato
+├── privacidade.html        política de privacidade e cookies
 ├── config.example.php      modelo das credenciais SMTP
+├── LICENSE                 licença MIT (só o código)
 ├── site.webmanifest        ícone e cores do site
 ├── css/style.css           estilos
 ├── js/
@@ -136,6 +153,7 @@ Os arquivos `.php` com dados sensíveis ficam fora do Git.
 │   ├── main.js             animações, seções, áudio, menus e painel
 │   ├── i18n.js             traduções PT / EN / ES
 │   ├── contato.js          formulário e campo de pontos
+│   ├── tracking.js         GA4, Meta Pixel, Clarity e aviso de cookies
 │   └── quebra-blocos.js    mini-jogo da seção de contato
 └── assets/
     ├── models/             maquete GLB da casa
@@ -167,7 +185,9 @@ Para adicionar um projeto, copie um cartão em `index.html` e ajuste as classes 
 
 ## Licença
 
-O código pode ser usado como referência para estudo. Textos, fotos, identidade visual e demais conteúdos pessoais não devem ser reutilizados sem autorização.
+O código-fonte (HTML, CSS, JavaScript e PHP) está sob a [licença MIT](LICENSE): pode ser estudado, copiado e adaptado, mantendo o aviso de copyright.
+
+Ficam de fora da licença: textos, fotos, nome, logo, identidade visual, vídeos, imagens, trilhas de áudio e o modelo 3D. O conteúdo pessoal tem todos os direitos reservados. Bibliotecas, fontes e mídias de terceiros (GSAP, Lenis, Three.js, PHPMailer, Archivo) mantêm as suas próprias licenças.
 
 ---
 

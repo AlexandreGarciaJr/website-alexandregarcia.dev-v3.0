@@ -289,8 +289,13 @@
       src.start(now); src.stop(now + 0.06);
     }
 
-    window.addEventListener("pageshow", () => {
-      if (prefs.muted) Object.values(els).forEach((a) => { a.muted = true; try { a.pause(); } catch (e){} });
+    window.addEventListener("pageshow", (e) => {
+      if (prefs.muted){ Object.values(els).forEach((a) => { a.muted = true; try { a.pause(); } catch (e){} }); return; }
+      // voltou pelo histórico (página restaurada do cache): o navegador pausou a trilha — retoma de onde parou
+      if (e.persisted && started){
+        const el = els[currentTrack];
+        if (el && el.paused){ el.muted = false; el.volume = prefs.vol; el.play().catch(() => {}); }
+      }
     });
 
     // abaixa a trilha enquanto outro áudio do site toca (trailer do Love Quest) e devolve depois
@@ -359,6 +364,17 @@
       if (url.origin !== location.origin) return;                            // externo: navega normal
       if (url.pathname === location.pathname && url.hash) return;           // âncora na mesma página: só rola
       e.preventDefault();
+      // "voltar ao site": se veio de uma página do próprio site, volta pelo histórico
+      // (mantém o ponto da página onde a pessoa estava, em vez de recomeçar do topo)
+      let cameFromSite = false;
+      try { cameFromSite = !!document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1; } catch (_){}
+      if (a.hasAttribute("data-back") && cameFromSite){
+        AudioEngine.saveResumeState();
+        root.classList.add("is-leaving");
+        root.classList.remove("is-revealed");
+        setTimeout(() => { history.back(); }, reduceMotion ? 60 : 460);
+        return;
+      }
       AudioEngine.saveResumeState(); // guarda a posição da música pra continuar na próxima página
       root.classList.add("is-leaving");
       root.classList.remove("is-revealed");
@@ -3108,6 +3124,7 @@
     function open(){
       if (isOpen) return;
       isOpen = true; lastFocus = document.activeElement;
+      if (window.agTrack) window.agTrack("lovequest_open", {});
       if (cardVid) cardVid.pause();
       if (typeof lenis !== "undefined" && lenis) lenis.stop();
       document.documentElement.classList.add("lq-lock");
@@ -3150,6 +3167,9 @@
       gsap.to(section, { clipPath: rectClip(), duration: 0.7, ease: "power3.inOut", onComplete: done });
     }
     if (cardBtn) cardBtn.addEventListener("click", open);
+    section.querySelectorAll('a[href*="love-quest-game"]').forEach((a) => a.addEventListener("click", () => {
+      if (window.agTrack) window.agTrack(a.href.indexOf("github") > -1 ? "lovequest_github" : "lovequest_play", {});
+    }));
     if (card) card.querySelector(".lqc-media").addEventListener("click", open);
     closeBtns.forEach((b) => b.addEventListener("click", close));
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && isOpen) close(); });

@@ -550,11 +550,13 @@ function main(){
     canvas.classList.add("is-ready");
     renderer.shadowMap.needsUpdate = true;
     maybeIntro();
+    heroReady();
   }, (xhr) => {
     if (xhr.lengthComputable) setStatus(`${T("carregando modelo")} ${Math.round(xhr.loaded / xhr.total * 100)}%`);
   }, (err) => {
     console.error("[hero3d] falha ao carregar o modelo", err);
     fail(T("não foi possível carregar a maquete"));
+    heroReady();
   });
   const houseBox = new THREE.Box3(new THREE.Vector3(-7, -1, -12), new THREE.Vector3(7, 9, 12));
 
@@ -1041,6 +1043,12 @@ function main(){
     }, { passive: true });
   }
 
+  // avisa o resto do site (ex.: aviso de cookies) que o hero terminou de carregar
+  function heroReady(){
+    if (window.__heroReady) return;
+    window.__heroReady = true;
+    document.dispatchEvent(new CustomEvent("hero:ready"));
+  }
   function setStatus(t){ if (ui.status) ui.status.textContent = t; }
   function fail(msg){
     setStatus(msg);

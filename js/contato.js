@@ -530,6 +530,8 @@
       form.hidden = true;
       successEl.classList.add("is-visible");
       successEl.focus({ preventScroll: true });
+      // conversão: formulário enviado com sucesso (GA4 generate_lead + Meta Lead)
+      if (window.agTrack) window.agTrack("generate_lead", { form_name: "contato", project_type: (form.querySelector('input[name="tipo"]:checked') || {}).value || "" });
       if (field) field.pulseEl(btn, 2.2);
       // log de "terminal" digitado linha a linha
       const lines = [
