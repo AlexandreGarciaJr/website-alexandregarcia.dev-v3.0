@@ -22,7 +22,7 @@ Portfólio de um arquiteto que virou desenvolvedor.
 
 </div>
 
-![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.png)
+![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.webp)
 
 ## Sobre
 
@@ -153,6 +153,7 @@ Para adicionar um projeto, copie um cartão em `index.html` e ajuste as classes 
 
 | Projeto | O que é | Stack |
 |---|---|---|
+| **BHD Móveis** | Site vitrine de loja de móveis outlet, gerado em PHP a partir de JSON | PHP, JSON, JS, GSAP |
 | **New Arrays** | Site da agência de experiência digital | HTML, CSS, JS, PHP |
 | **Teon App** | Reformulação de UX e funcionalidades do site do app | React, Next, TypeScript |
 | **NRA Assessoria** | Site para empresa de geologia e meio ambiente | HTML, CSS, JS, PHP |
