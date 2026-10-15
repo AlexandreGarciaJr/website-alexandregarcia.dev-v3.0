@@ -27,11 +27,11 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Pixelify+Sans:wght@500;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <link rel="preload" href="./assets/fonts/archivo-wdth-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/models/casa.glb" as="fetch" type="model/gltf-binary" crossorigin>
-<link rel="stylesheet" href="./css/style.css?v=20261013">
+<link rel="stylesheet" href="./css/style.css?v=20261018">
 <script>
   // Safari < 16.4 não entende import maps: carrega o polyfill só nesses casos
   if (!(HTMLScriptElement.supports && HTMLScriptElement.supports("importmap"))){
@@ -56,6 +56,7 @@
 <meta name="theme-color" content="#050810">
 <script>try{var t=localStorage.getItem("agTheme");if(t&&t!=="blue")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <script>try{if(!sessionStorage.getItem("agLoaderShown"))document.documentElement.classList.add("is-booting");}catch(e){}</script>
+<script src="./js/tracking.js?v=20261018"></script>
 </head>
 <body>
 
@@ -539,6 +540,23 @@
 
     <div class="bento-grid">
 
+      <!-- Love Quest: card largo que abre a experiência -->
+      <div class="proj-card c-12 lqc reveal" data-tint="255,79,163">
+        <div class="lqc-stars" aria-hidden="true"></div>
+        <div class="lqc-copy">
+          <span class="lqc-kick">projeto em destaque · jogo · 2026</span>
+          <h3 class="lqc-title" translate="no"><span class="l">LOVE</span> <span class="q">QUEST</span></h3>
+          <p class="lqc-desc">Uma declaração de amor que virou jogo: 4 fases em pixel art para jogar no celular e, no final, a sua mensagem.</p>
+          <div class="lqc-stack"><span>React</span><span>Phaser 4</span><span>TypeScript</span></div>
+          <button type="button" class="lqc-btn" aria-haspopup="dialog" aria-controls="lovequest">▶ Clique para conhecer Love Quest</button>
+        </div>
+        <button type="button" class="lqc-media" aria-label="Abrir a apresentação do Love Quest" tabindex="-1">
+          <video class="lqc-video" muted loop playsinline preload="none" poster="./assets/video/lovequest/lq-h-poster.jpg" data-src="./assets/video/lovequest/lq-h.mp4?v=2" aria-hidden="true"></video>
+          <i aria-hidden="true"></i>
+          <span class="lqc-tag">▶ trailer</span>
+        </button>
+      </div>
+
       <!-- New Arrays -->
       <a class="proj-card c-5 c-featured reveal" href="https://newarrays.com/" target="_blank" rel="noopener">
         <div class="proj-shot">
@@ -824,19 +842,89 @@
     </div>
     <div class="footer-bottom">
       <span>© 2025 Alexandre Garcia. Todos os direitos reservados.</span>
-      <span>Feito com ☕ e JavaScript</span>
+      <span class="footer-legal"><a href="privacidade.html">Privacidade</a> · <button type="button" data-cookie-prefs>Cookies</button> · <span>Feito com ☕ e JavaScript</span></span>
     </div>
   </div>
 </footer>
 
 <!-- ============ VENDOR (local, sem CDN externo) ============ -->
+
+<!-- ============ LOVE QUEST: experiência em tela cheia (abre pelo card) ============ -->
+<div id="lovequest" class="lq lq-overlay" role="dialog" aria-modal="true" aria-labelledby="lqTitle" aria-hidden="true" hidden>
+  <button type="button" class="lq-close" aria-label="Fechar Love Quest"><span aria-hidden="true">✕</span> fechar</button>
+  <div class="lq-scroll" data-lenis-prevent>
+    <div class="lq-track">
+      <div class="lq-pin">
+    <div class="lq-stars" aria-hidden="true"></div>
+    <div class="lq-glow" aria-hidden="true"></div>
+
+    <!-- abertura: "PRESS START" + linha de luz que abre a tela -->
+    <div class="lq-open" aria-hidden="true">
+      <span class="lq-open-kicker mono">01 — novo projeto · jogo</span>
+      <span class="lq-line lq-line-a"></span>
+      <span class="lq-line lq-line-b"></span>
+      <span class="lq-press">PRESS START</span>
+      <span class="lq-hint mono">role para ligar ↓</span>
+    </div>
+
+    <!-- texto -->
+    <div class="lq-copy">
+      <span class="section-kicker">projeto em destaque · jogo · 2026</span>
+      <h3 id="lqTitle" class="lq-title" translate="no" aria-label="Love Quest"><span class="lq-l">LOVE</span><span class="lq-q">QUEST</span></h3>
+      <p class="lq-desc">Uma declaração de amor que virou jogo. Você manda o link, a pessoa joga quatro fases para resgatar o par e, no final, recebe a sua mensagem.</p>
+      <ol class="lq-phases">
+        <li><b>01</b> Céu Estrelado</li>
+        <li><b>02</b> Jardim Florido</li>
+        <li><b>03</b> Cidade à Noite</li>
+        <li><b>04</b> Castelo nas Nuvens</li>
+      </ol>
+      <ul class="lq-stack" aria-label="Tecnologias">
+        <li>React</li><li>Phaser 4</li><li>TypeScript</li><li>Web Audio</li><li>Vite</li>
+      </ul>
+      <div class="lq-ctas">
+        <a class="btn-lq" href="https://love-quest-game-zeta.vercel.app/" target="_blank" rel="noopener">▶ Jogar agora</a>
+        <a class="btn-outline" href="https://github.com/AlexandreGarciaJr/love-quest-game" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </div>
+
+    <!-- celular com os trailers -->
+    <div class="lq-stage">
+      <div class="lq-phone">
+        <div class="lq-screen">
+          <video class="lq-vid lq-vid-v" muted loop playsinline preload="none" poster="./assets/video/lovequest/lq-v-poster.jpg" data-src="./assets/video/lovequest/lq-v.mp4?v=2" aria-label="Trailer do Love Quest (vertical)"></video>
+          <div class="lq-land">
+            <video class="lq-vid lq-vid-h" muted loop playsinline preload="none" poster="./assets/video/lovequest/lq-h-poster.jpg" data-src="./assets/video/lovequest/lq-h.mp4?v=2" aria-label="Trailer do Love Quest (horizontal)"></video>
+          </div>
+          <i class="lq-scan" aria-hidden="true"></i>
+        </div>
+        <span class="lq-notch" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <span class="lq-caption" aria-hidden="true">o jogo abre em paisagem</span>
+
+    <!-- barra final, com o trailer em tela grande -->
+    <div class="lq-bar" aria-hidden="true">
+      <span class="lq-bar-title" translate="no"><span class="lq-l">LOVE</span> <span class="lq-q">QUEST</span></span>
+      <span class="lq-bar-stack mono">React · Phaser 4 · TypeScript</span>
+      <div class="lq-ctas">
+        <a class="btn-lq" href="https://love-quest-game-zeta.vercel.app/" target="_blank" rel="noopener" tabindex="-1">▶ Jogar agora</a>
+        <a class="btn-outline" href="https://github.com/AlexandreGarciaJr/love-quest-game" target="_blank" rel="noopener" tabindex="-1">GitHub ↗</a>
+        <button type="button" class="btn-outline lq-close-2" tabindex="-1">✕ Fechar</button>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+</div>
+
 <script src="./assets/vendor/three.min.js"></script>
 <script src="./assets/vendor/gsap.min.js"></script>
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
-<script src="./js/i18n.js?v=20261010"></script>
-<script src="./js/main.js?v=20261010"></script>
-<script src="./js/quebra-blocos.js?v=20261010"></script>
-<script type="module" src="./js/hero3d.js?v=20261010"></script>
+<script src="./js/i18n.js?v=20261018"></script>
+<script src="./js/main.js?v=20261018"></script>
+<script src="./js/quebra-blocos.js?v=20261018"></script>
+<script type="module" src="./js/hero3d.js?v=20261018"></script>
 </body>
 </html>

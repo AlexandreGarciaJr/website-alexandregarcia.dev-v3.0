@@ -3407,3 +3407,243 @@ html.game-on .vol-pop{ display:none; }
   .exp-cine .exp-card-desc{ font-size:1rem; line-height:1.6; }
   .exp-cine .exp-tag{ font-size:.76rem; padding:.32rem .7rem; }
 }
+
+/* =========================================================
+   PROJETO EM DESTAQUE — LOVE QUEST
+   abertura "PRESS START" (linha de luz que abre a tela) →
+   celular em 3D com o trailer vertical → gira para paisagem →
+   cresce até o trailer horizontal ocupar a cena
+   ========================================================= */
+.lq{
+  --lq-pink:#ff4fa3; --lq-pink-2:#ff8cc6; --lq-pink-deep:#7a1a55; --lq-violet:#4b3a8f; --lq-cream:#fff4e8;
+  --pw: 330px; --ph: 700px; /* medidas reais do celular: o JS recalcula pelo tamanho da tela */
+  position:relative; z-index:2; background: var(--bg);
+}
+.lq-pin{ position:sticky; top:0; height:100vh; height:100dvh; overflow:hidden; }
+.lq-stars{ position:absolute; inset:0; pointer-events:none; }
+.lq-stars i{ position:absolute; width:2px; height:2px; background:#dfe3ff; opacity:.6; animation: lqTwinkle 3.2s steps(2) infinite; }
+.lq-stars i.b{ width:3px; height:3px; }
+@keyframes lqTwinkle{ 50%{ opacity:.15; } }
+.lq-glow{
+  position:absolute; inset:0; pointer-events:none; opacity:0;
+  background: radial-gradient(45% 60% at 70% 52%, rgba(122,40,170,.42), transparent 70%),
+              radial-gradient(35% 45% at 30% 60%, rgba(255,79,163,.10), transparent 70%);
+}
+
+/* ---- abertura ---- */
+.lq-open{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; z-index:6; }
+.lq-open-kicker{ position:absolute; top:calc(50% - 3.6rem); font-size:.78rem; letter-spacing:.3em; text-transform:uppercase; color: var(--text-faint); }
+.lq-line{
+  position:absolute; left:50%; top:50%; width:min(72vw, 980px); height:2px; margin-left:calc(min(72vw, 980px) / -2);
+  background: linear-gradient(90deg, transparent, var(--lq-pink) 18%, #fff 50%, var(--accent-2) 82%, transparent);
+  box-shadow: 0 0 18px var(--lq-pink), 0 0 42px rgba(125,216,255,.55);
+  transform: scaleX(0);
+}
+.lq-press{ position:absolute; top:calc(50% + 2.2rem); font-family:'Pixelify Sans', var(--f-mono); font-weight:500; font-size:1.35rem; letter-spacing:.22em; color: var(--lq-pink-2); animation: lqBlink 1.1s steps(1) infinite; }
+.lq-hint{ position:absolute; top:calc(50% + 5.2rem); font-size:.72rem; color: var(--text-faint); letter-spacing:.08em; }
+@keyframes lqBlink{ 50%{ opacity:.25; } }
+
+/* ---- título em pixel ---- */
+.lq-title{ font-family:'Pixelify Sans', var(--f-display); font-weight:700; line-height:.86; letter-spacing:.02em; font-size: clamp(4.2rem, 8.4vw, 8.2rem); margin: .9rem 0 1.4rem; }
+.lq-title > span{ display:block; }
+.lq-l{ color: var(--lq-pink); text-shadow: 0 .06em 0 var(--lq-pink-deep), 0 0 .5em rgba(255,79,163,.35); }
+.lq-q{ color:#fff; text-shadow: 0 .06em 0 var(--lq-violet), 0 0 .5em rgba(160,140,255,.25); }
+.lq-title .ch{ display:inline-block; will-change:transform; }
+
+/* ---- texto ---- */
+.lq-copy{ position:absolute; z-index:5; left: max(var(--edge), 11vw); top:50%; transform: translateY(-50%); width: min(38vw, 540px); }
+.lq-desc{ color: var(--text-dim); font-size: 1.06rem; line-height:1.65; max-width: 46ch; margin-bottom: 1.5rem; }
+.lq-phases{ list-style:none; display:grid; grid-template-columns: 1fr 1fr; gap:.55rem 1.4rem; margin-bottom:1.4rem; }
+.lq-phases li{ font-family:'Pixelify Sans', var(--f-mono); font-size:1.02rem; color: var(--text); }
+.lq-phases b{ color: var(--lq-pink-2); font-weight:500; margin-right:.45rem; }
+.lq-stack{ list-style:none; display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:1.8rem; }
+.lq-stack li{ font-family: var(--f-mono); font-size:.74rem; color: var(--text-faint); padding:.3rem .7rem; border:1px solid var(--border); border-radius: var(--r-full); }
+.lq-ctas{ display:flex; gap:.8rem; flex-wrap:wrap; }
+.btn-lq{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem; height:3.1rem; padding:0 1.7rem;
+  border-radius: var(--r-full); font-family: var(--f-mono); font-size:.86rem; font-weight:500; letter-spacing:.02em; white-space:nowrap;
+  background: var(--lq-pink); color:#1a0716; border:1px solid var(--lq-pink);
+  box-shadow: 0 0 28px rgba(255,79,163,.35);
+  transition: transform .45s var(--ease-out), background .3s, box-shadow .3s;
+}
+.btn-lq:hover{ background: var(--lq-pink-2); box-shadow: 0 0 40px rgba(255,79,163,.55); }
+.btn-lq:active{ transform: scale(.97); }
+.btn-lq:focus-visible{ outline:2px solid var(--accent-2); outline-offset:3px; }
+
+/* ---- celular ---- */
+.lq-stage{ position:absolute; inset:0; z-index:4; perspective: 1800px; pointer-events:none; }
+.lq-phone{
+  position:absolute; left:50%; top:50%; width: var(--pw); height: var(--ph);
+  border-radius: calc(var(--pw) * .15); background:#0a0c13;
+  border: 2px solid #2c3550;
+  box-shadow: 0 60px 120px -30px rgba(0,0,0,.9), 0 0 90px rgba(255,79,163,.22), inset 0 0 0 1px rgba(255,255,255,.04);
+  transform-style: preserve-3d; will-change: transform;
+}
+.lq-screen{ position:absolute; inset: calc(var(--pw) * .035); border-radius: calc(var(--pw) * .12); overflow:hidden; background:#0b0820; }
+.lq-vid{ position:absolute; display:block; object-fit:cover; background:#0b0820; }
+.lq-vid-v{ inset:0; width:100%; height:100%; }
+/* o vídeo horizontal fica "deitado" dentro da tela em pé; quando o celular gira -90°, ele aparece certo */
+.lq-land{ position:absolute; left:50%; top:50%; width: calc(var(--ph) - var(--pw) * .07); height: calc(var(--pw) * .93); transform: translate(-50%,-50%) rotate(90deg); opacity:0; }
+.lq-land .lq-vid{ inset:0; width:100%; height:100%; }
+.lq-scan{ position:absolute; inset:0; pointer-events:none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 2px, transparent 2px 4px); mix-blend-mode:multiply; }
+.lq-notch{ position:absolute; top: calc(var(--pw) * .06); left:50%; width: calc(var(--pw) * .26); height: calc(var(--pw) * .065); margin-left: calc(var(--pw) * -.13); border-radius:999px; background:#05060b; }
+.lq-sound{
+  position:absolute; z-index:7; pointer-events:auto;
+  right: var(--edge); top: 6.4rem;
+  font-family: var(--f-mono); font-size:.74rem; color:#fff; letter-spacing:.06em;
+  padding:.5rem .95rem; border:1px solid var(--lq-pink); border-radius: var(--r-full);
+  background: rgba(5,8,16,.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity:0; visibility:hidden;
+}
+.lq-sound[aria-pressed="true"]{ background: var(--lq-pink); color:#1a0716; }
+.lq-sound:focus-visible{ outline:2px solid var(--accent-2); outline-offset:3px; }
+
+.lq-caption{
+  position:absolute; z-index:6; left: max(var(--edge), 11vw); top: 22%;
+  font-family:'Pixelify Sans', var(--f-mono); font-weight:500; font-size:1.15rem; color:#2a0f2a;
+  background: var(--lq-cream); border:4px solid var(--lq-pink); padding:.6rem 1rem;
+  opacity:0; visibility:hidden; pointer-events:none;
+}
+
+/* ---- barra final ---- */
+.lq-bar{
+  position:absolute; z-index:6; left: var(--edge); right: calc(var(--edge) + 72px); bottom: 1.6rem;
+  display:flex; align-items:center; justify-content:space-between; gap:1.4rem; flex-wrap:wrap;
+  opacity:0; visibility:hidden;
+}
+.lq-bar-title{ font-family:'Pixelify Sans', var(--f-display); font-weight:700; font-size:1.7rem; letter-spacing:.03em; }
+.lq-bar-stack{ font-size:.78rem; color: var(--text-faint); margin-right:auto; }
+
+/* ---- celular/tablet em pé: abertura + celular; o texto vem depois, fora do pin ---- */
+.lq.lq-mobile .lq-copy{ position:relative; left:auto; top:auto; transform:none; width:auto; padding: 2.5rem var(--edge) var(--section-pad); }
+.lq.lq-mobile .lq-title{ font-size: clamp(3.6rem, 17vw, 6rem); }
+.lq.lq-mobile .lq-phases{ grid-template-columns:1fr 1fr; }
+.lq.lq-mobile .lq-caption, .lq.lq-mobile .lq-bar{ display:none; }
+.lq.lq-mobile .lq-pin{ height:100svh; }
+.lq.lq-mobile .lq-track{ height:270svh; }
+.lq.lq-mobile .lq-sound{ top:auto; right:auto; left:50%; bottom: 1.4rem; transform: translateX(-50%); }
+
+/* ---- sem movimento: layout estático, tudo visível ---- */
+.lq.lq-static .lq-pin{ position:relative; height:auto; min-height:100vh; padding: var(--section-pad) 0; }
+.lq.lq-static .lq-track{ height:auto; }
+.lq.lq-static .lq-open, .lq.lq-static .lq-caption, .lq.lq-static .lq-bar{ display:none; }
+.lq.lq-static .lq-glow{ opacity:1; }
+.lq.lq-static .lq-sound{ opacity:1; visibility:visible; }
+@media (prefers-reduced-motion: reduce){
+  .lq-stars i, .lq-press{ animation:none; }
+}
+.lq.lq-mobile .btn-lq{ width:100%; }
+
+/* ---- player do Love Quest: um vídeo ativo + controles estilo YouTube ---- */
+.lq-screen{ pointer-events:auto; cursor:pointer; }
+.lq-land{ pointer-events:none; }
+.lq-h-on .lq-land{ pointer-events:auto; }
+.lq-h-on .lq-screen > .lq-ctrl, .lq-h-on .lq-screen > .lq-tap{ display:none; }
+
+.lq-ctrl{
+  position:absolute; left:0; right:0; bottom:0; z-index:4;
+  display:flex; align-items:center; gap:8px;
+  padding: 26px 14px 12px;
+  background: linear-gradient(180deg, transparent, rgba(5,8,16,.88) 55%);
+  color:#fff; font-family: var(--f-mono); font-size:12px;
+  opacity:0; transition: opacity .3s;
+  container-type: inline-size;
+  cursor:default;
+}
+/* em pé o celular está reduzido: os controles compensam a escala para não ficarem minúsculos */
+.lq-screen > .lq-ctrl{ right:auto; width: calc(100% * var(--lqs, 1)); transform: scale(calc(1 / var(--lqs, 1))); transform-origin: left bottom; }
+.lq-screen:hover .lq-ctrl, .lq-land:hover .lq-ctrl,
+.lq-ui-on > .lq-ctrl, .lq-paused > .lq-ctrl, .lq-ctrl:focus-within{ opacity:1; }
+.lq-c-btn{ flex:none; width:34px; height:34px; display:grid; place-items:center; border-radius:50%; color:#fff; transition: background .2s, color .2s; }
+.lq-c-btn svg{ width:20px; height:20px; }
+.lq-c-btn:hover{ background: rgba(255,79,163,.22); color: var(--lq-pink-2); }
+.lq-c-btn:focus-visible, .lq-tap:focus-visible{ outline:2px solid var(--accent-2); outline-offset:2px; }
+.lq-c-time{ flex:none; color:#dfe3f0; font-size:11px; letter-spacing:.02em; white-space:nowrap; }
+.lq-c-seek, .lq-c-vol{
+  -webkit-appearance:none; appearance:none; height:4px; border-radius:4px; cursor:pointer; margin:0;
+  background: linear-gradient(90deg, var(--lq-pink) var(--p, 0%), rgba(255,255,255,.28) var(--p, 0%));
+}
+.lq-c-seek{ flex:1; min-width:40px; }
+.lq-c-vol{ flex:none; width:64px; }
+.lq-c-seek::-webkit-slider-thumb, .lq-c-vol::-webkit-slider-thumb{ -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#fff; box-shadow:0 0 0 3px rgba(255,79,163,.45); }
+.lq-c-seek::-moz-range-thumb, .lq-c-vol::-moz-range-thumb{ width:12px; height:12px; border:0; border-radius:50%; background:#fff; box-shadow:0 0 0 3px rgba(255,79,163,.45); }
+.lq-c-seek:focus-visible, .lq-c-vol:focus-visible{ outline:2px solid var(--accent-2); outline-offset:4px; }
+@container (max-width: 300px){ .lq-c-vol, .lq-c-time{ display:none; } }
+
+/* convite no meio do vídeo enquanto está mudo */
+.lq-tap{
+  position:absolute; left:50%; top:50%; z-index:3;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 16px; border-radius:999px;
+  background: rgba(5,8,16,.72); border:1px solid var(--lq-pink); color:#fff;
+  font-family: var(--f-mono); font-size:12px; letter-spacing:.04em; white-space:nowrap;
+  transform: translate(-50%,-50%); opacity:0; pointer-events:none; transition: opacity .3s;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.lq-screen > .lq-tap{ transform: translate(-50%,-50%) scale(calc(1 / var(--lqs, 1))); }
+.lq-tap svg{ width:16px; height:16px; color: var(--lq-pink-2); }
+.lq-muted > .lq-tap{ opacity:1; animation: lqTapPulse 2.4s ease-in-out infinite; }
+@keyframes lqTapPulse{ 50%{ box-shadow: 0 0 0 8px rgba(255,79,163,0); border-color: var(--lq-pink-2); } 0%,100%{ box-shadow: 0 0 0 0 rgba(255,79,163,.35); } }
+@media (prefers-reduced-motion: reduce){ .lq-muted > .lq-tap{ animation:none; } }
+@media (hover: none){ .lq-ctrl{ opacity:1; } }
+
+
+
+
+/* =========================================================
+   LOVE QUEST — card largo no mosaico + experiência em tela cheia
+   ========================================================= */
+.lqc{
+  grid-column: span 12; position:relative; display:grid; grid-template-columns: 1fr 1.25fr; gap:3rem; align-items:center;
+  padding: clamp(1.6rem, 3.4vw, 3rem); min-height: 400px; overflow:hidden;
+  background: radial-gradient(60% 90% at 75% 50%, rgba(122,40,170,.45), transparent 70%), linear-gradient(180deg,#0b0820,#120a2c);
+  border:1px solid rgba(255,79,163,.45) !important;
+}
+.lqc-stars{ position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background-image: radial-gradient(2px 2px at 10% 20%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 30% 70%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 55% 15%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 80% 80%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 92% 30%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 45% 88%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 20% 92%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 68% 40%, #dfe3ff 50%, transparent 51%); }
+.lqc-copy{ position:relative; }
+.lqc-kick{ font-family: var(--f-mono); font-size:.78rem; color: var(--accent-2); letter-spacing:.06em; }
+.lqc-title{ font-family:'Pixelify Sans', var(--f-display); font-weight:700; font-size: clamp(3rem,5.6vw,5.4rem); line-height:.95; margin:.8rem 0 1rem; }
+.lqc-title .l{ color:#ff4fa3; text-shadow:0 .06em 0 #7a1a55; }
+.lqc-title .q{ color:#fff; text-shadow:0 .06em 0 #4b3a8f; }
+.lqc-desc{ color: var(--text-dim); font-size:1.05rem; line-height:1.6; max-width:42ch; margin-bottom:1.1rem; }
+.lqc-stack{ display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:1.6rem; }
+.lqc-stack span{ font-family:var(--f-mono); font-size:.74rem; color:var(--text-faint); padding:.3rem .7rem; border:1px solid var(--border); border-radius:999px; }
+.lqc-btn{
+  display:inline-flex; align-items:center; gap:.5rem; height:3.2rem; padding:0 1.8rem; border-radius:999px;
+  background:#ff4fa3; color:#1a0716; font-family:var(--f-mono); font-size:.9rem; font-weight:500;
+  box-shadow:0 0 30px rgba(255,79,163,.4); transition: transform .45s var(--ease-out), background .3s, box-shadow .3s;
+}
+.lqc-btn:hover{ background:#ff8cc6; box-shadow:0 0 44px rgba(255,79,163,.6); }
+.lqc-btn:active{ transform:scale(.97); }
+.lqc-btn:focus-visible{ outline:2px solid var(--accent-2); outline-offset:3px; }
+.lqc-media{ position:relative; display:block; width:100%; aspect-ratio:16/9; padding:0; border:4px solid #ff4fa3; box-shadow:0 0 0 4px #3a1240, 0 0 50px rgba(255,79,163,.35); overflow:hidden; background:#0b0820; cursor:pointer; transition: transform .6s var(--ease-out); }
+.lqc-media:hover{ transform: scale(1.015); }
+.lqc-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.lqc-media i{ position:absolute; inset:0; pointer-events:none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 2px, transparent 2px 4px); }
+.lqc-tag{ position:absolute; right:14px; bottom:12px; font-family:var(--f-mono); font-size:.7rem; color:#fff; background:rgba(5,8,16,.7); border:1px solid #ff4fa3; border-radius:999px; padding:.35rem .7rem; }
+@media (max-width: 900px){
+  .lqc{ grid-template-columns: 1fr; gap:1.6rem; min-height:0; }
+  .lqc-media{ order:-1; }
+  .lqc-btn{ width:100%; justify-content:center; }
+}
+
+/* tela cheia */
+.lq-overlay{ position:fixed; inset:0; z-index: 2000; background: var(--bg); }
+.lq-overlay[hidden]{ display:none; }
+.lq-scroll{ position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.lq-scroll::-webkit-scrollbar{ display:none; }
+.lq-track{ position:relative; height:540vh; }
+html.lq-lock, html.lq-lock body{ overflow:hidden !important; }
+.lq-close{
+  position:absolute; z-index:20; top:1.4rem; right: var(--edge);
+  display:inline-flex; align-items:center; gap:.55rem; height:2.8rem; padding:0 1.1rem 0 .95rem;
+  border-radius:999px; border:1px solid rgba(255,79,163,.7); background: rgba(5,8,16,.75); color:#fff;
+  font-family: var(--f-mono); font-size:.8rem; letter-spacing:.04em;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: background .3s, border-color .3s;
+}
+.lq-close span{ color: var(--lq-pink-2, #ff8cc6); font-size:1.05rem; line-height:1; }
+.lq-close:hover{ background: rgba(255,79,163,.18); border-color:#ff8cc6; }
+.lq-close:focus-visible{ outline:2px solid var(--accent-2); outline-offset:3px; }
+.lq-close-2{ cursor:pointer; }

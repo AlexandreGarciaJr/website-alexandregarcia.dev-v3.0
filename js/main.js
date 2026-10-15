@@ -293,12 +293,24 @@
       if (prefs.muted) Object.values(els).forEach((a) => { a.muted = true; try { a.pause(); } catch (e){} });
     });
 
+    // abaixa a trilha enquanto outro áudio do site toca (trailer do Love Quest) e devolve depois
+    let ducked = null;
+    function duck(on){
+      const el = els[currentTrack];
+      if (on){
+        if (el && !el.paused && !prefs.muted){ ducked = el; try { el.pause(); } catch (e){} }
+      } else if (ducked){
+        if (!prefs.muted) ducked.play().catch(() => {});
+        ducked = null;
+      }
+    }
+
     return {
       start, playTrack, setMuted, primeMutedAutoplay, saveResumeState,
       hoverSound, clickSound,
       getPrefs: () => ({ ...prefs }),
       isMuted: () => prefs.muted,
-      setVolume, volumeWritable, isStarted,
+      setVolume, volumeWritable, isStarted, duck,
     };
   })();
 
@@ -731,7 +743,7 @@
       const spy = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          const id = entry.target.id;
+          const id = entry.target.dataset.spy || entry.target.id;
           items.forEach((a) => a.classList.toggle("is-active", a.dataset.target === id));
           flyoutBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.target === id));
           const idx = sections.findIndex((s) => s.id === id);
@@ -743,6 +755,7 @@
         });
       }, { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
       sections.forEach((s) => spy.observe(s));
+      document.querySelectorAll("[data-spy]").forEach((s) => spy.observe(s)); // seções extras contam como a seção "mãe"
     }
 
     // navegação clicável (régua e menu) — usa Lenis se disponível
@@ -2106,7 +2119,7 @@
   }
 
   function initProjectTilt(){
-    const cards = document.querySelectorAll(".proj-card");
+    const cards = document.querySelectorAll(".proj-card:not(.lqc)");
     if (!cards.length || isTouch || reduceMotion) return;
 
     cards.forEach((card) => {
@@ -2800,6 +2813,371 @@
     });
   }
 
+
+  /* ---------------------------------------------------------
+     PROJETO EM DESTAQUE — LOVE QUEST
+     abertura "PRESS START": a linha de luz abre a tela do celular →
+     título monta em pixels + texto → o celular gira para paisagem →
+     cresce até o trailer horizontal ocupar a cena
+     --------------------------------------------------------- */
+  function initLoveQuest(){
+    const section = document.getElementById("lovequest");
+    if (!section || !window.gsap) return;
+    const T = (s) => (window.I18N ? window.I18N.t(s) : s);
+    const pin = section.querySelector(".lq-pin");
+    const phone = section.querySelector(".lq-phone");
+    const land = section.querySelector(".lq-land");
+    const vV = section.querySelector(".lq-vid-v");
+    const vH = section.querySelector(".lq-vid-h");
+    const copy = section.querySelector(".lq-copy");
+    const caption = section.querySelector(".lq-caption");
+    const bar = section.querySelector(".lq-bar");
+    const lineA = section.querySelector(".lq-line-a");
+    const lineB = section.querySelector(".lq-line-b");
+    const openTexts = section.querySelectorAll(".lq-open-kicker, .lq-press, .lq-hint");
+    const glow = section.querySelector(".lq-glow");
+    const scroller = section.querySelector(".lq-scroll");
+    const track = section.querySelector(".lq-track");
+    const card = document.querySelector(".lqc");
+    const MOBILE = isNarrow;
+    const STATIC = reduceMotion || !window.ScrollTrigger;
+
+    // estrelas em pixel (decorativas)
+    const starsBox = section.querySelector(".lq-stars");
+    if (starsBox && !starsBox.childElementCount){
+      const frag = document.createDocumentFragment();
+      const n = MOBILE ? 36 : 70;
+      for (let i = 0; i < n; i++){
+        const st = document.createElement("i");
+        if (Math.random() < .25) st.className = "b";
+        st.style.left = (Math.random() * 100).toFixed(2) + "%";
+        st.style.top = (Math.random() * 100).toFixed(2) + "%";
+        st.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
+        frag.appendChild(st);
+      }
+      starsBox.appendChild(frag);
+    }
+
+    // título em letras (para montar "pixel a pixel")
+    section.querySelectorAll(".lq-title .lq-l, .lq-title .lq-q").forEach((w) => {
+      if (w.querySelector(".ch")) return;
+      w.innerHTML = [...w.textContent].map((c) => `<span class="ch">${c}</span>`).join("");
+    });
+    const chars = section.querySelectorAll(".lq-title .ch");
+    const copyItems = copy.querySelectorAll(".section-kicker, .lq-desc, .lq-phases li, .lq-stack, .lq-ctas");
+
+    // no celular o texto sai do pin e vem logo abaixo, no fluxo normal
+    if (MOBILE){ section.classList.add("lq-mobile"); scroller.appendChild(copy); }
+    if (STATIC) section.classList.add("lq-static");
+
+    /* ---- medidas do celular a partir da tela ---- */
+    const R = 0.47; // largura/altura do aparelho
+    function measure(){
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let ph, s1;
+      if (MOBILE){
+        ph = Math.min(vh * 0.68, (vw * 0.66) / R);
+        s1 = 1;
+      } else {
+        ph = Math.min(vw * 0.78, (vh - 250) / R, 1240); // tamanho final, deitado
+        s1 = Math.min(1, (vh * 0.72) / ph);             // escala em pé, ao lado do texto
+      }
+      section.style.setProperty("--ph", ph.toFixed(1) + "px");
+      section.style.setProperty("--pw", (ph * R).toFixed(1) + "px");
+      section.style.setProperty("--lqs", String(s1.toFixed(4)));
+      return { vw, vh, ph, pw: ph * R, s1 };
+    }
+
+    /* ---- player: só UM vídeo ativo por vez (o outro fica pausado e mudo) ----
+       em pé = trailer vertical; deitado = horizontal. A troca leva junto
+       o ponto do vídeo, play/pause, som e volume — nunca tocam os dois juntos. */
+    let loaded = false, inView = false;
+    const vids = MOBILE ? [vV] : [vV, vH];
+    let active = vV;
+    const st = { userPaused: false, sound: false, vol: 0.8 };
+    const VOL_OK = AudioEngine.volumeWritable;
+    function load(){
+      if (loaded) return; loaded = true;
+      vids.forEach((v) => { v.src = v.dataset.src; v.preload = "auto"; v.muted = true; });
+    }
+    function applyAudio(v){ v.muted = !st.sound; if (VOL_OK) { try { v.volume = st.vol; } catch (e){} } }
+    function playActive(){ load(); applyAudio(active); active.play().catch(() => {}); }
+    function pauseAll(){ vids.forEach((v) => { try { v.pause(); } catch (e){} }); }
+    function setActive(v){
+      if (!v || v === active) return;
+      const prev = active; active = v;
+      try { if (prev.duration) v.currentTime = prev.currentTime; } catch (e){}
+      prev.pause(); prev.muted = true;
+      applyAudio(v);
+      if (inView && !st.userPaused) v.play().catch(() => {});
+      section.classList.toggle("lq-h-on", v === vH);
+      sync();
+    }
+
+    // controles (um conjunto em cada tela: em pé e deitada), estilo YouTube
+    const ICON = {
+      play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
+      pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>',
+      restart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" fill="currentColor"/></svg>',
+      on: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z" fill="currentColor"/></svg>',
+      off: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.6 3 2.4-2.4-1.4-1.4-2.4 2.4-2.4-2.4-1.4 1.4 2.4 2.4-2.4 2.4 1.4 1.4 2.4-2.4 2.4 2.4 1.4-1.4z" fill="currentColor"/></svg>',
+    };
+    const fmt = (t) => { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
+    const hosts = [section.querySelector(".lq-screen"), MOBILE ? null : land].filter(Boolean);
+    const uis = hosts.map((host) => {
+      const tap = document.createElement("button");
+      tap.type = "button"; tap.className = "lq-tap";
+      tap.innerHTML = ICON.on + `<span>${T("toque para ouvir")}</span>`;
+      const bar = document.createElement("div");
+      bar.className = "lq-ctrl";
+      bar.innerHTML = `
+        <button type="button" class="lq-c-btn lq-c-play" aria-label="${T("Pausar")}">${ICON.pause}</button>
+        <button type="button" class="lq-c-btn lq-c-restart" aria-label="${T("Recomeçar")}">${ICON.restart}</button>
+        <span class="lq-c-time">0:00 / 0:41</span>
+        <input class="lq-c-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="${T("Posição do vídeo")}">
+        <button type="button" class="lq-c-btn lq-c-mute" aria-label="${T("Ligar som")}">${ICON.off}</button>
+        ${VOL_OK ? `<input class="lq-c-vol" type="range" min="0" max="100" step="1" value="80" aria-label="${T("Volume")}">` : ""}`;
+      host.appendChild(tap); host.appendChild(bar);
+      const ui = { host, tap, bar, play: bar.querySelector(".lq-c-play"), restart: bar.querySelector(".lq-c-restart"),
+        time: bar.querySelector(".lq-c-time"), seek: bar.querySelector(".lq-c-seek"), mute: bar.querySelector(".lq-c-mute"), vol: bar.querySelector(".lq-c-vol") };
+      // clique no meio do vídeo: liga o som (se já estiver com som, pausa/continua)
+      host.addEventListener("click", (e) => {
+        e.stopPropagation(); // a tela deitada fica dentro da tela em pé: um clique, uma ação
+        if (e.target.closest(".lq-ctrl")) return;
+        if (!st.sound){ setSoundOn(true); st.userPaused = false; playActive(); }
+        else togglePlay();
+        poke(ui);
+      });
+      ui.play.addEventListener("click", () => { togglePlay(); poke(ui); });
+      ui.restart.addEventListener("click", () => { active.currentTime = 0; st.userPaused = false; playActive(); poke(ui); });
+      ui.mute.addEventListener("click", () => { setSoundOn(!st.sound); if (st.sound){ st.userPaused = false; playActive(); } poke(ui); });
+      let seeking = false;
+      ui.seek.addEventListener("input", () => {
+        seeking = true;
+        if (active.duration) active.currentTime = (ui.seek.value / 1000) * active.duration;
+        sync();
+      });
+      ui.seek.addEventListener("change", () => { seeking = false; });
+      ui.isSeeking = () => seeking;
+      ui.vol && ui.vol.addEventListener("input", () => {
+        st.vol = ui.vol.value / 100;
+        if (st.vol > 0 && !st.sound) setSoundOn(true);
+        if (st.vol === 0 && st.sound) setSoundOn(false);
+        applyAudio(active); sync();
+      });
+      host.addEventListener("pointermove", () => poke(ui));
+      return ui;
+    });
+    function poke(ui){
+      ui.host.classList.add("lq-ui-on");
+      clearTimeout(ui.t); ui.t = setTimeout(() => ui.host.classList.remove("lq-ui-on"), 2600);
+    }
+    function togglePlay(){
+      load();
+      if (active.paused){ st.userPaused = false; playActive(); }
+      else { st.userPaused = true; active.pause(); }
+      sync();
+    }
+    function setSoundOn(on){
+      st.sound = on;
+      if (on && st.vol === 0) st.vol = 0.6;
+      applyAudio(active);
+      AudioEngine.duck(on); // a trilha do site pausa enquanto o trailer fala
+      sync();
+    }
+    function sync(){
+      const d = active.duration || 41, t = active.currentTime || 0;
+      uis.forEach((ui) => {
+        ui.play.innerHTML = active.paused ? ICON.play : ICON.pause;
+        ui.play.setAttribute("aria-label", active.paused ? T("Reproduzir") : T("Pausar"));
+        ui.mute.innerHTML = st.sound ? ICON.on : ICON.off;
+        ui.mute.setAttribute("aria-label", st.sound ? T("Desligar som") : T("Ligar som"));
+        ui.time.textContent = fmt(t) + " / " + fmt(d);
+        if (!ui.isSeeking()) ui.seek.value = String(Math.round((t / d) * 1000));
+        ui.seek.style.setProperty("--p", ((t / d) * 100).toFixed(2) + "%");
+        if (ui.vol){ ui.vol.value = String(Math.round(st.vol * 100)); ui.vol.style.setProperty("--p", (st.vol * 100).toFixed(0) + "%"); }
+        ui.host.classList.toggle("lq-muted", !st.sound);
+        ui.host.classList.toggle("lq-paused", active.paused);
+      });
+    }
+    vids.forEach((v) => ["timeupdate", "play", "pause", "loadedmetadata", "volumechange"].forEach((ev) =>
+      v.addEventListener(ev, () => { if (v === active) sync(); })));
+    sync();
+
+    function showBar(on){
+      bar.setAttribute("aria-hidden", on ? "false" : "true");
+      bar.querySelectorAll("a, button").forEach((a) => a.setAttribute("tabindex", on ? "0" : "-1"));
+    }
+
+    /* ---- sem movimento: estático, tudo à vista ---- */
+    function staticLayout(){
+      const m = measure();
+      gsap.set(phone, { xPercent: -50, yPercent: -50, scale: MOBILE ? 1 : m.s1, x: MOBILE ? 0 : m.vw * 0.24, rotationY: MOBILE ? 0 : -14, rotationX: MOBILE ? 0 : 4 });
+    }
+
+    let tl = null;
+    function build(){
+      if (tl){ tl.scrollTrigger && tl.scrollTrigger.kill(); tl.kill(); tl = null; }
+      const m = measure();
+      const sw = Math.min(m.vw * 0.72, 980); // largura da linha de luz
+      const half = (m.ph * m.s1) / 2;
+      gsap.set([lineA, lineB], { scaleX: 0, y: 0, autoAlpha: 1 });
+      gsap.set(openTexts, { autoAlpha: 1, y: 0 });
+      gsap.set(phone, { xPercent: -50, yPercent: -50, x: 0, y: 0, scale: m.s1, rotationX: 0, rotationY: 0, rotationZ: 0, clipPath: "inset(50% 0% 50% 0%)" });
+      gsap.set(land, { opacity: 0 }); gsap.set(vV, { opacity: 1 });
+      gsap.set(glow, { opacity: 0 });
+      gsap.set([caption, bar], { autoAlpha: 0 });
+      showBar(false);
+
+      if (MOBILE){
+        gsap.set(chars, { opacity: 1, y: 0 });
+        tl = gsap.timeline({ defaults: { ease: "none" },
+          scrollTrigger: { trigger: track, scroller, start: "top top", end: "bottom bottom", scrub: 0.6 } });
+        tl.to([lineA, lineB], { scaleX: 1, duration: 1 }, 0)
+          .to(openTexts, { autoAlpha: 0, y: -10, duration: 0.3 }, 1)
+          .to(lineA, { y: -half, scaleX: (m.pw * m.s1) / sw, duration: 1.2, ease: "power2.inOut" }, 1.2)
+          .to(lineB, { y: half, scaleX: (m.pw * m.s1) / sw, duration: 1.2, ease: "power2.inOut" }, 1.2)
+          .to(phone, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "power2.inOut" }, 1.2)
+          .to([lineA, lineB], { autoAlpha: 0, duration: 0.3 }, 2.4)
+          .set(phone, { clipPath: "none" }, 2.45)
+          .to(glow, { opacity: 1, duration: 0.8 }, 2.2)
+          .to({}, { duration: 1.2 });
+        // texto abaixo: título monta em pixels quando entra
+        gsap.fromTo(chars, { y: () => gsap.utils.random(-50, 50, 10), opacity: 0 },
+          { y: 0, opacity: 1, ease: "steps(4)", duration: 0.5, stagger: { each: 0.06, from: "random" },
+            scrollTrigger: { trigger: copy, scroller, start: "top 80%" } });
+        gsap.from(copyItems, { y: 22, autoAlpha: 0, duration: 0.6, stagger: 0.07, ease: "power3.out",
+          scrollTrigger: { trigger: copy, scroller, start: "top 70%" } });
+        return;
+      }
+
+      gsap.set(chars, { opacity: 0, y: () => gsap.utils.random(-90, 90, 15) });
+      gsap.set(copyItems, { autoAlpha: 0, y: 24 });
+      gsap.set(copy, { autoAlpha: 1, x: 0 });
+
+      tl = gsap.timeline({ defaults: { ease: "none" },
+        scrollTrigger: { trigger: track, scroller, start: "top top", end: "bottom bottom", scrub: 0.7,
+          onUpdate: (self) => { showBar(self.progress > 0.88); setActive(tl && tl.time() >= 6.75 ? vH : vV); } } });
+      // 1) PRESS START: a linha de luz cresce
+      tl.to([lineA, lineB], { scaleX: 1, duration: 1 }, 0)
+        .to(openTexts, { autoAlpha: 0, y: -10, duration: 0.3 }, 1)
+      // 2) a linha se abre em duas e revela a tela do celular
+        .to(lineA, { y: -half, scaleX: (m.pw * m.s1) / sw, duration: 1.2, ease: "power2.inOut" }, 1.2)
+        .to(lineB, { y: half, scaleX: (m.pw * m.s1) / sw, duration: 1.2, ease: "power2.inOut" }, 1.2)
+        .to(phone, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "power2.inOut" }, 1.2)
+        .to([lineA, lineB], { autoAlpha: 0, duration: 0.3 }, 2.4)
+        .set(phone, { clipPath: "none" }, 2.45) // recorte só na abertura: em 3D ele cortaria as quinas
+      // 3) o celular vai para a direita, em 3D; título e texto entram
+        .to(glow, { opacity: 1, duration: 1 }, 2.0)
+        .to(phone, { x: m.vw * 0.24, rotationY: -18, rotationX: 6, rotationZ: -3, duration: 1.4, ease: "power2.inOut" }, 2.6)
+        .to(chars, { y: 0, opacity: 1, duration: 1.2, ease: "steps(5)", stagger: { each: 0.08, from: "random" } }, 2.8)
+        .to(copyItems, { autoAlpha: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" }, 3.3)
+        .to({}, { duration: 1.2 }, 4.4)
+      // 4) o texto sai; o celular volta ao centro e gira para paisagem
+        .to(copy, { autoAlpha: 0, x: -40, duration: 0.8, ease: "power2.in" }, 5.6)
+        .to(phone, { x: 0, rotationY: 0, rotationX: 0, rotationZ: -90, duration: 1.6, ease: "power2.inOut" }, 5.8)
+        .to(caption, { autoAlpha: 1, duration: 0.3 }, 6.4)
+        .to(land, { opacity: 1, duration: 0.4 }, 6.6)
+        .to(vV, { opacity: 0, duration: 0.4 }, 6.7)
+      // 5) cresce até virar a tela do trailer
+        .to(caption, { autoAlpha: 0, duration: 0.3 }, 7.8)
+        .to(phone, { scale: 1, y: -14, duration: 1.4, ease: "power2.inOut" }, 7.4)
+        .to(bar, { autoAlpha: 1, duration: 0.6 }, 8.6)
+        .to({}, { duration: 0.8 }, 9.2);
+    }
+    let rt, lastW = window.innerWidth, isOpen = false, built = false, autoTw = null;
+    window.addEventListener("resize", () => {
+      if (Math.abs(window.innerWidth - lastW) < 40) return; // barra de endereço do celular: ignora
+      lastW = window.innerWidth;
+      if (!isOpen) { built = false; return; }
+      clearTimeout(rt); rt = setTimeout(() => { if (STATIC) staticLayout(); else { build(); ScrollTrigger.refresh(); } }, 200);
+    });
+
+    /* ---- abrir / fechar: o card cresce até a tela inteira e volta ---- */
+    const closeBtns = section.querySelectorAll(".lq-close, .lq-close-2");
+    const cardBtn = card && card.querySelector(".lqc-btn");
+    const cardVid = card && card.querySelector(".lqc-video");
+    let lastFocus = null;
+    function rectClip(){
+      const r = (card || document.body).getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight;
+      return `inset(${Math.max(0, r.top)}px ${Math.max(0, vw - r.right)}px ${Math.max(0, vh - r.bottom)}px ${Math.max(0, r.left)}px round 4px)`;
+    }
+    function stopAuto(){ if (autoTw){ autoTw.kill(); autoTw = null; } }
+    ["wheel", "touchstart", "keydown", "pointerdown"].forEach((ev) => scroller.addEventListener(ev, stopAuto, { passive: true }));
+    function open(){
+      if (isOpen) return;
+      isOpen = true; lastFocus = document.activeElement;
+      if (cardVid) cardVid.pause();
+      if (typeof lenis !== "undefined" && lenis) lenis.stop();
+      document.documentElement.classList.add("lq-lock");
+      section.hidden = false; section.setAttribute("aria-hidden", "false");
+      scroller.scrollTop = 0;
+      if (STATIC) staticLayout();
+      else if (!built){ build(); built = true; }
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+      inView = true; st.userPaused = false; playActive();
+      section.querySelector(".lq-close").focus({ preventScroll: true });
+      if (STATIC) return;
+      // o card "vira" a tela: recorte do tamanho do card → tela inteira
+      // (começa só no quadro seguinte: o 1º build/refresh pode levar alguns ms e "comeria" a animação)
+      const fromClip = rectClip();
+      gsap.set(section, { clipPath: fromClip });
+      requestAnimationFrame(() => requestAnimationFrame(() => gsap.fromTo(section, { clipPath: fromClip }, { clipPath: "inset(0px 0px 0px 0px round 0px)", duration: 0.9, ease: "power3.inOut",
+        onComplete: () => {
+          section.style.clipPath = "";
+          // passeio automático até o celular com o texto (a pessoa pode rolar a qualquer momento)
+          const t = tl && tl.scrollTrigger;
+          if (!t) return;
+          const k = MOBILE ? 0.78 : 0.47;
+          const target = t.start + (t.end - t.start) * k;
+          autoTw = gsap.to(scroller, { scrollTop: target, duration: MOBILE ? 2.2 : 3.2, ease: "power1.inOut", onComplete: () => { autoTw = null; } });
+        } })));
+    }
+    function close(){
+      if (!isOpen) return;
+      stopAuto();
+      const done = () => {
+        isOpen = false; inView = false;
+        pauseAll(); if (st.sound) setSoundOn(false); sync();
+        section.hidden = true; section.setAttribute("aria-hidden", "true"); section.style.clipPath = "";
+        document.documentElement.classList.remove("lq-lock");
+        if (typeof lenis !== "undefined" && lenis) lenis.start();
+        if (cardVid && cardInView) cardVid.play().catch(() => {});
+        (lastFocus && lastFocus.focus ? lastFocus : cardBtn) && (lastFocus || cardBtn).focus({ preventScroll: true });
+      };
+      if (STATIC) return done();
+      gsap.to(section, { clipPath: rectClip(), duration: 0.7, ease: "power3.inOut", onComplete: done });
+    }
+    if (cardBtn) cardBtn.addEventListener("click", open);
+    if (card) card.querySelector(".lqc-media").addEventListener("click", open);
+    closeBtns.forEach((b) => b.addEventListener("click", close));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && isOpen) close(); });
+    // foco preso dentro da tela aberta
+    section.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      const f = [...section.querySelectorAll("button, a[href], input")].filter((el) => el.offsetParent !== null && el.tabIndex !== -1 && getComputedStyle(el).visibility !== "hidden");
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    });
+
+    // trailer mudo do card: carrega perto da tela, toca só quando visível
+    let cardInView = false;
+    if (cardVid && "IntersectionObserver" in window){
+      new IntersectionObserver((ents) => {
+        ents.forEach((e) => {
+          cardInView = e.isIntersecting;
+          if (cardInView){
+            if (!cardVid.src){ cardVid.src = cardVid.dataset.src; }
+            if (!isOpen && !reduceMotion) cardVid.play().catch(() => {});
+          } else cardVid.pause();
+        });
+      }, { rootMargin: "200px 0px" }).observe(card);
+    }
+  }
+
   /* ---------------------------------------------------------
      BOOT
      --------------------------------------------------------- */
@@ -2841,6 +3219,7 @@
     initProjectImages();
     initProjectTilt();
     initProjectsBackdrop();
+    initLoveQuest();
     initEducationSplit();
 
     runLoader(() => {
