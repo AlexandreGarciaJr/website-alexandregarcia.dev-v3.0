@@ -2135,7 +2135,7 @@
   }
 
   function initProjectTilt(){
-    const cards = document.querySelectorAll(".proj-card:not(.lqc)");
+    const cards = document.querySelectorAll(".proj-card");
     if (!cards.length || isTouch || reduceMotion) return;
 
     cards.forEach((card) => {
@@ -2161,11 +2161,11 @@
           const px = (e.clientX - r.left) / r.width;   // 0..1
           const py = (e.clientY - r.top) / r.height;   // 0..1
           // cards grandes inclinam menos (o grande girando 20° invadia os vizinhos)
-          const k = r.width > 600 ? 0.5 : r.width > 420 ? 0.78 : 1.15;
+          const k = r.width > 1000 ? 0.32 : r.width > 600 ? 0.5 : r.width > 420 ? 0.78 : 1.15;
           const rotY = (px - 0.5) * 22 * k;
           const rotX = (0.5 - py) * 16 * k;
           card.style.transform = `perspective(1100px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${1 + 0.03 * k})`;
-          glare.style.background = `radial-gradient(circle at ${px * 100}% ${py * 100}%, rgba(125,216,255,.18), transparent 55%)`;
+          glare.style.background = `radial-gradient(circle at ${px * 100}% ${py * 100}%, ${card.classList.contains("lqc") ? "rgba(255,79,163,.16)" : "rgba(125,216,255,.18)"}, transparent 55%)`;
           raf = null;
         });
       });
@@ -3115,6 +3115,8 @@
     const cardVid = card && card.querySelector(".lqc-video");
     let lastFocus = null;
     function rectClip(){
+      // tira a inclinação do mouse antes de medir (o recorte parte do card "reto")
+      if (card){ card.style.transition = "none"; card.style.transform = "none"; }
       const r = (card || document.body).getBoundingClientRect();
       const vw = window.innerWidth, vh = window.innerHeight;
       return `inset(${Math.max(0, r.top)}px ${Math.max(0, vw - r.right)}px ${Math.max(0, vh - r.bottom)}px ${Math.max(0, r.left)}px round 4px)`;

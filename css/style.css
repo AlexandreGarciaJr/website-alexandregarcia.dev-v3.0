@@ -3599,6 +3599,7 @@ html.game-on .vol-pop{ display:none; }
   background: radial-gradient(60% 90% at 75% 50%, rgba(122,40,170,.45), transparent 70%), linear-gradient(180deg,#0b0820,#120a2c);
   border:1px solid rgba(255,79,163,.45) !important;
 }
+.proj-card.lqc:hover{ border-color: rgba(255,79,163,.85) !important; box-shadow: 0 0 0 1px rgba(255,79,163,.3), 0 0 26px -8px rgba(255,79,163,.5), 0 0 70px -28px rgba(160,60,220,.55); }
 .lqc-stars{ position:absolute; inset:0; pointer-events:none; opacity:.5;
   background-image: radial-gradient(2px 2px at 10% 20%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 30% 70%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 55% 15%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 80% 80%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 92% 30%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 45% 88%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 20% 92%, #dfe3ff 50%, transparent 51%), radial-gradient(2px 2px at 68% 40%, #dfe3ff 50%, transparent 51%); }
 .lqc-copy{ position:relative; }

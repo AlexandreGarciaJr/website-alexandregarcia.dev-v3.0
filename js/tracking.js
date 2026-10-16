@@ -17,7 +17,7 @@
 
   var CONFIG = {
     GA4_ID: "G-PXPDMZ993N", // ex.: "G-XXXXXXXXXX"   (GA4 › Admin › Fluxos de dados › Web)
-    META_PIXEL_ID: "1373209681550362", // ex.: "123456789012345" (Gerenciador de Eventos › Conjunto de dados)
+    META_PIXEL_ID: "1006111669170426", // ex.: "123456789012345" (Gerenciador de Eventos › Conjunto de dados)
     CLARITY_ID: "yxwzoqtpoq", // ex.: "abcd1234ef"      (Clarity › Settings › Overview)
     DEBUG: false         // true = mostra no console cada evento enviado (útil nos testes)
   };
