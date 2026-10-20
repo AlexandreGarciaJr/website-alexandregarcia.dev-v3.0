@@ -574,7 +574,23 @@
   document.addEventListener("DOMContentLoaded", () => {
     if (!fx.field) fx.field = createField();
     initForm(fx.field);
+    prefillFromLink();
   });
+
+  /* vindo da página do COSMOS (contato.html?assunto=cosmos): já marca o tipo
+     "Assistente de IA" e sugere o começo da mensagem (a pessoa pode apagar) */
+  function prefillFromLink(){
+    let assunto = "";
+    try { assunto = (new URLSearchParams(location.search).get("assunto") || "").toLowerCase(); } catch (e){}
+    if (assunto !== "cosmos") return;
+    const radio = document.querySelector('input[name="tipo"][value="Assistente de IA (COSMOS)"]');
+    if (radio){ radio.checked = true; radio.dispatchEvent(new Event("change", { bubbles: true })); }
+    const msg = document.getElementById("msgArea");
+    if (msg && !msg.value){
+      msg.value = (window.I18N && window.I18N.t) ? window.I18N.t("Olá! Quero um assistente como o COSMOS, com o meu nome.") : "Olá! Quero um assistente como o COSMOS, com o meu nome.";
+      msg.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }
   // o boot do main.js também roda em DOMContentLoaded (registrado antes deste) —
   // por isso ele pede o campo de forma preguiçosa via ContactFX.get()
   fx.get = () => fx.field || (fx.field = createField());

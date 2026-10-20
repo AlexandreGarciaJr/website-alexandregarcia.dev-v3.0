@@ -33,7 +33,7 @@
 
 <link rel="preload" href="./assets/fonts/archivo-wdth-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/models/casa.glb" as="fetch" type="model/gltf-binary" crossorigin>
-<link rel="stylesheet" href="./css/style.css?v=20261026">
+<link rel="stylesheet" href="./css/style.css?v=20261030">
 <script>
   // Safari < 16.4 não entende import maps: carrega o polyfill só nesses casos
   if (!(HTMLScriptElement.supports && HTMLScriptElement.supports("importmap"))){
@@ -182,6 +182,7 @@
     <a href="#projects" class="fullmenu-link"><span class="fullmenu-num mono">03</span><span class="fullmenu-link-text">Projetos</span></a>
     <a href="#education" class="fullmenu-link"><span class="fullmenu-num mono">04</span><span class="fullmenu-link-text">Formação</span></a>
     <a href="contato.html" class="fullmenu-link"><span class="fullmenu-num mono">05</span><span class="fullmenu-link-text">Contato</span></a>
+    <a href="cosmos.html" class="fullmenu-link"><span class="fullmenu-num mono">06</span><span class="fullmenu-link-text">Conheça o COSMOS</span></a>
   </nav>
   <div class="fullmenu-corner tl mono">// full stack dev</div>
   <div class="fullmenu-corner tr mono">são paulo, brasil</div>
@@ -543,6 +544,22 @@
     <div class="bento-grid">
 
       <!-- Love Quest: card largo que abre a experiência -->
+      <!-- COSMOS (agente de IA) — leva para a página própria -->
+      <div class="proj-card c-12 cosc reveal" data-tint="169,155,255">
+        <div class="cosc-copy">
+          <span class="cosc-kick">projeto em destaque · agente de IA · 2026 · <b>novo</b></span>
+          <img class="cosc-logo" src="./assets/img/cosmos/cosmos-logo-horizontal.svg" alt="COSMOS AI" width="1056" height="173" loading="lazy">
+          <h3 class="cosc-title">Um mordomo que faz, não só responde.</h3>
+          <p class="cosc-desc">Assistente pessoal de IA por voz e texto que manda WhatsApp, responde e-mails e marca reuniões. Arquitetura auto-hospedada, com o nome e a cara de quem usa.</p>
+          <div class="cosc-stack"><span>Next.js</span><span>Three.js</span><span>Claude</span><span>Hermes Agent</span><span>Docker</span></div>
+          <a class="cosc-btn" href="cosmos.html" data-cosmos-card="botao">Conheça o COSMOS →</a>
+        </div>
+        <a class="cosc-media" href="cosmos.html" data-cosmos-card="video" aria-label="Conheça o COSMOS: abrir a página do projeto">
+          <video class="cosc-video" muted loop playsinline preload="none" poster="./assets/video/cosmos/cosmos-card-poster.jpg" data-src="./assets/video/cosmos/cosmos-card.mp4" aria-hidden="true"></video>
+          <span class="cosc-tag">▶ apresentação · 49 s</span>
+        </a>
+      </div>
+
       <div class="proj-card c-12 lqc reveal" data-tint="255,79,163">
         <div class="lqc-stars" aria-hidden="true"></div>
         <div class="lqc-copy">
@@ -561,8 +578,8 @@
 
       <!-- BHD Móveis -->
       <div class="proj-card c-7 c-featured reveal" data-tint="196,42,98">
-        <a class="proj-shot" href="https://alexandregarciajr.github.io/bhd-moveis-site/" target="_blank" rel="noopener">
-          <img src="./assets/img/projeto-bhd.jpg" alt="Website BHD Móveis" loading="lazy">
+        <a class="proj-shot" href="https://alexandregarciajr.github.io/bhd-moveis-website/" target="_blank" rel="noopener">
+          <img src="./assets/img/projeto-bhd.jpg?v=2" alt="Website BHD Móveis" loading="lazy">
           <div class="proj-shot-veil"></div>
           <span class="proj-ext-link">↗</span>
         </a>
@@ -571,8 +588,8 @@
           <p class="proj-desc">Site vitrine de uma loja de móveis com preço de outlet: catálogo gerado em PHP a partir de JSON, busca instantânea, SEO técnico e animações com GSAP.</p>
           <div class="proj-stack"><span>PHP</span><span>JSON</span><span>JavaScript</span><span>GSAP</span></div>
           <div class="proj-links">
-            <a class="link-arrow" href="https://alexandregarciajr.github.io/bhd-moveis-site/" target="_blank" rel="noopener">→ Ver Projeto</a>
-            <a class="link-arrow" href="https://github.com/AlexandreGarciaJr/bhd-moveis-site" target="_blank" rel="noopener">→ GitHub</a>
+            <a class="link-arrow" href="https://alexandregarciajr.github.io/bhd-moveis-website/" target="_blank" rel="noopener">→ Ver Projeto</a>
+            <a class="link-arrow" href="https://github.com/AlexandreGarciaJr/bhd-moveis-website" target="_blank" rel="noopener">→ GitHub</a>
           </div>
         </div>
       </div>
@@ -857,6 +874,7 @@
           <li><a href="#projects">Projetos</a></li>
           <li><a href="#education">Formação</a></li>
           <li><a href="contato.html">Contato</a></li>
+          <li><a href="cosmos.html">Conheça o COSMOS</a></li>
         </ul>
       </div>
     </div>
@@ -942,8 +960,8 @@
 <script src="./assets/vendor/gsap.min.js"></script>
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
-<script src="./js/i18n.js?v=20261024"></script>
-<script src="./js/main.js?v=20261026"></script>
+<script src="./js/i18n.js?v=20261031"></script>
+<script src="./js/main.js?v=20261032"></script>
 <script src="./js/quebra-blocos.js?v=20261018"></script>
 <script type="module" src="./js/hero3d.js?v=20261021"></script>
 </body>

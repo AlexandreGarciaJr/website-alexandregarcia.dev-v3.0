@@ -72,6 +72,9 @@
     let reverbSend = null; // bus de espaço curto, só pra dar "corpo" aos sons de UI
     let started = false;
 
+    // <html data-audio="manual">: a trilha não começa sozinha (landing de anúncio);
+    // só toca se a pessoa ligar no botão de som (ou se já vinha tocando de outra página)
+    const manual = () => document.documentElement.getAttribute("data-audio") === "manual";
     const STORAGE_KEY = "agAudioPrefs";
     function loadPrefs(){
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { track: 1, muted: false, vol: 0.42 }; }
@@ -242,7 +245,7 @@
 
     function hoverSound(){
       if (!ensureCtx()) return; // som de UI é sempre ativo, independente do mute da música
-      if (!started) start(); // qualquer som de UI também liga a música, se ainda não tiver ligado
+      if (!started && !manual()) start(); // qualquer som de UI também liga a música, se ainda não tiver ligado
       if (ctx.state === "suspended") ctx.resume();
       const now = ctx.currentTime;
       // "tick" vítreo e curto — dois tons puros levemente dissonantes, tipo menu de console
@@ -261,7 +264,7 @@
 
     function clickSound(){
       if (!ensureCtx()) return; // som de UI é sempre ativo, independente do mute da música
-      if (!started) start(); // qualquer som de UI também liga a música, se ainda não tiver ligado
+      if (!started && !manual()) start(); // qualquer som de UI também liga a música, se ainda não tiver ligado
       if (ctx.state === "suspended") ctx.resume();
       const now = ctx.currentTime;
       // confirmação limpa: dois tons ascendentes tipo "chime" digital + leve ar de ruído
@@ -310,7 +313,11 @@
       }
     }
 
+    // modo manual: só "segue tocando" se a música vinha de outra página do site
+    const manualIdle = () => manual() && !loadResumeState();
+    window.AGAudio = { duck: (on) => duck(on) }; // outras páginas (COSMOS) abaixam a trilha durante os vídeos
     return {
+      manualIdle,
       start, playTrack, setMuted, primeMutedAutoplay, saveResumeState,
       hoverSound, clickSound,
       getPrefs: () => ({ ...prefs }),
@@ -321,6 +328,10 @@
 
   /* liga o áudio na primeira interação real do usuário (política de autoplay) */
   function initAudioUnlock(){
+    if (AudioEngine.manualIdle()){ // página sem trilha automática: nada toca até a pessoa pedir
+      window.addEventListener("pagehide", () => AudioEngine.saveResumeState());
+      return;
+    }
     AudioEngine.primeMutedAutoplay(); // toca mutado desde já, sem esperar nenhum gesto
     window.addEventListener("pagehide", () => AudioEngine.saveResumeState()); // rede de segurança pra qualquer navegação (voltar, fechar aba etc.)
     const unlock = () => { AudioEngine.start(); };
@@ -380,6 +391,24 @@
       root.classList.remove("is-revealed");
       setTimeout(() => { window.location.href = href; }, reduceMotion ? 60 : 460);
     });
+  }
+
+  /* card do COSMOS nos Projetos: o trecho do vídeo só baixa perto da tela
+     e só toca enquanto está visível; os cliques contam como interesse */
+  function initCosmosCard(){
+    const card = document.querySelector(".cosc");
+    if (!card) return;
+    card.querySelectorAll("[data-cosmos-card]").forEach((a) => a.addEventListener("click", () => {
+      if (window.agTrack) window.agTrack("cosmos_card_click", { link_location: a.dataset.cosmosCard });
+    }));
+    const v = card.querySelector(".cosc-video");
+    if (!v || reduceMotion || !("IntersectionObserver" in window)) return;
+    new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (e.isIntersecting){
+        if (!v.src) v.src = v.dataset.src;
+        v.play().catch(() => {});
+      } else if (!v.paused) v.pause();
+    }), { rootMargin: "200px 0px", threshold: 0.2 }).observe(v);
   }
 
   /* ---------------------------------------------------------
@@ -724,6 +753,7 @@
       wheelMultiplier: 1,
       touchMultiplier: 1.1,
     });
+    window.__lenis = lenis; // páginas com modal (ex.: COSMOS) pausam a rolagem suave
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add((time) => { lenis.raf(time * 1000); });
     gsap.ticker.lagSmoothing(0);
@@ -802,8 +832,9 @@
 
   /* mantém o botão de música (FAB) e o toggle do painel de configurações
      sempre sincronizados, seja qual for o controle usado pra mudar o estado */
+  let manualOff = false; // modo manual: botão aparece desligado até a pessoa ligar
   function syncMusicUI(){
-    const muted = AudioEngine.isMuted();
+    const muted = AudioEngine.isMuted() || manualOff;
     const fab = document.getElementById("musicToggleFab");
     if (fab){
       fab.classList.toggle("is-off", muted);
@@ -904,7 +935,7 @@
      navegador ainda não liberou o áudio; some quando a música começa (ou se mutar). */
   function initSoundHint(){
     const fab = document.getElementById("musicToggleFab");
-    if (!fab || AudioEngine.isMuted()) return;
+    if (!fab || AudioEngine.isMuted() || AudioEngine.manualIdle()) return;
     const hint = document.createElement("div");
     hint.className = "sound-hint mono";
     hint.setAttribute("role", "status");
@@ -998,13 +1029,15 @@
   function initMusicToggleFab(){
     const fab = document.getElementById("musicToggleFab");
     if (!fab) return;
+    manualOff = AudioEngine.manualIdle();
     syncMusicUI();
     // navegadores só liberam som depois de um toque/clique: até lá o botão pulsa de leve
-    if (!AudioEngine.isMuted()) fab.classList.add("needs-tap");
+    if (!AudioEngine.isMuted() && !manualOff) fab.classList.add("needs-tap");
     document.addEventListener("agaudiostart", () => fab.classList.remove("needs-tap"));
     fab.addEventListener("click", (e) => {
       e.stopPropagation(); // o "desbloqueio" de áudio do documento não roda depois do mudo
-      AudioEngine.setMuted(!AudioEngine.isMuted());
+      if (manualOff){ manualOff = false; AudioEngine.setMuted(false); }
+      else AudioEngine.setMuted(!AudioEngine.isMuted());
       fab.classList.remove("needs-tap");
       AudioEngine.clickSound();
       syncMusicUI();
@@ -1057,12 +1090,14 @@
     trackCards.forEach((c) => c.classList.toggle("is-active", Number(c.dataset.track) === (prefs.track || 1)));
     syncMusicUI();
     trackCards.forEach((c) => c.addEventListener("click", () => {
+      manualOff = false;
       AudioEngine.playTrack(Number(c.dataset.track));
       trackCards.forEach((x) => x.classList.toggle("is-active", x === c));
       if (AudioEngine.isMuted()) AudioEngine.setMuted(false);
       syncMusicUI();
     }));
     audioToggle.addEventListener("click", () => {
+      if (manualOff){ manualOff = false; AudioEngine.setMuted(false); syncMusicUI(); return; }
       AudioEngine.setMuted(!AudioEngine.isMuted());
       syncMusicUI();
     });
@@ -2218,7 +2253,19 @@
     // Nesses casos usa o fluxo normal (o mesmo do celular), que rola até o fim do formulário.
     const SHORT = window.innerHeight < 760;
     const capable = !isNarrow && !SHORT && !reduceMotion && typeof gsap !== "undefined" && !!window.ScrollTrigger;
+    // vindo de um botão "Quero o meu" (contato.html?assunto=…#formulario): abre direto no formulário
+    const wantsForm = /formulario/.test(location.hash) || /[?&]assunto=/.test(location.search);
+    const jumpTo = (y) => {
+      if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+      window.scrollTo(0, y);
+    };
     if (!capable){
+      if (wantsForm){
+        const target = document.getElementById("terminalCard") || formStage; // o cartão do formulário, não os canais
+        const go = () => jumpTo(Math.max(0, target.getBoundingClientRect().top + window.scrollY - 76));
+        requestAnimationFrame(go);
+        window.addEventListener("load", () => requestAnimationFrame(go), { once: true });
+      }
       // celular / reduced-motion: fluxo normal; a malha vira prancheta conforme se rola até o formulário
       if (field && typeof gsap !== "undefined" && window.ScrollTrigger && !reduceMotion){
         ScrollTrigger.create({
@@ -2279,6 +2326,21 @@
     tl.fromTo(infoRows, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.06, ease: "power2.out" }, 1.35);
     tl.fromTo(groups, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.07, ease: "power2.out" }, 1.55);
     tl.to({}, { duration: 0.35 }, 2.45); // respiro: formulário parado antes de soltar o pin
+
+    if (wantsForm){
+      // pula a abertura: rola até o ponto em que o formulário já está montado e
+      // encerra a animação (sem o visitante precisar rolar)
+      const go = () => {
+        const st = tl.scrollTrigger;
+        if (!st) return;
+        const p = Math.min(1, 2.5 / tl.totalDuration()); // formulário todo visível, antes de soltar o pin
+        jumpTo(Math.round(st.start + (st.end - st.start) * p));
+        tl.progress(p);
+        if (field) field.setTilt(1);
+      };
+      requestAnimationFrame(() => requestAnimationFrame(go));
+      window.addEventListener("load", () => { ScrollTrigger.refresh(); requestAnimationFrame(go); }, { once: true });
+    }
   }
 
 
@@ -3242,6 +3304,7 @@
     initProjectTilt();
     initProjectsBackdrop();
     initLoveQuest();
+    initCosmosCard();
     initEducationSplit();
 
     runLoader(() => {

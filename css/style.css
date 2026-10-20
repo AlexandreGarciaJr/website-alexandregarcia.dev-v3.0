@@ -447,7 +447,7 @@ body::after{
 .fullmenu-link{
   position:relative;
   display:flex; align-items:baseline; gap:1.6rem;
-  padding: clamp(.7rem,1.8vw,1.3rem) 0;
+  padding: clamp(.5rem, min(1.8vw, 1.6vh), 1.3rem) 0;
   border-bottom: 1px solid var(--border);
   overflow:hidden;
 }
@@ -460,7 +460,7 @@ body::after{
 .fullmenu-link-text{
   font-family: var(--f-display);
   font-weight:700;
-  font-size: clamp(2.4rem, 7vw, 5.6rem);
+  font-size: clamp(2.2rem, min(7vw, 7.6vh), 5.6rem); /* 6 itens precisam caber em telas baixas */
   line-height:1;
   letter-spacing:-0.01em;
   color: var(--text-dim);
@@ -1607,7 +1607,7 @@ section{ position:relative; }
   .proj-card.c-4{ grid-column: span 4; }
   .proj-card.c-3{ grid-column: span 3; }
 }
-.proj-card.c-featured .proj-shot{ aspect-ratio: 16/10; }
+.proj-card.c-featured .proj-shot{ aspect-ratio: 2/1; } /* prints de tela inteira (desktop) sem recorte */
 .proj-shot{
   position:relative;
   aspect-ratio: 16/11;
@@ -3686,3 +3686,31 @@ html.lq-lock, html.lq-lock body{ overflow:hidden !important; }
   html.agc-open #musicToggleFab, html.agc-open .settings-fab, html.agc-open .wa-float{ translate: 0 calc(-1 * var(--agc-h, 90px)); }
 }
 @media (max-width: 600px){ .agc{ left: 12px; right: 12px; bottom: 12px; max-width:none; padding:.6rem .5rem .5rem .8rem; } .agc-q{ flex-basis:100%; } }
+
+
+/* =========================================================
+   ---------- card do COSMOS na seção Projetos (index.html)
+   ========================================================= */
+.cosc{
+  grid-column: span 12; position:relative; display:grid; grid-template-columns: 1fr 1.25fr; gap:3rem; align-items:center;
+  padding: clamp(1.6rem, 3.4vw, 3rem); min-height: 400px; overflow:hidden;
+  background: radial-gradient(60% 90% at 75% 50%, rgba(24,32,74,.95), transparent 70%), linear-gradient(180deg,#0B1029,#070B1E);
+  border:1px solid rgba(169,155,255,.45) !important;
+}
+.proj-card.cosc:hover{ border-color: rgba(201,194,255,.85) !important; box-shadow: 0 0 0 1px rgba(169,155,255,.3), 0 0 26px -8px rgba(169,155,255,.5), 0 0 70px -28px rgba(243,199,122,.4); }
+.cosc-copy{ position:relative; z-index:1; }
+.cosc-kick{ font-family:var(--f-mono); font-size:.78rem; color:#C9C2FF; letter-spacing:.04em; }
+.cosc-kick b{ color:#F3C77A; font-weight:500; }
+.cosc-logo{ height:44px; width:auto; margin:1.2rem 0 1.1rem; display:block; }
+.cosc-title{ font-family:'Archivo Hero', var(--f-display); font-weight:500; font-stretch:105%; font-size: clamp(1.8rem, 2.8vw, 2.5rem); line-height:1.06; color:#F2EEE3; max-width:16ch; letter-spacing:-.015em; }
+.cosc-desc{ color:#BDB8D9; font-size:1.02rem; line-height:1.6; max-width:44ch; margin:1rem 0 1.1rem; }
+.cosc-stack{ display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:1.6rem; }
+.cosc-stack span{ font-family:var(--f-mono); font-size:.74rem; color:#A7A2C6; padding:.3rem .7rem; border:1px solid #273061; border-radius:999px; }
+.cosc-btn{ display:inline-flex; align-items:center; gap:.6rem; min-height:52px; padding:0 1.6rem; border-radius:999px; background:#F3C77A; color:#2A1E05; font-family:var(--f-mono); font-size:.92rem; box-shadow:0 0 40px -8px rgba(243,199,122,.6); transition: transform .25s var(--ease-out), box-shadow .3s; }
+.cosc-btn:hover{ transform: translateY(-2px); box-shadow:0 0 56px -6px rgba(243,199,122,.8); }
+.cosc-btn:focus-visible{ outline:2px solid #F3C77A; outline-offset:3px; }
+.cosc-media{ position:relative; z-index:1; display:block; border-radius:14px; overflow:hidden; border:1px solid #2E3870; aspect-ratio:16/9; background:#070B1E; }
+.cosc-media video, .cosc-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+.cosc-media .cosc-tag{ position:absolute; right:14px; bottom:12px; font-family:var(--f-mono); font-size:.75rem; color:#F2EEE3; background:rgba(7,11,30,.7); border:1px solid #3A4480; border-radius:999px; padding:.35rem .8rem; }
+.cosc-media:focus-visible{ outline:2px solid #F3C77A; outline-offset:3px; }
+@media (max-width: 900px){ .cosc{ grid-template-columns: 1fr; gap: 1.6rem; } .cosc-media{ order:-1; } }

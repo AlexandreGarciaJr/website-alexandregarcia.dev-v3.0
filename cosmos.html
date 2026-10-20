@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-audio="manual">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COSMOS: assistente de IA com o seu nome, no seu servidor | Alexandre Garcia</title>
+<meta name="description" content="Arquitetura e implantação de um assistente pessoal de IA por voz e texto que manda WhatsApp, responde e-mails e marca reuniões. Auto-hospedado, com a sua marca.">
+<link rel="canonical" href="https://alexandregarcia.dev/cosmos.html">
+<meta property="og:site_name" content="Alexandre Garcia">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="COSMOS: seu assistente de IA. Seu nome. Seu servidor.">
+<meta property="og:description" content="Arquitetura e implantação de um assistente pessoal de IA por voz e texto que manda WhatsApp, responde e-mails e marca reuniões. Auto-hospedado, com a sua marca.">
+<meta property="og:url" content="https://alexandregarcia.dev/cosmos.html">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://alexandregarcia.dev/assets/img/cosmos/og-cosmos.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="COSMOS AI: galáxia dourada e violeta com o nome do assistente">
+<meta property="og:video" content="https://alexandregarcia.dev/assets/video/cosmos/cosmos-h-720.mp4">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="COSMOS: seu assistente de IA. Seu nome. Seu servidor.">
+<meta name="twitter:description" content="Arquitetura e implantação de um assistente pessoal de IA por voz e texto que manda WhatsApp, responde e-mails e marca reuniões. Auto-hospedado, com a sua marca.">
+<meta name="twitter:image" content="https://alexandregarcia.dev/assets/img/cosmos/og-cosmos.jpg">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebPage", "@id": "https://alexandregarcia.dev/cosmos.html#page", "url": "https://alexandregarcia.dev/cosmos.html", "name": "COSMOS: assistente de IA com o seu nome, no seu servidor | Alexandre Garcia", "description": "Arquitetura e implantação de um assistente pessoal de IA por voz e texto que manda WhatsApp, responde e-mails e marca reuniões. Auto-hospedado, com a sua marca.", "inLanguage": "pt-BR", "isPartOf": {"@id": "https://alexandregarcia.dev/#site"}, "about": {"@id": "https://alexandregarcia.dev/cosmos.html#app"}, "primaryImageOfPage": "https://alexandregarcia.dev/assets/img/cosmos/og-cosmos.jpg"}, {"@type": "SoftwareApplication", "@id": "https://alexandregarcia.dev/cosmos.html#app", "name": "COSMOS AI", "applicationCategory": "BusinessApplication", "operatingSystem": "Web (PWA), servidor Linux com Docker", "description": "Assistente pessoal de IA auto-hospedado, por voz e texto, que executa tarefas reais (WhatsApp, Gmail, Google Agenda, lembretes e memória) com confirmação antes de ações irreversíveis.", "image": "https://alexandregarcia.dev/assets/img/cosmos/og-cosmos.jpg", "url": "https://alexandregarcia.dev/cosmos.html", "author": {"@type": "Person", "@id": "https://alexandregarcia.dev/#alexandre", "name": "Alexandre Garcia", "url": "https://alexandregarcia.dev/"}, "featureList": ["Envio de WhatsApp com confirmação", "Leitura e resposta de Gmail", "Eventos e reuniões no Google Agenda com Google Meet", "Lembretes no WhatsApp", "Memória de preferências", "Voz de ponta a ponta", "Interface com galáxia 3D em Three.js"]}, {"@type": "VideoObject", "name": "COSMOS: apresentação", "description": "Apresentação de 49 segundos do assistente COSMOS.", "thumbnailUrl": "https://alexandregarcia.dev/assets/video/cosmos/cosmos-h-poster.jpg", "contentUrl": "https://alexandregarcia.dev/assets/video/cosmos/cosmos-h-1080.mp4", "uploadDate": "2026-10-20", "duration": "PT49S"}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="./assets/fonts/archivo-wdth-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./css/style.css?v=20261030">
+<link rel="stylesheet" href="./css/cosmos.css?v=20261037">
+<link rel="icon" type="image/png" sizes="400x400" href="/assets/img/favicon-laptop-400.png">
+<link rel="icon" type="image/svg+xml" href="/assets/svg/favicon-laptop.svg">
+<link rel="apple-touch-icon" href="/assets/img/favicon-laptop-400.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#070B1E">
+<script>try{var t=localStorage.getItem("agTheme");if(t&&t!=="blue")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<script>if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("cos-pending");</script>
+<script src="./js/tracking.js?v=20261025"></script>
+</head>
+<body class="page-cosmos">
+
+<!-- ============ CURSOR ============ -->
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- ============ BLUEPRINT REGISTRATION MARKS ============ -->
+<div class="reg-marks" aria-hidden="true">
+  <span class="reg-mark tl"></span>
+  <span class="reg-mark tr"></span>
+  <span class="reg-mark bl"></span>
+  <span class="reg-mark br"></span>
+</div>
+
+<!-- ============ WHATSAPP ============ -->
+<div class="wa-pulse" aria-hidden="true"></div>
+<a class="wa-float" href="https://wa.me/5511986186964?text=Olá,%20preciso%20de%20mais%20informações." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- ============ CONFIGURAÇÕES (tema, música, navegação) ============ -->
+<button class="music-toggle-fab" id="musicToggleFab" aria-label="Ligar/desligar música" aria-pressed="true">
+  <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/></svg>
+  <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
+</button>
+<button class="settings-fab" id="settingsFab" aria-label="Abrir configurações" aria-expanded="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+</button>
+
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="settings-panel" id="settingsPanel" data-lenis-prevent role="dialog" aria-label="Configurações">
+  <div class="settings-header">
+    <div>
+      <div class="settings-title">System</div>
+      <div class="settings-subtitle mono">GLOBAL CONFIG</div>
+    </div>
+    <button class="settings-close" id="settingsClose" aria-label="Fechar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[01]</span> tema <span class="settings-label-tag mono">core</span></div>
+    <div class="theme-swatches">
+      <button class="theme-swatch is-active" data-theme="blue" aria-label="Tema azul"><span style="--sw:#3d6bff"></span></button>
+      <button class="theme-swatch" data-theme="violet" aria-label="Tema violeta"><span style="--sw:#8b5cf6"></span></button>
+      <button class="theme-swatch" data-theme="emerald" aria-label="Tema esmeralda"><span style="--sw:#10b981"></span></button>
+      <button class="theme-swatch" data-theme="amber" aria-label="Tema âmbar"><span style="--sw:#f59e0b"></span></button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[02]</span> idioma</div>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma" translate="no">
+      <button type="button" class="lang-btn" data-lang="pt" lang="pt-BR"><b>PT</b><span>Português</span></button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en"><b>EN</b><span>English</span></button>
+      <button type="button" class="lang-btn" data-lang="es" lang="es"><b>ES</b><span>Español</span></button>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[03]</span> trilha sonora <button class="settings-label-tag mono audio-toggle" id="audioToggle">on</button></div>
+    <button class="track-card is-active" data-track="1">
+      <span class="track-info"><span class="track-name">Sci-Fi Ambient</span><span class="track-tag mono">atmosférico · espaço</span></span>
+      <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </button>
+    <button class="track-card" data-track="2">
+      <span class="track-info"><span class="track-name">Synthwave</span><span class="track-tag mono">retro · sintetizador</span></span>
+      <span class="track-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-label mono"><span>[04]</span> navegar</div>
+    <nav class="settings-nav">
+      <a href="index.html#hero" class="settings-nav-link"><span class="mono">01</span>Home</a>
+      <a href="index.html#about" class="settings-nav-link"><span class="mono">02</span>Sobre</a>
+      <a href="index.html#projects" class="settings-nav-link"><span class="mono">03</span>Projetos</a>
+      <a href="contato.html" class="settings-nav-link"><span class="mono">04</span>Contato</a>
+    </nav>
+  </div>
+
+  <div class="settings-status mono"><span class="settings-status-dot"></span>system active</div>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav id="mainNav">
+  <a href="index.html#hero" class="nav-logo"><img src="./assets/svg/logo-header-no1993.svg" alt="Logo Alexandre Garcia"></a>
+  <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+    <span class="hamburger-label mono">MENU</span>
+    <span class="hamburger-bars"><span></span><span></span><span></span></span>
+  </button>
+</nav>
+
+<div class="fullmenu" id="fullMenu" data-lenis-prevent>
+  <div class="fullmenu-giant-bg" aria-hidden="true">MENU</div>
+  <nav class="fullmenu-links">
+    <a href="index.html#about" class="fullmenu-link"><span class="fullmenu-num mono">01</span><span class="fullmenu-link-text">Sobre</span></a>
+    <a href="index.html#experience" class="fullmenu-link"><span class="fullmenu-num mono">02</span><span class="fullmenu-link-text">Experiência</span></a>
+    <a href="index.html#projects" class="fullmenu-link"><span class="fullmenu-num mono">03</span><span class="fullmenu-link-text">Projetos</span></a>
+    <a href="index.html#education" class="fullmenu-link"><span class="fullmenu-num mono">04</span><span class="fullmenu-link-text">Formação</span></a>
+    <a href="contato.html" class="fullmenu-link"><span class="fullmenu-num mono">05</span><span class="fullmenu-link-text">Contato</span></a>
+    <a href="cosmos.html" class="fullmenu-link"><span class="fullmenu-num mono">06</span><span class="fullmenu-link-text">Conheça o COSMOS</span></a>
+  </nav>
+  <div class="fullmenu-corner tl mono">// full stack dev</div>
+  <div class="fullmenu-corner tr mono">são paulo, brasil</div>
+  <div class="fullmenu-bottom">
+    <div class="fullmenu-socials mono">
+      <a href="mailto:alexandregojunior@gmail.com">E-mail</a>
+      <a href="https://linkedin.com/in/alexandregarcia-junior" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/AlexandreGarciaJr" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="fullmenu-badge mono"><span class="eyebrow-dot"></span>disponível para novos projetos</div>
+  </div>
+</div>
+
+<canvas class="cos-galaxy" id="cosGalaxy" aria-hidden="true"></canvas>
+<div class="cos-galaxy-fallback" aria-hidden="true"></div>
+<div class="cos-status" id="cosStatus" role="status" aria-live="polite" data-state="idle"><span class="cos-status-dot" aria-hidden="true"></span><span class="cos-status-text" id="cosStatusText">pronto</span></div>
+
+<main id="conteudo" class="cos-main">
+
+  <!-- 1–3 · ABERTURA → VÍDEOS → VIRADA: uma cena fixa; a rolagem transforma uma na outra -->
+  <div class="cos-intro" id="cosIntro">
+  <!-- 1 · ABERTURA -->
+  <section class="cos-sec cos-hero" id="cos-hero" data-galaxy="hero">
+    <div class="cos-hero-stage" id="cosHeroStage" aria-hidden="true"></div>
+    <div class="cos-wrap">
+      <div class="cos-hero-copy">
+        <img class="cos-hero-logo" src="./assets/img/cosmos/cosmos-logo-horizontal.svg" alt="COSMOS AI" width="1056" height="173">
+        <h1 class="cos-h1">Um mordomo que <em>faz</em>, não só responde.</h1>
+        <p class="cos-hero-sub">A arquitetura de um assistente de IA por voz e texto que manda WhatsApp, responde e-mails e marca reuniões. Com o seu nome, no seu servidor.</p>
+        <div class="cos-hero-ctas">
+          <a class="cos-btn cos-btn-gold" href="contato.html?assunto=cosmos#formulario" data-cos-cta="hero">Quero o meu →</a>
+          <a class="cos-btn cos-btn-line" href="#cos-video" data-cos-jump>▶ Apresentação · 49 s</a>
+        </div>
+        <a class="cos-wa" href="https://wa.me/5511986186964?text=Ol%C3%A1%2C%20Alexandre!%20Quero%20o%20meu%20COSMOS.%20Pode%20me%20contar%20como%20funciona%3F" target="_blank" rel="noopener" data-cos-wa="hero"><svg class="cos-wa-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.8h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.88-9.89 9.88zm8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.41z"/></svg><span>Se preferir, peça o seu pelo WhatsApp</span></a>
+        <p class="cos-hero-hint">arraste para girar · clique para um pulso · segure para trocar a cor</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · VÍDEOS (logo depois da abertura: prova antes dos detalhes) -->
+  <section class="cos-sec cos-video" id="cos-video" data-galaxy="video">
+    <div class="cos-wrap">
+      <div class="cos-video-head">
+        <div><span class="cos-kick">49 segundos</span><h2 class="cos-h2">Veja a apresentação.</h2></div>
+        <p class="cos-fine">Com legendas no vídeo.</p>
+      </div>
+      <div class="cos-player" id="cosPlayer">
+        <video id="cosVideo" playsinline preload="none" controls poster="./assets/video/cosmos/cosmos-h-poster.jpg" aria-label="Vídeo de apresentação do COSMOS"
+          data-h-mp4="./assets/video/cosmos/cosmos-h-1080.mp4" data-h-webm="./assets/video/cosmos/cosmos-h-720.webm" data-h-mp4-sm="./assets/video/cosmos/cosmos-h-720.mp4"
+          data-v-mp4="./assets/video/cosmos/cosmos-v-720.mp4" data-v-poster="./assets/video/cosmos/cosmos-v-poster.jpg"></video>
+        <button type="button" class="cos-player-play" id="cosPlayBtn" aria-label="Assistir à apresentação do COSMOS"><span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg></span><em>▶ apresentação · 0:49</em></button>
+      </div>
+      <div class="cos-practice" id="cosPractice" data-src="./assets/video/cosmos/cosmos-na-pratica.mp4">
+        <span class="cos-kick">agora, na prática</span>
+        <h3>Veja o COSMOS funcionando no meu dia a dia.</h3>
+        <button type="button" class="cos-btn cos-btn-gold" id="cosPracticeBtn" disabled>Em breve</button>
+        <p class="cos-fine" id="cosPracticeNote">O vídeo de uso real está sendo gravado.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · A VIRADA -->
+  <section class="cos-sec cos-turn" id="cos-turn" data-galaxy="turn">
+    <div class="cos-wrap">
+      <span class="cos-kick">a maioria dos assistentes</span>
+      <p class="cos-turn-line" id="cosTurnA">Conversa, sugere, escreve um rascunho…</p>
+      <p class="cos-turn-line" id="cosTurnB">e deixa o resto com você.</p>
+      <p class="cos-lead">O COSMOS executa: envia, agenda, responde e lembra. E só conta como feito quando a ferramenta confirma.</p>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- 3 · PICO: AS TRÊS REGRAS -->
+  <section class="cos-sec cos-rules" id="cos-rules" data-galaxy="rules">
+    <div class="cos-rules-pin" id="cosRulesPin">
+      <div>
+        <span class="cos-kick">três regras que não se negociam</span>
+        <h2 class="cos-h2">Ele age. Com cuidado.</h2>
+        <ol class="cos-rule-list">
+          <li class="cos-rule" data-rule="1"><span class="cos-rule-n">01</span><h3>Pergunta antes do irreversível.</h3><p>Mensagem a outra pessoa, e-mail, convite ou apagar: tudo passa por um cartão com o texto exato. Responda por voz ("sim, pode enviar") ou no botão. O código de confirmação é de uso único e vale por cerca de 2 minutos.</p></li>
+          <li class="cos-rule" data-rule="2"><span class="cos-rule-n">02</span><h3>Nunca finge que fez.</h3><p>Uma ação só conta como feita quando a ferramenta confirma. Contato ambíguo vira pergunta, não chute.</p></li>
+          <li class="cos-rule" data-rule="3"><span class="cos-rule-n">03</span><h3>Nada decorativo.</h3><p>Todo número e todo estado da tela vêm de um evento real. Fonte fora do ar mostra "—", nunca um número inventado.</p></li>
+        </ol>
+      </div>
+      <div class="cos-demo" aria-label="Demonstração do cartão de confirmação">
+        <p class="cos-bubble"><span id="cosTyped"></span><span class="caret" aria-hidden="true"></span></p>
+        <div class="cos-card cos-step" data-step="card">
+          <p>Perfeitamente, senhor.</p>
+          <p class="cos-card-to">Para <b>Pai</b>, pelo WhatsApp:</p>
+          <p class="cos-quote">"Pai, vamos jantar às 20h hoje."</p>
+          <p class="cos-ask">Posso enviar? <span class="cos-timer" id="cosTimer">(2:00)</span></p>
+          <div class="cos-card-btns" aria-hidden="true"><span class="cos-card-cancel">Cancelar</span><span class="cos-card-send" id="cosSend">Enviar</span></div>
+        </div>
+        <div class="cos-log cos-step" data-step="log"><span>→ whatsapp.send · aguardando a ferramenta…</span><span class="ok">✓ ferramenta confirmou o envio</span></div>
+        <p class="cos-reply cos-step" data-step="reply">Enviado, senhor. <b>Só agora</b> ele diz que fez.</p>
+        <div class="cos-step" data-step="meters">
+          <div class="cos-meters"><div><strong>3</strong><span>e-mails importantes</span></div><div><strong>—</strong><span>eventos hoje</span></div><div><strong>1</strong><span>ações hoje</span></div><div><strong>—</strong><span>gasto no mês</span></div></div>
+          <p class="cos-meters-note">exemplo: a Agenda e o custo estão fora do ar, então aparece "—"</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · O QUE ELE FAZ -->
+  <section class="cos-sec cos-does" id="cos-does" data-galaxy="does">
+    <div class="cos-does-pin" id="cosDoesPin">
+      <div class="cos-does-head">
+        <div><span class="cos-kick">peça assim</span><h2 class="cos-h2">Ele faz assim.</h2></div>
+        <span class="cos-does-count">WhatsApp · Gmail · Agenda · Reuniões · Lembretes · Memória · Voz</span>
+      </div>
+      <div class="cos-rail" id="cosRail">
+        <article class="cos-feat wide"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-confirmacao.webp" alt="Cartão de confirmação de WhatsApp com o texto exato e os botões Cancelar e Enviar" loading="lazy" width="1200" height="750"></div><div class="cos-feat-body"><span class="cos-feat-tag">WhatsApp</span><p class="cos-feat-ask">"Envia para o Pai que vamos jantar às 20h"</p><p class="cos-feat-do">Acha o contato pelo apelido, lê o texto exato e pergunta "Posso enviar?". Só envia depois do sim.</p></div></article>
+        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-desktop.webp" alt="Tela principal do COSMOS com os painéis Sistema e Atividade" loading="lazy" width="1200" height="750" style="object-position:85% 15%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Gmail</span><p class="cos-feat-ask">"Tenho e-mail importante?"</p><p class="cos-feat-do">Lista os não lidos importantes das últimas 24 h, em uma frase cada. Para responder, mostra destinatário, assunto e texto e espera a confirmação.</p></div></article>
+        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-diario.webp" alt="Diário de bordo do COSMOS com a linha do tempo do dia" loading="lazy" width="1200" height="750" style="object-position:0 75%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Agenda</span><p class="cos-feat-ask">"Marca dentista quinta às 10h"</p><p class="cos-feat-do">Cria o evento direto no Google Agenda, no fuso de São Paulo.</p></div></article>
+        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-mobile-confirmacao.webp" alt="Cartão de confirmação no celular" loading="lazy" width="780" height="1688" style="object-position:50% 52%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Reuniões</span><p class="cos-feat-ask">"Marca reunião com o João amanhã às 15h"</p><p class="cos-feat-do">30 minutos, convite por e-mail e link do Google Meet, com confirmação antes de o convite sair.</p></div></article>
+        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/cosmos-lembrete.jpg" alt="Pessoa na rua com o COSMOS aberto no celular" loading="lazy" width="720" height="1280" style="object-position:50% 35%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Lembretes</span><p class="cos-feat-ask">"Me lembra às 18h de ligar para o banco"</p><p class="cos-feat-do">Agenda o lembrete, que chega no seu WhatsApp na hora certa.</p></div></article>
+        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-mobile-sistema.webp" alt="Gaveta Sistema do COSMOS no celular" loading="lazy" width="780" height="1688" style="object-position:50% 30%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Memória</span><p class="cos-feat-ask">"Guarda que eu prefiro reuniões de manhã"</p><p class="cos-feat-do">Memoriza preferências e pessoas frequentes. Senhas, códigos e dados bancários, nunca.</p></div></article>
+        <article class="cos-feat wide"><div class="cos-feat-img"><img src="./assets/img/cosmos/cosmos-voz.jpg" alt="Pessoa cozinhando enquanto fala com o COSMOS no celular" loading="lazy" width="1200" height="675"></div><div class="cos-feat-body"><span class="cos-feat-tag">Voz</span><p class="cos-feat-ask">Fale ou digite.</p><p class="cos-feat-do">O microfone para sozinho no silêncio, a transcrição é feita pelo Groq Whisper e a resposta sai em voz (Cartesia, com reserva do Google). Uma frase ambígua como "sim, mas…" não dispara nada.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · A GALÁXIA VIVA -->
+  <section class="cos-sec cos-play" id="cos-play" data-galaxy="play">
+    <div class="cos-wrap">
+      <div>
+        <span class="cos-kick">a interface</span>
+        <h2 class="cos-h2">Uma galáxia que mostra o que está acontecendo.</h2>
+        <p class="cos-lead">No app, ela é feita em Three.js com shaders próprios e cada estado vem de um evento real: o volume do microfone, a voz do COSMOS, a confirmação pendente. Aqui, quem mexe é você.</p>
+      </div>
+      <div class="cos-play-stage" id="cosPlayStage" data-hint="arraste · clique · segure" aria-hidden="true"></div>
+      <div class="cos-ctrl" role="group" aria-label="Controles da galáxia">
+        <div>
+          <p class="cos-ctrl-label" id="cosLblState">estado</p>
+          <div class="cos-chips" role="group" aria-labelledby="cosLblState" id="cosStates">
+            <button type="button" class="cos-chip" data-state="idle" aria-pressed="true">pronto</button>
+            <button type="button" class="cos-chip" data-state="listening" aria-pressed="false">ouvindo</button>
+            <button type="button" class="cos-chip" data-state="thinking" aria-pressed="false">pensando</button>
+            <button type="button" class="cos-chip" data-state="speaking" aria-pressed="false">falando</button>
+            <button type="button" class="cos-chip" data-state="confirmation" aria-pressed="false">confirmação</button>
+            <button type="button" class="cos-chip" data-state="error" aria-pressed="false">erro</button>
+          </div>
+        </div>
+        <div>
+          <p class="cos-ctrl-label" id="cosLblPal">cores</p>
+          <div class="cos-chips" role="group" aria-labelledby="cosLblPal" data-palettes>
+            <button type="button" class="cos-chip" data-palette="observatorio" aria-pressed="true"><i style="background:#A99BFF"></i>Observatório</button>
+            <button type="button" class="cos-chip" data-palette="aurora" aria-pressed="false"><i style="background:#2FB9A6"></i>Aurora</button>
+            <button type="button" class="cos-chip" data-palette="nebulosa" aria-pressed="false"><i style="background:#C04FB8"></i>Nebulosa</button>
+            <button type="button" class="cos-chip" data-palette="gelo" aria-pressed="false"><i style="background:#3F8EE8"></i>Gelo</button>
+          </div>
+        </div>
+        <div>
+          <label class="cos-ctrl-label" for="cosArms">braços <output id="cosArmsOut">3</output></label>
+          <input class="cos-range" type="range" id="cosArms" min="2" max="6" step="1" value="3">
+        </div>
+        <div>
+          <label class="cos-ctrl-label" for="cosSpin">espiral <output id="cosSpinOut">0,92</output></label>
+          <input class="cos-range" type="range" id="cosSpin" min="0.3" max="2" step="0.01" value="0.92">
+        </div>
+        <div>
+          <label class="cos-ctrl-label" for="cosSpeed">velocidade <output id="cosSpeedOut">1,0×</output></label>
+          <input class="cos-range" type="range" id="cosSpeed" min="0" max="4" step="0.1" value="1">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · POR DENTRO -->
+  <section class="cos-sec cos-arch" id="cos-arch" data-galaxy="arch">
+    <div class="cos-wrap">
+      <div>
+        <span class="cos-kick">a arquitetura</span>
+        <h2 class="cos-h2">Um servidor seu. Uma só entrada.</h2>
+        <p class="cos-lead">Tudo roda em Docker Compose numa VPS. Só o Caddy fala com a internet; o agente e o WhatsApp ficam na rede interna, invisíveis de fora.</p>
+        <ul class="cos-arch-list">
+          <li>A interface conversa com o agente por eventos tipados em tempo real (SSE).</li>
+          <li>O runtime do agente é o Hermes Agent, de código aberto (MIT), da Nous Research. Ele cuida de memória, skills e agendador.</li>
+          <li>O que é meu: a interface, o BFF, as skills do Google e do WhatsApp, as regras de confirmação, a integração e o design.</li>
+          <li>Claude Sonnet é o cérebro; o Haiku cuida das tarefas internas.</li>
+        </ul>
+      </div>
+      <svg class="cos-diagram" id="cosDiagram" viewBox="0 0 640 660" role="img" aria-label="Diagrama: celular ou PC, Caddy, Next.js com SQLite, Hermes Agent e, abaixo, Claude, skills e agendador">
+        <defs><linearGradient id="cosLine" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--c-neb-soft)"/><stop offset="1" style="stop-color:var(--c-neb);stop-opacity:.35"/></linearGradient></defs>
+        <rect class="zone" x="20" y="132" width="600" height="512" rx="22"/>
+        <text class="zone-t" x="40" y="160">VPS · Docker Compose</text>
+        <rect class="zone" x="50" y="300" width="540" height="330" rx="18"/>
+        <text class="zone-t" x="70" y="326">rede interna</text>
+        <path class="ln" d="M320 74 V176"/>
+        <path class="ln" d="M320 228 V346"/>
+        <path class="ln" d="M320 398 V444"/>
+        <path class="ln" d="M320 496 V530 M320 530 H130 V560 M320 530 V560 M320 530 H510 V560"/>
+        <g class="node" data-node="0"><rect x="180" y="22" width="280" height="52" rx="14"/><text x="320" y="47" text-anchor="middle">Celular / PC</text><text class="sub" x="320" y="64" text-anchor="middle">navegador ou PWA</text></g>
+        <g class="node door" data-node="1"><rect x="180" y="176" width="280" height="52" rx="14"/><text x="320" y="201" text-anchor="middle">Caddy · HTTPS</text><text class="sub" x="320" y="218" text-anchor="middle">única porta aberta</text></g>
+        <g class="node" data-node="2"><rect x="180" y="346" width="280" height="52" rx="14"/><text x="320" y="371" text-anchor="middle">Next.js · interface + BFF</text><text class="sub" x="320" y="388" text-anchor="middle">SQLite</text></g>
+        <g class="node" data-node="3"><rect x="180" y="444" width="280" height="52" rx="14"/><text x="320" y="469" text-anchor="middle">Hermes Agent</text><text class="sub" x="320" y="486" text-anchor="middle">runtime do agente</text></g>
+        <g class="node" data-node="4"><rect x="40" y="560" width="180" height="52" rx="14"/><text x="130" y="585" text-anchor="middle">Claude</text><text class="sub" x="130" y="602" text-anchor="middle">Sonnet · Haiku</text></g>
+        <g class="node" data-node="4"><rect x="230" y="560" width="180" height="52" rx="14"/><text x="320" y="585" text-anchor="middle">skills</text><text class="sub" x="320" y="602" text-anchor="middle">Google · WhatsApp</text></g>
+        <g class="node" data-node="4"><rect x="420" y="560" width="180" height="52" rx="14"/><text x="510" y="585" text-anchor="middle">agendador</text><text class="sub" x="510" y="602" text-anchor="middle">memória nativa</text></g>
+        <circle class="pk" r="4.5" cx="320" cy="74" data-pk="0"/>
+        <circle class="pk" r="4.5" cx="320" cy="228" data-pk="1"/>
+        <circle class="pk" r="4" cx="320" cy="398" data-pk="2"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 7 · PERSONALIZE -->
+  <section class="cos-sec cos-custom" id="cos-custom" data-galaxy="custom">
+    <div class="cos-wrap">
+      <span class="cos-kick">o mesmo produto, com a sua cara</span>
+      <p class="cos-wordmark" id="cosWordmark" aria-live="polite">COSMOS</p>
+      <p class="cos-greet">Às suas ordens.</p>
+      <div class="cos-custom-panel">
+        <div class="cos-name"><label for="cosName">nome do seu assistente</label><input id="cosName" type="text" maxlength="12" value="COSMOS" autocomplete="off" spellcheck="false"></div>
+        <div class="cos-chips" role="group" aria-label="Paleta da galáxia" data-palettes>
+          <button type="button" class="cos-chip" data-palette="observatorio" aria-pressed="true"><i style="background:#A99BFF"></i>Observatório</button>
+          <button type="button" class="cos-chip" data-palette="aurora" aria-pressed="false"><i style="background:#2FB9A6"></i>Aurora</button>
+          <button type="button" class="cos-chip" data-palette="nebulosa" aria-pressed="false"><i style="background:#C04FB8"></i>Nebulosa</button>
+          <button type="button" class="cos-chip" data-palette="gelo" aria-pressed="false"><i style="background:#3F8EE8"></i>Gelo</button>
+        </div>
+      </div>
+      <p class="cos-custom-list"><span>Nome, marca e ícones</span><span>Personalidade e regras de operação</span><span>Cores e paletas</span><span>Voz</span><span>Modelo de IA</span><span>Novas skills e integrações</span></p>
+    </div>
+  </section>
+
+  <!-- 8 · SEGURANÇA E QUALIDADE -->
+  <section class="cos-sec cos-trust" id="cos-trust" data-galaxy="trust">
+    <div class="cos-wrap">
+      <span class="cos-kick">feito com cuidado</span>
+      <h2 class="cos-h2">Números que contam.</h2>
+      <div class="cos-stats">
+        <div class="cos-stat"><p class="cos-stat-n"><span data-count="170">170</span>+</p><p>testes automatizados</p></div>
+        <div class="cos-stat"><p class="cos-stat-n"><span data-count="0">0</span></p><p>violações de acessibilidade no axe</p></div>
+        <div class="cos-stat"><p class="cos-stat-n"><span data-count="1">1</span></p><p>serviço exposto à internet (o Caddy)</p></div>
+        <div class="cos-stat"><p class="cos-stat-n"><span data-count="5">5</span></p><p>tentativas de login erradas e o acesso bloqueia</p></div>
+        <div class="cos-stat"><p class="cos-stat-n">~<span data-count="2">2</span><small> min</small></p><p>de validade do código de confirmação</p></div>
+        <div class="cos-stat"><p class="cos-stat-n"><span data-count="0">0</span></p><p>segredos no navegador</p></div>
+      </div>
+      <div class="cos-pills"><span>senha com argon2id</span><span>cookie httpOnly assinado</span><span>limite de pedidos</span><span>cabeçalhos de segurança</span><span>TypeScript strict</span><span>versão sem WebGL</span><span>respeita "reduzir movimento"</span><span>backup diário criptografado</span><span>limite de gasto configurado</span></div>
+    </div>
+  </section>
+
+  <!-- 10 · COMO CONTRATAR -->
+  <section class="cos-sec cos-hire" id="cos-hire" data-galaxy="hire">
+    <div class="cos-wrap">
+      <span class="cos-kick">arquitetura + implantação</span>
+      <h2 class="cos-h2">Do primeiro papo ao seu assistente funcionando.</h2>
+      <ol class="cos-steps">
+        <li><span class="n">01</span><h3>Conversa</h3><p>O que o seu assistente precisa fazer, com quais contas e com qual personalidade.</p></li>
+        <li><span class="n">02</span><h3>Implantação com a sua marca</h3><p>Eu instalo na sua VPS, com o nome, a voz, as cores e as integrações que você escolher.</p></li>
+        <li><span class="n">03</span><h3>Você usando</h3><p>No navegador ou instalado no iPhone pela tela inicial. As contas e os dados continuam seus.</p></li>
+      </ol>
+      <div class="cos-hire-ctas"><a class="cos-btn cos-btn-gold" href="contato.html?assunto=cosmos#formulario" data-cos-cta="contratacao">Quero o meu →</a><a class="cos-wa" href="https://wa.me/5511986186964?text=Ol%C3%A1%2C%20Alexandre!%20Quero%20o%20meu%20COSMOS.%20Pode%20me%20contar%20como%20funciona%3F" target="_blank" rel="noopener" data-cos-wa="contratacao"><svg class="cos-wa-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.8h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.88-9.89 9.88zm8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.41z"/></svg><span>Se preferir, peça o seu pelo WhatsApp</span></a></div>
+      <div class="cos-faq">
+        <details><summary>Quanto custa para manter funcionando?</summary><p>A estimativa de operação é de R$ 120 a 250 por mês, somando VPS, Claude e voz, com limite de gasto configurado. Você paga direto aos serviços, nas suas próprias contas.</p></details>
+        <details><summary>Os dados ficam com quem?</summary><p>Com você. O COSMOS roda no seu servidor e usa as suas contas e chaves (Anthropic, Google Cloud, Cartesia ou Groq e a VPS).</p></details>
+        <details><summary>É um app de loja ou um serviço por assinatura?</summary><p>Não. É um assistente de um único usuário, hospedado no seu servidor. Você acessa pelo navegador e pode instalar no iPhone como app pela tela inicial.</p></details>
+        <details><summary>E o WhatsApp?</summary><p>Pode ser o oficial (Cloud API) ou o pessoal (via WAHA, não oficial), a combinar. O pessoal não é isento de risco de bloqueio pelo WhatsApp.</p></details>
+        <details><summary>Dá para trocar a IA ou a voz?</summary><p>Sim. O modelo de IA é trocável no Hermes, e a voz pode ser da Cartesia, com a voz que você quiser, ou do Google.</p></details>
+        <details><summary>Quanto custa a implantação?</summary><p>Sob consulta: depende das integrações, da personalização e do servidor. Vamos conversar.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · CTA FINAL -->
+  <section class="cos-sec cos-cta" id="cos-cta" data-galaxy="cta">
+    <div class="cos-wrap">
+      <h2 class="cos-h2">Seu assistente.<br>Seu nome. Seu servidor.</h2>
+      <div class="cos-cta-btns">
+        <a class="cos-btn cos-btn-gold" href="contato.html?assunto=cosmos#formulario" data-cos-cta="final">Quero o meu →</a>
+        <a class="cos-btn cos-btn-line cos-btn-wa" href="https://wa.me/5511986186964?text=Ol%C3%A1%2C%20Alexandre!%20Quero%20o%20meu%20COSMOS.%20Pode%20me%20contar%20como%20funciona%3F" target="_blank" rel="noopener" data-cos-wa="final"><svg class="cos-wa-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.8h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.88-9.89 9.88zm8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.41z"/></svg><span>Se preferir, peça o seu pelo WhatsApp</span></a>
+      </div>
+      <p class="cos-fine" style="margin-top:1.2rem">valor da implantação sob consulta</p>
+    </div>
+  </section>
+</main>
+
+<div class="cos-modal" id="cosModal" role="dialog" aria-modal="true" aria-label="COSMOS na prática" hidden>
+  <button type="button" class="cos-modal-close" id="cosModalClose">✕ fechar</button>
+  <video id="cosPracticeVideo" playsinline controls preload="none"></video>
+</div>
+
+
+
+<!-- ============ FOOTER ============ -->
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+    <div class="footer-brand reveal">
+      <a href="index.html#hero"><img src="./assets/svg/logo-header-no1993.svg" alt="Logo Alexandre Garcia"></a>
+      <p class="footer-desc">Estou disponível para novos projetos, entre em contato e será um prazer atendê-lo(a).</p>
+      <div class="footer-badge"><span class="dot"></span>Disponível para novos projetos</div>
+    </div>
+    <div>
+      <div class="footer-nav-title mono">Menu</div>
+      <ul class="footer-nav-links">
+        <li><a href="index.html#about">Sobre</a></li>
+        <li><a href="index.html#experience">Experiência</a></li>
+        <li><a href="index.html#projects">Projetos</a></li>
+        <li><a href="index.html#education">Formação</a></li>
+        <li><a href="contato.html">Contato</a></li>
+        <li><a href="cosmos.html">Conheça o COSMOS</a></li>
+      </ul>
+    </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Alexandre Garcia. Todos os direitos reservados.</span>
+    <span class="footer-legal"><a href="privacidade.html">Privacidade</a> · <button type="button" data-cookie-prefs>Cookies</button> · <span>Feito com ☕ e JavaScript</span></span>
+  </div>
+</footer>
+
+<!-- ============ VENDOR (local, sem CDN externo) ============ -->
+<script src="./assets/vendor/three.min.js"></script>
+<script src="./assets/vendor/gsap.min.js"></script>
+<script src="./assets/vendor/ScrollTrigger.min.js"></script>
+<script src="./assets/vendor/lenis.min.js"></script>
+<script src="./js/i18n.js?v=20261031"></script>
+<script src="./js/main.js?v=20261032"></script>
+<script src="./js/cosmos.js?v=20261039"></script>
+</body>
+</html>
