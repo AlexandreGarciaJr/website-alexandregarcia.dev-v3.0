@@ -522,3 +522,7 @@
 .cos-practice::after{ z-index:-1; background: linear-gradient(180deg, rgba(var(--c-space-rgb),.1), rgba(var(--c-space-rgb),.92) 70%); }
 @media (max-width: 960px){ .cos-practice::before{ background-position: center 22%; } }
 @media (prefers-reduced-motion: reduce){ .cos-practice::before{ transition:none; transform:none !important; } }
+/* ícones das caixas do diagrama */
+.cos-diagram .ic{ fill:none; stroke:var(--c-neb-soft); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; opacity:.55; transition: opacity .5s, stroke .5s; }
+.cos-diagram .node.lit .ic{ opacity:1; }
+.cos-diagram .node.door .ic{ stroke:var(--c-sun); }

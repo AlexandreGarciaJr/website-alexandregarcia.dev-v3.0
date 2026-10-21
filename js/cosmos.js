@@ -1,7 +1,7 @@
 /* =========================================================================
    COSMOS — página do projeto (cosmos.html)
    ----------------------------------------------------------------
-   • Galáxia WebGL fixa atrás da página (Three.js + shaders próprios, porta
+   • Galáxia WebGL fixa atrás da página (shaders próprios, recriação
      da galáxia do app COSMOS). Ela muda de ESTADO conforme a cena — a
      rolagem "conversa" com o agente (movimento-assinatura da página).
    • Cenas com GSAP + ScrollTrigger: virada (palavras acendem), pico das
@@ -794,12 +794,12 @@
     const lines = $$(".ln", svg), nodes = $$(".node", svg), pks = $$(".pk", svg);
     lines.forEach((l) => { const len = l.getTotalLength(); l.style.strokeDasharray = len; l.style.strokeDashoffset = len; l.dataset.len = len; });
     const paint = (p) => {
-      lines.forEach((l, i) => { const a = clamp((p - i * 0.18) / 0.22, 0, 1); l.style.strokeDashoffset = (1 - a) * Number(l.dataset.len); });
-      nodes.forEach((n) => { const i = Number(n.dataset.node); n.classList.toggle("lit", p >= i * 0.18 - 0.02); });
+      lines.forEach((l, i) => { const k = l.dataset.i ? Number(l.dataset.i) : i; const a = clamp((p - k * 0.13) / 0.16, 0, 1); l.style.strokeDashoffset = (1 - a) * Number(l.dataset.len); });
+      nodes.forEach((n) => { const i = Number(n.dataset.node); n.classList.toggle("lit", p >= i * 0.13 - 0.02); });
     };
     if (reduce || !window.ScrollTrigger){ paint(1); pks.forEach((c) => c.style.display = "none"); return; }
     paint(0);
-    ScrollTrigger.create({ trigger: svg, start: "top 80%", end: "bottom 55%", scrub: true, onUpdate: (s) => paint(s.progress) });
+    ScrollTrigger.create({ trigger: svg, start: "top 85%", end: "bottom 75%", scrub: true, onUpdate: (s) => paint(s.progress) });
     // pacotes de dados descendo pelas camadas (só com a seção visível)
     const loops = pks.map((c, i) => {
       const y0 = Number(c.getAttribute("cy"));
