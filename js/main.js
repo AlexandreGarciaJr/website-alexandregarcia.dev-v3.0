@@ -347,7 +347,7 @@
      (evita repetir o som ao mover o mouse entre elementos internos, tipo
      ícones dentro do próprio botão) */
   function initUiSounds(){
-    const SEL = "button, .wa-float, .btn-primary, .btn-outline, .btn-send, .fullmenu-link, .settings-nav-link, .contact-info-row, .github-all, .proj-card, .proj-shot, .music-toggle-fab";
+    const SEL = "button, .wa-float, .btn-primary, .btn-outline, .btn-send, .fullmenu-link, .settings-nav-link, .contact-info-row, .github-all, .proj-card, .proj-shot, .music-toggle-fab, .cos-btn, .cos-wa, .cos-feat, .cos-player, .cos-practice, .cos-card, .cos-diagram .node, .cos-steps li, .cos-stat, .cos-pills span, .cos-faq summary, .cosc";
     document.addEventListener("mouseover", (e) => {
       const el = e.target.closest(SEL);
       if (!el) return;

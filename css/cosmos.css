@@ -529,3 +529,21 @@
 /* diagrama montado pelo scroll: os pacotes só correm depois da montagem */
 .cos-diagram:not(.is-built) .pk{ visibility:hidden; }
 @media (prefers-reduced-motion: reduce){ .cos-diagram .pk{ visibility:hidden; } }
+
+/* ---------- FAQ: brilho que percorre a linha da esquerda para a direita ---------- */
+.cos-faq details{ position:relative; }
+.cos-faq details::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px; pointer-events:none;
+  background: linear-gradient(90deg, var(--c-sun) 0%, var(--c-neb-soft) 45%, rgba(var(--c-neb-rgb),.25) 80%, transparent 100%);
+  box-shadow: 0 0 10px rgba(var(--c-neb-rgb),.75), 0 0 22px rgba(243,199,122,.25);
+  transform: scaleX(0); transform-origin: left center; transition: transform .8s cubic-bezier(.22,1,.36,1), opacity .4s; opacity:.9; }
+.cos-faq summary{ position:relative; background: linear-gradient(90deg, rgba(var(--c-neb-rgb),.12), rgba(var(--c-neb-rgb),0) 70%) no-repeat left / 0% 100%; transition: color .3s, padding-left .45s var(--ease-out), background-size .7s cubic-bezier(.22,1,.36,1); border-radius: 4px; }
+.cos-faq summary::after{ transition: transform .45s var(--ease-out), color .3s, text-shadow .3s; }
+.cos-faq details[open]::after{ transform: scaleX(1); opacity:.55; }
+@media (hover: hover) and (pointer: fine){
+  .cos-faq details:hover::after{ transform: scaleX(1); opacity:1; }
+  .cos-faq details:hover summary{ background-size: 100% 100%; color: var(--c-star); padding-left: .9rem; }
+  .cos-faq details:not([open]):hover summary::after{ transform: rotate(90deg); color: var(--c-sun); text-shadow: 0 0 12px rgba(243,199,122,.8); }
+  .cos-faq details[open]:hover summary::after{ color: var(--c-sun); text-shadow: 0 0 12px rgba(243,199,122,.8); }
+}
+.cos-faq summary:focus-visible{ background-size: 100% 100%; }
+@media (prefers-reduced-motion: reduce){ .cos-faq details::after, .cos-faq summary{ transition:none; } }
