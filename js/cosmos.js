@@ -713,13 +713,43 @@
   function initRail(){
     const rail = $("#cosRail"), pin = $("#cosDoesPin");
     if (!rail) return;
-    const native = reduce || touch || window.innerWidth < 961 || !window.ScrollTrigger;
+    // só o movimento reduzido (ou sem GSAP) usa a rolagem lateral nativa; no toque o trilho também fica preso
+    const native = reduce || !window.ScrollTrigger;
     if (native){ rail.classList.add("is-native"); return; }
-    const dist = () => Math.max(0, rail.scrollWidth - window.innerWidth);
-    gsap.to(rail, {
+    rail.classList.add("is-pinned");
+    const dist = () => {
+      const last = rail.lastElementChild, pad = parseFloat(getComputedStyle(rail).paddingLeft) || 0;
+      const end = last ? last.offsetLeft + last.offsetWidth + pad : rail.scrollWidth;
+      return Math.max(0, end - window.innerWidth);
+    };
+    const tw = gsap.to(rail, {
       x: () => -dist(), ease: "none",
-      scrollTrigger: { trigger: pin, start: "top top", end: () => "+=" + dist(), pin: true, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1 },
+      scrollTrigger: { trigger: pin, start: "top top", end: () => "+=" + dist(), pin: true, scrub: touch ? 0.35 : 0.6, invalidateOnRefresh: true, anticipatePin: 1 },
     });
+    if (!touch) return;
+    // no celular, arrastar para o lado também move o trilho (converte o gesto em rolagem da página)
+    const st = tw.scrollTrigger;
+    let x0 = 0, y0 = 0, lx = 0, lt = 0, vx = 0, mode = null, fling = null;
+    const clampY = (y) => Math.min(st.end, Math.max(st.start, y));
+    const go = (y) => { const l = window.__lenis; if (l && l.scrollTo) l.scrollTo(y, { immediate: true }); else window.scrollTo(0, y); };
+    rail.addEventListener("touchstart", (e) => {
+      const t = e.touches[0]; x0 = lx = t.clientX; y0 = t.clientY; lt = performance.now(); vx = 0; mode = null;
+      if (fling){ fling.kill(); fling = null; }
+    }, { passive: true });
+    rail.addEventListener("touchmove", (e) => {
+      const t = e.touches[0];
+      if (!mode){ const dx = Math.abs(t.clientX - x0), dy = Math.abs(t.clientY - y0); if (dx < 6 && dy < 6) return; mode = dx > dy ? "x" : "y"; }
+      if (mode !== "x") return;
+      if (e.cancelable) e.preventDefault();
+      const now = performance.now(), d = t.clientX - lx;
+      vx = d / Math.max(1, now - lt); lx = t.clientX; lt = now;
+      go(clampY(window.scrollY - d));
+    }, { passive: false });
+    rail.addEventListener("touchend", () => {
+      if (mode !== "x" || Math.abs(vx) < 0.25) return;
+      const o = { y: window.scrollY };
+      fling = gsap.to(o, { y: clampY(window.scrollY - vx * 260), duration: 0.7, ease: "power3.out", onUpdate: () => go(o.y) });
+    }, { passive: true });
   }
 
   // 5 · controles da galáxia
@@ -802,6 +832,52 @@
   }
 
   // 9 · vídeos
+  // celular/tablet: abas "Apresentação | Na prática" trocam o que aparece no mesmo lugar do player
+  function initVideoTabs(){
+    const sec = $("#cos-video"), tabs = $$(".cos-vtabs [data-vtab]");
+    if (!sec || tabs.length < 2) return;
+    const panes = { a: $("#cosPlayer"), b: $("#cosPractice") };
+    const mq = window.matchMedia("(max-width: 960px)");
+    let cur = "a";
+    function set(id, focus){
+      cur = id;
+      sec.dataset.vtab = id;
+      const on = mq.matches;
+      tabs.forEach((t) => { const sel = t.dataset.vtab === id; t.setAttribute("aria-selected", String(sel)); t.tabIndex = sel ? 0 : -1; if (sel && focus) t.focus(); });
+      Object.keys(panes).forEach((k) => {
+        const el = panes[k]; if (!el) return;
+        const hide = on && k !== id;
+        el.toggleAttribute("inert", hide);
+        if (hide) el.setAttribute("aria-hidden", "true"); else el.removeAttribute("aria-hidden");
+      });
+      if (on && id === "b"){ const v = $("#cosVideo"); if (v && !v.paused) v.pause(); }
+    }
+    tabs.forEach((t) => {
+      t.addEventListener("click", () => { if (t.dataset.vtab !== cur){ set(t.dataset.vtab); track("cosmos_video_tab", { tab: t.dataset.vtab === "a" ? "apresentacao" : "na_pratica" }); } });
+      t.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault(); set(cur === "a" ? "b" : "a", true);
+      });
+    });
+    // deslizar o dedo para o lado sobre o vídeo também troca de aba
+    let x0 = 0, y0 = 0, t0 = 0;
+    Object.values(panes).forEach((el) => {
+      if (!el) return;
+      el.addEventListener("touchstart", (e) => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; t0 = performance.now(); }, { passive: true });
+      el.addEventListener("touchend", (e) => {
+        if (!mq.matches) return;
+        const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - t0 < 700){
+          const next = dx < 0 ? "b" : "a";
+          if (next !== cur) set(next);
+        }
+      }, { passive: true });
+    });
+    const sync = () => set(cur);
+    if (mq.addEventListener) mq.addEventListener("change", sync); else if (mq.addListener) mq.addListener(sync);
+    set("a");
+  }
+
   function initVideos(){
     const v = $("#cosVideo"), btn = $("#cosPlayBtn"), box = $("#cosPlayer");
     if (v && btn){
@@ -834,6 +910,8 @@
         new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting && !v.paused) v.pause(); }), { threshold: 0.15 }).observe(v);
       }
     }
+
+    initVideoTabs();
 
     // "agora, na prática": só libera quando o arquivo existir no servidor
     const card = $("#cosPractice"), pbtn = $("#cosPracticeBtn"), note = $("#cosPracticeNote");

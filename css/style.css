@@ -3701,7 +3701,7 @@ html.lq-lock, html.lq-lock body{ overflow:hidden !important; }
 .cosc-copy{ position:relative; z-index:1; }
 .cosc-kick{ font-family:var(--f-mono); font-size:.78rem; color:#C9C2FF; letter-spacing:.04em; }
 .cosc-kick b{ color:#F3C77A; font-weight:500; }
-.cosc-logo{ height:44px; width:auto; margin:1.2rem 0 1.1rem; display:block; }
+.cosc-logo{ height:44px; width:auto; aspect-ratio:1056/173; overflow:visible; margin:1.2rem 0 1.1rem; display:block; }
 .cosc-title{ font-family:'Archivo Hero', var(--f-display); font-weight:500; font-stretch:105%; font-size: clamp(1.8rem, 2.8vw, 2.5rem); line-height:1.06; color:#F2EEE3; max-width:16ch; letter-spacing:-.015em; }
 .cosc-desc{ color:#BDB8D9; font-size:1.02rem; line-height:1.6; max-width:44ch; margin:1rem 0 1.1rem; }
 .cosc-stack{ display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:1.6rem; }

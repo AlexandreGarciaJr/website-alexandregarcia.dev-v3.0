@@ -366,3 +366,159 @@
 /* entrada da abertura: começa oculta e o JS revela em sequência (segurança: aparece sozinha em 3 s) */
 .cos-pending .cos-hero-copy, .cos-pending .cos-status{ opacity:0; animation: cosFailsafe .6s ease 3s forwards; }
 @keyframes cosFailsafe{ to{ opacity:1; } }
+
+/* ---------- telas baixas (notebooks / tablets): nada passa por baixo do cabeçalho (88px) ---------- */
+.cos-intro.is-staged > .cos-sec{ padding-top: calc(88px + clamp(.6rem, 2.6vh, 2rem)); align-items: safe center; }
+.cos-hero-logo{ height: clamp(28px, min(3.2vw, 5.4vh), 46px); margin-bottom: clamp(1rem, 3.2vh, 2.2rem); }
+.cos-h1{ font-size: clamp(2.3rem, min(6.6vw, 9.4vh), 5.6rem); }
+.cos-hero-sub{ font-size: clamp(.98rem, min(1.4vw, 2.3vh), 1.25rem); margin-top: clamp(.9rem, 2.4vh, 1.6rem); }
+.cos-hero-ctas{ margin-top: clamp(1.2rem, 3.4vh, 2.4rem); }
+.cos-hero .cos-wa{ margin-top: clamp(.4rem, 1.4vh, 1.1rem); }
+.cos-hero-hint{ margin-top: clamp(1.2rem, 3vh, 2.6rem); }
+@media (min-width: 601px) and (max-height: 820px){
+  .cos-intro.is-staged .cos-hero{ padding-bottom: clamp(2rem, 5vh, 3.5rem); }
+  .cos-intro.is-staged .cos-hero-hint{ display:none; }
+  .cos-hero-sub{ max-width: 38em; }
+}
+/* regras e trilho em telas baixas */
+@media (min-width: 961px) and (max-height: 820px){
+  .cos-rules-pin{ padding-top: calc(88px + 1.2rem); padding-bottom: 2rem; }
+  .cos-rule-list{ gap: clamp(.7rem, 1.8vh, 1.4rem); }
+  .cos-rule h3{ font-size: clamp(1.3rem, min(2.8vw, 4.4vh), 2.5rem); }
+  .cos-rules .cos-h2{ font-size: clamp(2rem, 8.6vh, 4.2rem); }
+  .cos-rule p{ font-size:.92rem; line-height:1.5; }
+  .cos-rule.is-on p{ max-height: 8em; }
+  .cos-demo{ gap: .6rem; }
+  .cos-card{ padding: 1rem 1.1rem; }
+  .cos-meters div{ padding: .45rem .4rem; }
+  .cos-does-pin{ padding: calc(88px + .8rem) 0 1.6rem; }
+  .cos-does-head{ margin-bottom: clamp(1rem, 3vh, 2.6rem); }
+  .cos-does-head .cos-h2{ font-size: clamp(2rem, 7vh, 3.6rem); }
+  .cos-feat-img{ aspect-ratio:auto; height: clamp(130px, calc(100svh - 500px), 262px); }
+  .cos-feat-body{ padding: 1rem 1.3rem 1.2rem; }
+}
+
+/* trilho preso também no toque: arrastar para o lado move o trilho */
+.cos-rail.is-pinned{ touch-action: pan-y; }
+@media (max-width: 960px){
+  .cos-rail{ gap: 1rem; padding: 1rem var(--edge); }
+  .cos-feat, .cos-feat.wide{ width: min(80vw, 380px); }
+  .cos-does-pin{ padding: calc(88px + .6rem) 0 2rem; justify-content:center; }
+  .cos-does-head{ margin-bottom: 1.2rem; gap: .6rem; }
+  .cos-does-count{ white-space:normal; line-height:1.6; }
+  .cos-feat-img{ aspect-ratio:auto; height: clamp(140px, calc(100svh - 520px), 240px); }
+  .cos-feat-body{ padding: 1rem 1.1rem 1.2rem; }
+}
+/* regras no celular/tablet: a demonstração vira um "chat" ancorado embaixo; o que é novo empurra o antigo para cima */
+@media (max-width: 960px) and (prefers-reduced-motion: no-preference){
+  .cos-rules-pin{ height:100vh; height:100svh; min-height:0; grid-template-rows:auto minmax(0,1fr); padding-top: calc(88px + .4rem); padding-bottom: 4.4rem; }
+  .cos-rule-list{ gap:.35rem; margin-top:.8rem; }
+  .cos-rule h3{ font-size: clamp(1.05rem, 4.6vw, 1.35rem); margin-top:.1rem; }
+  .cos-demo{ align-self:stretch; min-height:0; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; gap:.75rem;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 2.2rem); mask-image: linear-gradient(to bottom, transparent 0, #000 2.2rem); }
+  .cos-demo > *{ flex:none; }
+  .cos-bubble{ align-self:flex-end; }
+  .cos-demo .cos-step:not(.is-in){ display:none; }
+}
+
+/* ---------- vídeos no celular/tablet: abas "Apresentação | Na prática" sobre um único player ---------- */
+.cos-only-m{ display:none; }
+.cos-vtabs{ display:none; }
+@media (max-width: 960px){
+  .cos-only-d{ display:none; }
+  .cos-only-m{ display:inline; }
+  .cos-video .cos-wrap, .cos-intro.is-staged .cos-video .cos-wrap{ grid-template-columns: minmax(0,1fr); grid-template-areas: "head" "tabs" "stage"; gap: .9rem; justify-items:center; align-content:center; }
+  .cos-video-head{ grid-area: head; width:100%; margin-bottom:0; }
+  .cos-video-head .cos-fine{ display:none; }
+  .cos-vtabs{ grid-area: tabs; justify-self:start; position:relative; display:grid; grid-template-columns:1fr 1fr; width: min(100%, 420px); padding:4px; border-radius:999px; background: rgba(var(--c-panel-rgb), .78); border:1px solid var(--c-line-mid); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .cos-vtabs button{ position:relative; z-index:1; min-height:42px; border:0; background:none; color:var(--c-text-2); font-family:inherit; font-size:.9rem; font-weight:500; line-height:1; letter-spacing:.01em; border-radius:999px; cursor:pointer; transition: color .35s var(--ease-out); -webkit-tap-highlight-color: transparent; }
+  .cos-vtabs button[aria-selected="true"]{ color: var(--c-on-sun); font-weight:600; }
+  .cos-vtabs button:focus-visible{ outline:2px solid var(--c-sun); outline-offset:2px; }
+  .cos-vtabs-pill{ position:absolute; top:4px; bottom:4px; left:4px; width: calc(50% - 4px); border-radius:999px; background: linear-gradient(180deg,#F7D795,#F3C77A); box-shadow: 0 0 22px -6px rgba(243,199,122,.6); transition: transform .5s var(--ease-out); }
+  .cos-video[data-vtab="b"] .cos-vtabs-pill{ transform: translateX(100%); }
+  /* as duas telas ocupam a mesma célula: uma entra, a outra sai */
+  .cos-video .cos-player, .cos-video .cos-practice,
+  .cos-intro.is-staged .cos-video .cos-player, .cos-intro.is-staged .cos-video .cos-practice{ grid-area: stage; justify-self:center; align-self:start; width: min(100%, calc((100svh - 380px) * 16 / 9)); aspect-ratio: 16/9; max-width:none; min-height:0; max-height:none; margin:0;
+    transition: opacity .55s var(--ease-out), transform .65s var(--ease-out), filter .55s, visibility 0s; }
+  .cos-video .cos-practice, .cos-intro.is-staged .cos-video .cos-practice{ flex-direction:column; flex-wrap:nowrap; align-items:flex-start; justify-content:flex-end; gap:0; padding: 1.3rem; border-style:solid; border-color: var(--c-line-mid); background-position: center 22%; }
+  .cos-intro.is-staged .cos-video .cos-practice .cos-kick, .cos-intro.is-staged .cos-video .cos-practice .cos-fine{ display:block; }
+  .cos-video .cos-practice h3, .cos-intro.is-staged .cos-video .cos-practice h3{ flex:none; font-size: clamp(1.15rem, 4.8vw, 1.5rem); margin: .5rem 0 0; }
+  .cos-video .cos-practice .cos-btn, .cos-intro.is-staged .cos-video .cos-practice .cos-btn{ margin-top: 1rem; min-height:46px; padding: 0 1.3rem; font-size:.9rem; }
+  .cos-video .cos-practice .cos-fine{ margin-top:.7rem; }
+  .cos-video[data-vtab="a"] .cos-practice, .cos-video[data-vtab="b"] .cos-player{ opacity:0; visibility:hidden; pointer-events:none; filter: blur(6px); transition: opacity .45s var(--ease-out), transform .55s var(--ease-out), filter .45s, visibility 0s .55s; }
+  .cos-video[data-vtab="a"] .cos-practice{ transform: translateX(8%) scale(.96); }
+  .cos-video[data-vtab="b"] .cos-player{ transform: translateX(-8%) scale(.96); }
+}
+@media (max-width: 600px){
+  .cos-video .cos-player, .cos-video .cos-practice,
+  .cos-intro.is-staged .cos-video .cos-player, .cos-intro.is-staged .cos-video .cos-practice{ width: min(100%, calc((100svh - 330px) * 9 / 16)); aspect-ratio: 9/16; }
+  .cos-intro.is-staged .cos-video .cos-video-head .cos-h2{ font-size: clamp(1.6rem, 7.4vw, 2.2rem); }
+  .cos-intro.is-staged .cos-video > .cos-wrap{ padding-bottom: 3.6rem; } /* livra a linha de status */
+}
+@media (max-width: 960px) and (prefers-reduced-motion: reduce){
+  .cos-video .cos-player, .cos-video .cos-practice{ transition:none !important; transform:none !important; filter:none !important; }
+}
+
+/* logo embutido no HTML (não depende do arquivo .svg no servidor) */
+.cos-hero-logo{ display:block; width:auto; aspect-ratio: 1056/173; overflow:visible; }
+
+/* ---------- hovers da página (só com mouse) ---------- */
+@media (hover: hover) and (pointer: fine){
+  /* vídeos: leve brilho + crescimento, igual aos cards do trilho */
+  .cos-player, .cos-practice{ transition: transform .5s var(--ease-out), box-shadow .5s, border-color .5s; box-shadow: 0 0 0 1px rgba(var(--c-neb-rgb),.04), 0 0 30px -16px rgba(var(--c-neb-rgb),.4); }
+  .cos-player:not([inert]):hover, .cos-player:focus-within, .cos-practice:not([inert]):hover, .cos-practice:focus-within{
+    transform: translateY(-4px) scale(1.018); border-color: rgba(var(--c-neb-rgb),.55);
+    box-shadow: 0 0 0 1px rgba(var(--c-neb-rgb),.22), 0 24px 70px -28px rgba(0,0,0,.85), 0 0 60px -14px rgba(var(--c-neb-rgb),.55); }
+  .cos-player-play span{ transition: transform .45s var(--ease-out), box-shadow .45s; }
+  .cos-player:hover .cos-player-play span{ transform: scale(1.08); box-shadow: 0 0 0 14px rgba(243,199,122,.18), 0 0 80px rgba(243,199,122,.65); }
+  .cos-practice:not([inert]):hover::before{ transform: scale(1.06); }
+
+  /* botões */
+  .cos-btn{ transition: transform .35s var(--ease-out), box-shadow .35s, border-color .35s, color .35s, background-color .35s; }
+  .cos-btn-line:hover{ transform: translateY(-2px); background: rgba(var(--c-neb-rgb),.1); box-shadow: 0 0 34px -10px rgba(var(--c-neb-rgb),.65); }
+  .cos-wa{ transition: color .25s, transform .35s var(--ease-out); }
+  .cos-wa:hover{ transform: translateX(3px); }
+  .cos-wa:hover .cos-wa-ico{ filter: drop-shadow(0 0 8px rgba(37,211,102,.7)); }
+
+  /* chips (estados/paletas), abas e pílulas */
+  .cos-chip{ transition: border-color .3s, color .3s, background-color .3s, box-shadow .3s, transform .3s var(--ease-out); }
+  .cos-chip:hover{ transform: translateY(-1px); box-shadow: 0 0 22px -8px rgba(var(--c-neb-rgb),.7); }
+  .cos-chip:not([aria-pressed="true"]):hover{ background: rgba(var(--c-neb-rgb),.1); }
+  .cos-vtabs button:not([aria-selected="true"]):hover{ color: var(--c-star); }
+  .cos-pills span{ transition: border-color .3s, color .3s, box-shadow .3s; }
+  .cos-pills span:hover{ border-color: rgba(var(--c-neb-rgb),.55); color: var(--c-text-2); box-shadow: 0 0 18px -8px rgba(var(--c-neb-rgb),.7); }
+
+  /* painéis: controles da galáxia e personalização */
+  .cos-ctrl, .cos-custom-panel{ transition: border-color .45s, box-shadow .45s; }
+  .cos-ctrl:hover, .cos-custom-panel:hover, .cos-custom-panel:focus-within{ border-color: rgba(var(--c-neb-rgb),.45); box-shadow: 0 0 46px -18px rgba(var(--c-neb-rgb),.6); }
+
+  /* cartão de confirmação das regras */
+  .cos-card{ transition: border-color .45s, box-shadow .45s, transform .45s var(--ease-out); }
+  .cos-card:hover{ transform: translateY(-3px); border-color: rgba(var(--c-neb-rgb),.45); box-shadow: 0 30px 80px -24px rgba(0,0,0,.75), 0 0 50px -16px rgba(var(--c-neb-rgb),.55); }
+
+  /* diagrama: caixa acende ao passar */
+  .cos-diagram .node{ cursor: default; }
+  .cos-diagram .node:hover rect{ stroke: var(--c-neb-soft); fill: var(--c-glow); }
+
+  /* números e passos: a linha de cima acende */
+  .cos-stat, .cos-steps li{ transition: border-color .4s, transform .45s var(--ease-out); }
+  .cos-steps li:hover{ border-top-color: var(--c-sun); transform: translateY(-3px); }
+  .cos-stat:hover{ border-bottom-color: rgba(var(--c-neb-rgb),.6); }
+  .cos-stat:hover .cos-stat-n{ text-shadow: 0 0 24px rgba(var(--c-neb-rgb),.6); }
+
+  /* FAQ */
+  .cos-faq summary{ transition: color .3s, padding-left .35s var(--ease-out); }
+  .cos-faq summary:hover{ color: var(--c-neb-soft); padding-left: .4rem; }
+  .cos-faq summary:hover::after{ color: var(--c-sun); }
+}
+@media (prefers-reduced-motion: reduce){
+  .cos-player, .cos-practice, .cos-card, .cos-steps li, .cos-btn, .cos-chip, .cos-wa{ transform:none !important; }
+}
+
+/* card "na prática": a foto fica numa camada própria para o zoom do hover ser suave (background-size não anima a partir de "cover") */
+.cos-practice{ background: var(--c-space-1); isolation:isolate; }
+.cos-practice::before, .cos-practice::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; }
+.cos-practice::before{ z-index:-2; background: url('../assets/img/cosmos/cosmos-lembrete.jpg') center 20% / cover no-repeat; transform: scale(1.001); transition: transform 1.2s var(--ease-out); will-change: transform; }
+.cos-practice::after{ z-index:-1; background: linear-gradient(180deg, rgba(var(--c-space-rgb),.1), rgba(var(--c-space-rgb),.92) 70%); }
+@media (max-width: 960px){ .cos-practice::before{ background-position: center 22%; } }
+@media (prefers-reduced-motion: reduce){ .cos-practice::before{ transition:none; transform:none !important; } }
