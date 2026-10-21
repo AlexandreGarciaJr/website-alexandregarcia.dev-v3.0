@@ -526,3 +526,6 @@
 .cos-diagram .ic{ fill:none; stroke:var(--c-neb-soft); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; opacity:.55; transition: opacity .5s, stroke .5s; }
 .cos-diagram .node.lit .ic{ opacity:1; }
 .cos-diagram .node.door .ic{ stroke:var(--c-sun); }
+/* diagrama montado pelo scroll: os pacotes só correm depois da montagem */
+.cos-diagram:not(.is-built) .pk{ visibility:hidden; }
+@media (prefers-reduced-motion: reduce){ .cos-diagram .pk{ visibility:hidden; } }

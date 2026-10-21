@@ -791,21 +791,80 @@
   function initDiagram(){
     const svg = $("#cosDiagram");
     if (!svg) return;
-    const lines = $$(".ln", svg), nodes = $$(".node", svg), pks = $$(".pk", svg);
-    lines.forEach((l) => { const len = l.getTotalLength(); l.style.strokeDasharray = len; l.style.strokeDashoffset = len; l.dataset.len = len; });
-    const paint = (p) => {
-      lines.forEach((l, i) => { const k = l.dataset.i ? Number(l.dataset.i) : i; const a = clamp((p - k * 0.13) / 0.16, 0, 1); l.style.strokeDashoffset = (1 - a) * Number(l.dataset.len); });
-      nodes.forEach((n) => { const i = Number(n.dataset.node); n.classList.toggle("lit", p >= i * 0.13 - 0.02); });
+    const lines = $$(".ln", svg), nodes = $$(".node", svg), pks = $$(".pk", svg), zones = $$(".zone", svg), zoneT = $$(".zone-t", svg);
+    const len = (el) => { try { return el.getTotalLength(); } catch (e){ const b = el.getBBox(); return 2 * (b.width + b.height); } };
+    if (reduce || !window.ScrollTrigger || !window.gsap){
+      nodes.forEach((n) => n.classList.add("lit")); pks.forEach((c) => c.style.display = "none"); return;
+    }
+    // ---- montagem guiada pelo scroll: cada peça é "construída" na ordem do caminho de um pedido ----
+    lines.forEach((l) => { const L = len(l); gsap.set(l, { strokeDasharray: L, strokeDashoffset: L }); });
+    zones.forEach((z) => { z.dataset.h = z.getAttribute("height"); z.dataset.w = z.getAttribute("width"); });
+    gsap.set(zones, { opacity: 0 });
+    gsap.set(zoneT, { opacity: 0, x: -10 });
+    nodes.forEach((n) => {
+      const r = $("rect", n), L = len(r);
+      gsap.set(r, { strokeDasharray: L, strokeDashoffset: L, fillOpacity: 0 });
+      gsap.set($$("text", n), { opacity: 0, y: 8 });
+      gsap.set($(".ic", n), { opacity: 0, scale: 0.4, transformOrigin: "50% 50%" });
+      gsap.set(n, { transformOrigin: "50% 50%", scale: 0.94 });
+    });
+    const tl = gsap.timeline({ paused: true, defaults: { ease: "power2.out" } });
+    const lit = [];
+    const buildNode = (n, at) => {
+      const r = $("rect", n);
+      tl.to(r, { strokeDashoffset: 0, duration: 0.55, ease: "power1.inOut" }, at)
+        .to(n, { scale: 1, duration: 0.5 }, at + 0.15)
+        .to(r, { fillOpacity: 1, duration: 0.35 }, at + 0.35)
+        .to($(".ic", n), { opacity: 1, scale: 0.92, duration: 0.35, ease: "back.out(2.2)" }, at + 0.4)
+        .to($$("text", n), { opacity: 1, y: 0, duration: 0.35, stagger: 0.08 }, at + 0.45);
+      lit.push([n, at + 0.5]);
     };
-    if (reduce || !window.ScrollTrigger){ paint(1); pks.forEach((c) => c.style.display = "none"); return; }
-    paint(0);
-    ScrollTrigger.create({ trigger: svg, start: "top 85%", end: "bottom 75%", scrub: true, onUpdate: (s) => paint(s.progress) });
-    // pacotes de dados descendo pelas camadas (só com a seção visível)
+    const drawLine = (l, at, d) => tl.to(l, { strokeDashoffset: 0, duration: d || 0.4, ease: "none" }, at);
+    const growZone = (z, t, at) => {
+      tl.fromTo(z, { attr: { height: 0, width: Number(z.dataset.w) * 0.6 }, opacity: 0 },
+                   { attr: { height: Number(z.dataset.h), width: Number(z.dataset.w) }, opacity: 1, duration: 0.9, ease: "power3.inOut" }, at)
+        .to(t, { opacity: 1, x: 0, duration: 0.4 }, at + 0.35);
+    };
+    // largura da zona cresce a partir do centro: ajusta o x junto
+    zones.forEach((z) => {
+      const x = Number(z.getAttribute("x")), w = Number(z.dataset.w);
+      z.dataset.cx = x + w / 2;
+    });
+    const [n0, n1, n2, n3, ...nb] = nodes;
+    buildNode(n0, 0);
+    drawLine(lines[0], 0.55, 0.35);
+    growZone(zones[0], zoneT[0], 0.7);
+    buildNode(n1, 1.2);
+    drawLine(lines[1], 1.75, 0.4);
+    growZone(zones[1], zoneT[1], 1.9);
+    buildNode(n2, 2.35);
+    drawLine(lines[2], 2.9, 0.25);
+    buildNode(n3, 3.1);
+    drawLine(lines[3], 3.65, 0.2);
+    lines.slice(4).forEach((l) => drawLine(l, 3.85, 0.45));
+    nb.forEach((n, i) => buildNode(n, 4.15 + i * 0.18));
+    // mantém a zona centralizada enquanto a largura cresce
+    tl.eventCallback("onUpdate", () => {
+      zones.forEach((z) => { const w = Number(z.getAttribute("width")); z.setAttribute("x", Number(z.dataset.cx) - w / 2); });
+    });
+    const total = tl.duration();
+    const mobile = window.innerWidth < 761;
+    ScrollTrigger.create({
+      trigger: svg, start: mobile ? "top 92%" : "top 85%", end: mobile ? "center 62%" : "center 60%", scrub: 0.5,
+      onUpdate: (s) => {
+        tl.progress(s.progress);
+        const tnow = s.progress * total;
+        lit.forEach(([n, at]) => n.classList.toggle("lit", tnow >= at));
+        svg.classList.toggle("is-built", s.progress > 0.97);
+      },
+    });
+    // pacotes de dados descendo pelas camadas (só com a seção visível e depois de montada)
     const loops = pks.map((c, i) => {
       const y0 = Number(c.getAttribute("cy"));
       const y1 = [176, 346, 444][i] || y0 + 60;
       return gsap.fromTo(c, { attr: { cy: y0 }, opacity: 0 }, { attr: { cy: y1 }, opacity: 1, duration: 1.1, ease: "power1.inOut", repeat: -1, repeatDelay: 0.5 + i * 0.25, delay: i * 0.4, paused: true });
     });
+    gsap.set(pks, { opacity: 0 });
     ScrollTrigger.create({ trigger: svg, start: "top bottom", end: "bottom top", onToggle: (s) => loops.forEach((t) => (s.isActive ? t.play() : t.pause())) });
   }
 
