@@ -3714,3 +3714,39 @@ html.lq-lock, html.lq-lock body{ overflow:hidden !important; }
 .cosc-media .cosc-tag{ position:absolute; right:14px; bottom:12px; font-family:var(--f-mono); font-size:.75rem; color:#F2EEE3; background:rgba(7,11,30,.7); border:1px solid #3A4480; border-radius:999px; padding:.35rem .8rem; }
 .cosc-media:focus-visible{ outline:2px solid #F3C77A; outline-offset:3px; }
 @media (max-width: 900px){ .cosc{ grid-template-columns: 1fr; gap: 1.6rem; } .cosc-media{ order:-1; } }
+/* =========================================================
+   PROJETOS — notebooks (telas mais baixas) e celular
+   Os cards largos (COSMOS / Love Quest) e os em destaque passam a
+   caber na altura da tela: tipografia e mídia acompanham a altura.
+   ========================================================= */
+@media (min-width: 901px) and (max-height: 900px){
+  .cosc, .lqc{ min-height:0; gap: clamp(1.6rem, 3vw, 2.6rem); padding: clamp(1.3rem, 3.4vh, 2.4rem) clamp(1.6rem, 3vw, 2.8rem); }
+  .cosc-media, .lqc-media{ justify-self:end; width:100%; max-width: calc((100vh - 250px) * 16 / 9); }
+  .cosc-logo{ height: clamp(28px, 5vh, 44px); margin: clamp(.6rem, 1.6vh, 1.2rem) 0 clamp(.5rem, 1.4vh, 1.1rem); }
+  .cosc-title{ font-size: clamp(1.5rem, min(2.8vw, 5vh), 2.5rem); }
+  .cosc-desc, .lqc-desc{ font-size: clamp(.9rem, 1.9vh, 1.02rem); margin: clamp(.6rem, 1.4vh, 1rem) 0 clamp(.7rem, 1.6vh, 1.1rem); }
+  .cosc-stack, .lqc-stack{ margin-bottom: clamp(.9rem, 2.2vh, 1.6rem); }
+  .cosc-btn, .lqc-btn{ min-height: 0; height: clamp(2.7rem, 6vh, 3.2rem); }
+  .lqc-title{ font-size: clamp(2.4rem, min(5.6vw, 9.5vh), 5.4rem); margin: clamp(.4rem, 1.2vh, .8rem) 0 clamp(.5rem, 1.4vh, 1rem); }
+  .proj-card.c-featured .proj-body{ padding: 1.1rem 1.4rem 1.2rem; }
+  .proj-card.c-featured .proj-stack{ margin: .8rem 0 .7rem; }
+}
+@media (min-width: 901px) and (max-height: 700px){
+  .cosc-kick, .lqc-kick{ font-size:.72rem; }
+}
+/* tablet em pé e celular: mídia em cima, texto mais compacto */
+@media (max-width: 900px){
+  .cosc, .lqc{ min-height:0; }
+}
+@media (max-width: 600px){
+  .cosc, .lqc{ padding: 1.15rem 1.15rem 1.4rem; gap: 1.1rem; }
+  .cosc-kick, .lqc-kick{ font-size:.7rem; line-height:1.6; }
+  .cosc-logo{ height: 30px; margin: .7rem 0 .6rem; }
+  .cosc-title{ font-size: 1.55rem; }
+  .cosc-desc, .lqc-desc{ font-size: .94rem; margin: .7rem 0 .9rem; }
+  .cosc-stack, .lqc-stack{ gap:.35rem; margin-bottom: 1.1rem; }
+  .cosc-stack span, .lqc-stack span{ font-size:.68rem; padding:.25rem .6rem; }
+  .cosc-btn{ width:100%; justify-content:center; min-height:48px; }
+  .lqc-title{ font-size: 2.6rem; margin:.5rem 0 .6rem; }
+  .lqc-btn{ height:auto; min-height:48px; padding: .7rem 1.1rem; font-size:.8rem; text-align:center; line-height:1.3; }
+}
