@@ -22,7 +22,7 @@ Portfólio de um arquiteto que virou desenvolvedor.
 
 </div>
 
-![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.webp)
+![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.png)
 
 ## Sobre
 
