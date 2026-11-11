@@ -26,8 +26,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="preload" href="./assets/fonts/archivo-wdth-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./css/style.css?v=20261050">
-<link rel="stylesheet" href="./css/cosmos.css?v=20261051">
+<link rel="stylesheet" href="./css/style.css?v=20261111">
+<link rel="stylesheet" href="./css/cosmos.css?v=20261112">
 <link rel="icon" type="image/png" sizes="400x400" href="/assets/img/favicon-laptop-400.png">
 <link rel="icon" type="image/svg+xml" href="/assets/svg/favicon-laptop.svg">
 <link rel="apple-touch-icon" href="/assets/img/favicon-laptop-400.png">
@@ -181,15 +181,14 @@
 
   <!-- 2 · VÍDEOS (logo depois da abertura: prova antes dos detalhes) -->
   <section class="cos-sec cos-video" id="cos-video" data-galaxy="video">
-    <div class="cos-wrap">
+    <div class="cos-wrap cos-vgrid">
       <div class="cos-video-head">
-        <div><span class="cos-kick"><span class="cos-only-d">1 minuto</span><span class="cos-only-m">o COSMOS em vídeo</span></span><h2 class="cos-h2"><span class="cos-only-d">Veja a apresentação.</span><span class="cos-only-m">Veja funcionando.</span></h2></div>
-        <p class="cos-fine">Com legendas no vídeo.</p>
-      </div>
-      <div class="cos-vtabs" role="tablist" aria-label="Vídeos do COSMOS">
-        <button type="button" role="tab" id="cosTabA" aria-selected="true" aria-controls="cosPlayer" data-vtab="a">Apresentação · 1 min</button>
-        <button type="button" role="tab" id="cosTabB" aria-selected="false" aria-controls="cosPractice" data-vtab="b" tabindex="-1">Na prática</button>
-        <span class="cos-vtabs-pill" aria-hidden="true"></span>
+        <div><span class="cos-kick">o COSMOS em vídeo</span><h2 class="cos-h2">Veja funcionando.</h2></div>
+        <div class="cos-vtabs" role="tablist" aria-label="Vídeos do COSMOS">
+          <button type="button" role="tab" id="cosTabA" aria-selected="true" aria-controls="cosPlayer" data-vtab="a">Apresentação · 1 min</button>
+          <button type="button" role="tab" id="cosTabB" aria-selected="false" aria-controls="cosInv" data-vtab="b" tabindex="-1">Investimentos</button>
+          <span class="cos-vtabs-pill" aria-hidden="true"></span>
+        </div>
       </div>
       <div class="cos-player" id="cosPlayer">
         <video id="cosVideo" playsinline preload="none" controls poster="./assets/video/cosmos/cosmos-apresentacao-poster.jpg" aria-label="Vídeo de apresentação do COSMOS"
@@ -197,12 +196,25 @@
           data-v-mp4="./assets/video/cosmos/cosmos-apresentacao-vertical-720.mp4" data-v-poster="./assets/video/cosmos/cosmos-apresentacao-vertical-poster.jpg"></video>
         <button type="button" class="cos-player-play" id="cosPlayBtn" aria-label="Assistir à apresentação do COSMOS"><span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg></span><em>▶ apresentação · 1:02</em></button>
       </div>
-      <div class="cos-practice" id="cosPractice" data-src="./assets/video/cosmos/cosmos-na-pratica.mp4">
-        <span class="cos-kick">agora, na prática</span>
-        <h3>Veja o COSMOS funcionando no meu dia a dia.</h3>
-        <button type="button" class="cos-btn cos-btn-gold" id="cosPracticeBtn" disabled>Em breve</button>
-        <p class="cos-fine" id="cosPracticeNote">O vídeo de uso real está sendo gravado.</p>
+      <div class="cos-player cos-inv" id="cosInv" data-ready-src="./assets/video/cosmos/cosmos-investimentos-720.mp4"
+        data-h-mp4="./assets/video/cosmos/cosmos-investimentos-1080.mp4" data-h-mp4-sm="./assets/video/cosmos/cosmos-investimentos-720.mp4"
+        data-v-mp4="./assets/video/cosmos/cosmos-investimentos-vertical-720.mp4"
+        data-h-poster="./assets/video/cosmos/cosmos-investimentos-poster.jpg" data-v-poster="./assets/video/cosmos/cosmos-investimentos-vertical-poster.jpg">
+        <video id="cosInvVideo" playsinline preload="none" controls aria-label="Vídeo do COSMOS Investimentos"></video>
+        <div class="cos-inv-cover">
+          <svg class="cos-inv-chart" viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="cosInvG" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3ee0a8" stop-opacity=".38"/><stop offset="1" stop-color="#3ee0a8" stop-opacity="0"/></linearGradient></defs><path class="a" d="M0 96 L25 88 L50 92 L75 72 L100 77 L125 60 L150 64 L175 46 L200 52 L225 34 L250 40 L275 22 L300 27 L300 120 L0 120Z" fill="url(#cosInvG)"/><path class="l" d="M0 96 L25 88 L50 92 L75 72 L100 77 L125 60 L150 64 L175 46 L200 52 L225 34 L250 40 L275 22 L300 27"/></svg>
+          <span class="cos-kick">novo · dentro do COSMOS</span>
+          <h3>COSMOS Investimentos</h3>
+          <p class="cos-inv-sub">Carteira, ações da B3 e dos EUA, cripto, balanços e relatórios, num só lugar.</p>
+          <button type="button" class="cos-btn cos-btn-gold" id="cosInvBtn" disabled>Em breve</button>
+          <p class="cos-fine" id="cosInvNote">O vídeo está sendo finalizado.</p>
+        </div>
       </div>
+      <aside class="cos-queue" aria-label="Lista de vídeos">
+        <p class="cos-queue-t">vídeos</p>
+        <button type="button" class="cos-q" data-vtab="a" aria-controls="cosPlayer"><span class="cos-q-thumb" style="background-image:url('./assets/video/cosmos/cosmos-apresentacao-poster.jpg')"></span><span class="cos-q-meta"><b>Apresentação</b><small>1:02 · com legendas</small></span><em class="cos-q-now">tocando agora</em></button>
+        <button type="button" class="cos-q" data-vtab="b" aria-controls="cosInv"><span class="cos-q-thumb cos-q-inv" id="cosQInvThumb"><svg class="cos-inv-chart" viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="cosInvG2" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3ee0a8" stop-opacity=".38"/><stop offset="1" stop-color="#3ee0a8" stop-opacity="0"/></linearGradient></defs><path class="a" d="M0 96 L25 88 L50 92 L75 72 L100 77 L125 60 L150 64 L175 46 L200 52 L225 34 L250 40 L275 22 L300 27 L300 120 L0 120Z" fill="url(#cosInvG2)"/><path class="l" d="M0 96 L25 88 L50 92 L75 72 L100 77 L125 60 L150 64 L175 46 L200 52 L225 34 L250 40 L275 22 L300 27"/></svg></span><span class="cos-q-meta"><b>COSMOS Investimentos</b><small id="cosQInvMeta">em breve</small></span><em class="cos-q-now">tocando agora</em></button>
+      </aside>
     </div>
   </section>
 
@@ -218,52 +230,58 @@
 
   </div>
 
-  <!-- 3 · PICO: AS TRÊS REGRAS -->
-  <section class="cos-sec cos-rules" id="cos-rules" data-galaxy="rules">
-    <div class="cos-rules-pin" id="cosRulesPin">
-      <div>
-        <span class="cos-kick">três regras que não se negociam</span>
-        <h2 class="cos-h2">Ele age. Com cuidado.</h2>
-        <ol class="cos-rule-list">
-          <li class="cos-rule" data-rule="1"><span class="cos-rule-n">01</span><h3>Pergunta antes do irreversível.</h3><p>Mensagem a outra pessoa, e-mail, convite ou apagar: tudo passa por um cartão com o texto exato. Responda por voz ("sim, pode enviar") ou no botão. O código de confirmação é de uso único e vale por cerca de 2 minutos.</p></li>
-          <li class="cos-rule" data-rule="2"><span class="cos-rule-n">02</span><h3>Nunca finge que fez.</h3><p>Uma ação só conta como feita quando a ferramenta confirma. Contato ambíguo vira pergunta, não chute.</p></li>
-          <li class="cos-rule" data-rule="3"><span class="cos-rule-n">03</span><h3>Nada decorativo.</h3><p>Todo número e todo estado da tela vêm de um evento real. Fonte fora do ar mostra "—", nunca um número inventado.</p></li>
-        </ol>
-      </div>
-      <div class="cos-demo" aria-label="Demonstração do cartão de confirmação">
-        <p class="cos-bubble"><span id="cosTyped"></span><span class="caret" aria-hidden="true"></span></p>
-        <div class="cos-card cos-step" data-step="card">
-          <p>Perfeitamente, senhor.</p>
-          <p class="cos-card-to">Para <b>Pai</b>, pelo WhatsApp:</p>
-          <p class="cos-quote">"Pai, vamos jantar às 20h hoje."</p>
-          <p class="cos-ask">Posso enviar? <span class="cos-timer" id="cosTimer">(2:00)</span></p>
-          <div class="cos-card-btns" aria-hidden="true"><span class="cos-card-cancel">Cancelar</span><span class="cos-card-send" id="cosSend">Enviar</span></div>
+  <!-- 3 · O QUE ELE FAZ: as funções giram numa roda presa na tela; a caixa ao lado mostra um exemplo de cada -->
+  <section class="cos-sec cos-skills" id="cos-skills" data-galaxy="rules">
+    <div class="cos-sk-pin" id="cosSkPin">
+      <div class="cos-sk-left">
+        <span class="cos-kick">o que ele faz · <b class="cos-sk-now" id="cosSkNow">01</b> / 12</span>
+        <h2 class="cos-h2 cos-sk-h">Um assistente, 12 funções.</h2>
+        <div class="cos-sk-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="cos-sk-drum" aria-hidden="true">
+          <ol class="cos-sk-list" id="cosSkList">
+          <li class="cos-sk-item" data-i="0"><span class="cos-sk-n">01</span><span class="cos-sk-t">Conversa por voz</span></li>
+          <li class="cos-sk-item" data-i="1"><span class="cos-sk-n">02</span><span class="cos-sk-t">WhatsApp</span></li>
+          <li class="cos-sk-item" data-i="2"><span class="cos-sk-n">03</span><span class="cos-sk-t">E-mail</span></li>
+          <li class="cos-sk-item" data-i="3"><span class="cos-sk-n">04</span><span class="cos-sk-t">Agenda e reuniões</span></li>
+          <li class="cos-sk-item" data-i="4"><span class="cos-sk-n">05</span><span class="cos-sk-t">Lembretes e rotinas</span></li>
+          <li class="cos-sk-item" data-i="5"><span class="cos-sk-n">06</span><span class="cos-sk-t">Finanças</span></li>
+          <li class="cos-sk-item" data-i="6"><span class="cos-sk-n">07</span><span class="cos-sk-t">COSMOS Investimentos</span></li>
+          <li class="cos-sk-item" data-i="7"><span class="cos-sk-n">08</span><span class="cos-sk-t">Estúdio de imagens</span></li>
+          <li class="cos-sk-item" data-i="8"><span class="cos-sk-n">09</span><span class="cos-sk-t">Arquivos</span></li>
+          <li class="cos-sk-item" data-i="9"><span class="cos-sk-n">10</span><span class="cos-sk-t">Brasil no bolso</span></li>
+          <li class="cos-sk-item" data-i="10"><span class="cos-sk-n">11</span><span class="cos-sk-t">Tempo e céu</span></li>
+          <li class="cos-sk-item" data-i="11"><span class="cos-sk-n">12</span><span class="cos-sk-t">Memória</span></li>
+          </ol>
         </div>
-        <div class="cos-log cos-step" data-step="log"><span>→ whatsapp.send · aguardando a ferramenta…</span><span class="ok">✓ ferramenta confirmou o envio</span></div>
-        <p class="cos-reply cos-step" data-step="reply">Enviado, senhor. <b>Só agora</b> ele diz que fez.</p>
-        <div class="cos-step" data-step="meters">
-          <div class="cos-meters"><div><strong>3</strong><span>e-mails importantes</span></div><div><strong>—</strong><span>eventos hoje</span></div><div><strong>1</strong><span>ações hoje</span></div><div><strong>—</strong><span>gasto no mês</span></div></div>
-          <p class="cos-meters-note">exemplo: a Agenda e o custo estão fora do ar, então aparece "—"</p>
+        <div class="cos-sk-descs">
+          <p class="cos-sk-d" data-i="0">Fale ou digite. Toque para falar, segure para gravar ou chame com “Ei, COSMOS”.</p>
+          <p class="cos-sk-d" data-i="1">Manda mensagens por você, com o texto exato e o seu “sim” antes de enviar.</p>
+          <p class="cos-sk-d" data-i="2">Lê os importantes das últimas 24 horas, responde e envia, sempre com a sua confirmação.</p>
+          <p class="cos-sk-d" data-i="3">Cria e edita eventos no seu fuso, convida pessoas e já gera o link da reunião.</p>
+          <p class="cos-sk-d" data-i="4">Lembra na hora certa pelo WhatsApp. Resumo matinal e notificações no celular.</p>
+          <p class="cos-sk-d" data-i="5">Gastos do mês por categoria, fatura e assinaturas. Avisa quando aparece uma assinatura nova. Só leitura.</p>
+          <p class="cos-sk-d" data-i="6">Ações da B3 e dos EUA, cripto, carteira, balanços, rankings, relatórios e alertas de preço.</p>
+          <p class="cos-sk-d" data-i="7">Gera imagens a partir de um pedido ou de fotos de referência, mostrando o custo antes.</p>
+          <p class="cos-sk-d" data-i="8">Mande foto, PDF ou planilha: ele resume, lê a nota fiscal e explica o contrato.</p>
+          <p class="cos-sk-d" data-i="9">CEP, CNPJ, feriados, Selic, CDI, IPCA e tabela FIPE na hora.</p>
+          <p class="cos-sk-d" data-i="10">Previsão de qualquer cidade, a foto astronômica do dia e a fase da lua.</p>
+          <p class="cos-sk-d" data-i="11">Guarda preferências e pessoas. Senhas, códigos e dados bancários, nunca.</p>
         </div>
+        <ul class="cos-sk-sr sr-only"><li>Conversa por voz: Fale ou digite. Toque para falar, segure para gravar ou chame com “Ei, COSMOS”.</li><li>WhatsApp: Manda mensagens por você, com o texto exato e o seu “sim” antes de enviar.</li><li>E-mail: Lê os importantes das últimas 24 horas, responde e envia, sempre com a sua confirmação.</li><li>Agenda e reuniões: Cria e edita eventos no seu fuso, convida pessoas e já gera o link da reunião.</li><li>Lembretes e rotinas: Lembra na hora certa pelo WhatsApp. Resumo matinal e notificações no celular.</li><li>Finanças: Gastos do mês por categoria, fatura e assinaturas. Avisa quando aparece uma assinatura nova. Só leitura.</li><li>COSMOS Investimentos: Ações da B3 e dos EUA, cripto, carteira, balanços, rankings, relatórios e alertas de preço.</li><li>Estúdio de imagens: Gera imagens a partir de um pedido ou de fotos de referência, mostrando o custo antes.</li><li>Arquivos: Mande foto, PDF ou planilha: ele resume, lê a nota fiscal e explica o contrato.</li><li>Brasil no bolso: CEP, CNPJ, feriados, Selic, CDI, IPCA e tabela FIPE na hora.</li><li>Tempo e céu: Previsão de qualquer cidade, a foto astronômica do dia e a fase da lua.</li><li>Memória: Guarda preferências e pessoas. Senhas, códigos e dados bancários, nunca.</li></ul>
       </div>
-    </div>
-  </section>
-
-  <!-- 4 · O QUE ELE FAZ -->
-  <section class="cos-sec cos-does" id="cos-does" data-galaxy="does">
-    <div class="cos-does-pin" id="cosDoesPin">
-      <div class="cos-does-head">
-        <div><span class="cos-kick">peça assim</span><h2 class="cos-h2">Ele faz assim.</h2></div>
-        <span class="cos-does-count">WhatsApp · Gmail · Agenda · Reuniões · Lembretes · Memória · Voz</span>
-      </div>
-      <div class="cos-rail" id="cosRail">
-        <article class="cos-feat wide"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-confirmacao.webp" alt="Cartão de confirmação de WhatsApp com o texto exato e os botões Cancelar e Enviar" loading="lazy" width="1200" height="750"></div><div class="cos-feat-body"><span class="cos-feat-tag">WhatsApp</span><p class="cos-feat-ask">"Envia para o Pai que vamos jantar às 20h"</p><p class="cos-feat-do">Acha o contato pelo apelido, lê o texto exato e pergunta "Posso enviar?". Só envia depois do sim.</p></div></article>
-        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-desktop.webp" alt="Tela principal do COSMOS com os painéis Sistema e Atividade" loading="lazy" width="1200" height="750" style="object-position:85% 15%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Gmail</span><p class="cos-feat-ask">"Tenho e-mail importante?"</p><p class="cos-feat-do">Lista os não lidos importantes das últimas 24 h, em uma frase cada. Para responder, mostra destinatário, assunto e texto e espera a confirmação.</p></div></article>
-        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-diario.webp" alt="Diário de bordo do COSMOS com a linha do tempo do dia" loading="lazy" width="1200" height="750" style="object-position:0 75%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Agenda</span><p class="cos-feat-ask">"Marca dentista quinta às 10h"</p><p class="cos-feat-do">Cria o evento direto no Google Agenda, no fuso de São Paulo.</p></div></article>
-        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-mobile-confirmacao.webp" alt="Cartão de confirmação no celular" loading="lazy" width="780" height="1688" style="object-position:50% 52%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Reuniões</span><p class="cos-feat-ask">"Marca reunião com o João amanhã às 15h"</p><p class="cos-feat-do">30 minutos, convite por e-mail e link do Google Meet, com confirmação antes de o convite sair.</p></div></article>
-        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/cosmos-lembrete.jpg" alt="Pessoa na rua com o COSMOS aberto no celular" loading="lazy" width="720" height="1280" style="object-position:50% 35%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Lembretes</span><p class="cos-feat-ask">"Me lembra às 18h de ligar para o banco"</p><p class="cos-feat-do">Agenda o lembrete, que chega no seu WhatsApp na hora certa.</p></div></article>
-        <article class="cos-feat"><div class="cos-feat-img"><img src="./assets/img/cosmos/preview-mobile-sistema.webp" alt="Gaveta Sistema do COSMOS no celular" loading="lazy" width="780" height="1688" style="object-position:50% 30%"></div><div class="cos-feat-body"><span class="cos-feat-tag">Memória</span><p class="cos-feat-ask">"Guarda que eu prefiro reuniões de manhã"</p><p class="cos-feat-do">Memoriza preferências e pessoas frequentes. Senhas, códigos e dados bancários, nunca.</p></div></article>
-        <article class="cos-feat wide"><div class="cos-feat-img"><img src="./assets/img/cosmos/cosmos-voz.jpg" alt="Pessoa cozinhando enquanto fala com o COSMOS no celular" loading="lazy" width="1200" height="675"></div><div class="cos-feat-body"><span class="cos-feat-tag">Voz</span><p class="cos-feat-ask">Fale ou digite.</p><p class="cos-feat-do">O microfone para sozinho no silêncio, a sua fala vira texto em instantes e a resposta sai em voz natural, com um serviço reserva se o principal falhar. Uma frase ambígua como "sim, mas…" não dispara nada.</p></div></article>
+      <div class="cos-sk-right" aria-hidden="true">
+        <div class="cos-ex" data-i="0" data-state="listening" data-note=""><p class="cos-bubble"><span>Que horas é a minha primeira reunião?</span></p><div class="cos-card"><p>Às <b>10h</b>, senhor: alinhamento com a equipe.</p><div class="cos-ex-mini"><span>toque para falar · segure para gravar</span><span>fale por cima para interromper</span></div></div></div>
+        <div class="cos-ex" data-i="1" data-state="confirmation" data-note="whatsapp"><p class="cos-bubble"><span>Manda pro Pai que vamos jantar às 20h</span></p><div class="cos-card"><p>Perfeitamente, senhor.</p><p class="cos-card-to">Para <b>Pai</b>, pelo WhatsApp:</p><p class="cos-quote">“Pai, vamos jantar às 20h hoje.”</p><p class="cos-ask">Posso enviar? <span class="cos-timer">(1:58)</span></p><div class="cos-card-btns" aria-hidden="true"><span class="cos-card-cancel">Cancelar</span><span class="cos-card-send">Enviar</span></div></div></div>
+        <div class="cos-ex" data-i="2" data-state="tool" data-note="e-mail"><p class="cos-bubble"><span>Tenho algum e-mail importante?</span></p><div class="cos-card"><p>Dois, senhor:</p><div class="cos-ex-mini"><span><b>Contador</b> · documentos do imposto de renda</span><span><b>Banco</b> · fatura disponível</span></div><p class="cos-ex-note">Quer que eu responda algum?</p></div></div>
+        <div class="cos-ex" data-i="3" data-state="confirmation" data-note="agenda"><p class="cos-bubble"><span>Marca reunião com o João amanhã às 15h</span></p><div class="cos-card"><p>Reunião com <b>João</b>, amanhã das 15h às 15h30.</p><div class="cos-ex-mini"><span>convite por e-mail · link da reunião</span></div><div class="cos-card-btns" aria-hidden="true"><span class="cos-card-cancel">Cancelar</span><span class="cos-card-send">Confirmar</span></div></div></div>
+        <div class="cos-ex" data-i="4" data-state="speaking" data-note="lembrete criado"><p class="cos-bubble"><span>Me lembra às 18h de ligar para o banco</span></p><div class="cos-card"><p>Lembrete criado para as <b>18h</b>, senhor. Chega no seu WhatsApp.</p><div class="cos-ex-mini"><span>resumo matinal · todo dia às 7h30</span></div></div></div>
+        <div class="cos-ex" data-i="5" data-state="thinking" data-note="finanças"><p class="cos-bubble"><span>Quanto gastei com mercado este mês?</span></p><div class="cos-card"><p><b>R$ 1.284,50</b> em mercado, senhor, 12% a menos que no mês passado.</p><div class="cos-ex-mini"><span>assinatura nova: streaming · R$ 39,90</span></div><p class="cos-ex-note">Só leitura. Nada é movimentado.</p></div></div>
+        <div class="cos-ex" data-i="6" data-state="thinking" data-note="investimentos"><p class="cos-bubble"><span>Como está a minha carteira hoje?</span></p><div class="cos-card"><p>Sua carteira está <b class="up">+0,8%</b> hoje, senhor.</p><svg class="cos-ex-chart" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 55 L40 50 L80 52 L120 38 L160 41 L200 28 L240 30 L300 14"/></svg><div class="cos-ex-mini"><span>alerta: ação passou do preço que o senhor definiu</span><span>relatório da empresa pronto</span></div><p class="cos-ex-note">Só informação. Nada é comprado ou vendido.</p></div></div>
+        <div class="cos-ex" data-i="7" data-state="confirmation" data-note="estúdio"><p class="cos-bubble"><span>Gera uma casa moderna ao entardecer</span></p><div class="cos-card"><div class="cos-ex-img" aria-hidden="true"></div><p>Custa cerca de <b>US$ 0,04</b>, senhor. Posso gerar?</p><div class="cos-card-btns" aria-hidden="true"><span class="cos-card-cancel">Cancelar</span><span class="cos-card-send">Gerar</span></div></div></div>
+        <div class="cos-ex" data-i="8" data-state="thinking" data-note="contrato.pdf"><p class="cos-bubble"><span>📎 contrato.pdf · O que diz a multa?</span></p><div class="cos-card"><p>Multa de <b>20%</b> sobre o valor restante se o senhor sair antes de 12 meses.</p><div class="cos-ex-mini"><span>cláusula 7.2 · página 4</span></div></div></div>
+        <div class="cos-ex" data-i="9" data-state="tool" data-note="cep"><p class="cos-bubble"><span>Qual o CEP da Avenida Paulista, 1000?</span></p><div class="cos-card"><p><b>01310-100</b>, Bela Vista, São Paulo, senhor.</p><div class="cos-ex-mini"><span>próximo feriado: 15/11, Proclamação da República</span></div></div></div>
+        <div class="cos-ex" data-i="10" data-state="speaking" data-note="previsão"><p class="cos-bubble"><span>Vai chover amanhã em São Paulo?</span></p><div class="cos-card"><p>Amanhã: <b>24°</b>, chuva a partir das 17h, senhor.</p><div class="cos-ex-mini"><span>lua crescente · 68%</span><span>foto do dia: Nebulosa de Órion</span></div></div></div>
+        <div class="cos-ex" data-i="11" data-state="idle" data-note="memória"><p class="cos-bubble"><span>Guarda que eu prefiro reuniões de manhã</span></p><div class="cos-card"><p>Guardado, senhor. Vou sugerir horários pela manhã.</p><p class="cos-ex-note">Senhas, códigos e dados bancários eu nunca guardo.</p></div></div>
       </div>
     </div>
   </section>
@@ -377,6 +395,14 @@
   <!-- 8 · SEGURANÇA E QUALIDADE -->
   <section class="cos-sec cos-trust" id="cos-trust" data-galaxy="trust">
     <div class="cos-wrap">
+      <div class="cos-rules3">
+        <span class="cos-kick">três regras que não se negociam</span>
+        <ol>
+          <li><span class="cos-rule-n">01</span><h3>Pergunta antes do irreversível.</h3><p>Mensagem a outra pessoa, e-mail, convite ou apagar: tudo passa por um cartão com o texto exato. Responda por voz ("sim, pode enviar") ou no botão. O código de confirmação é de uso único e vale por cerca de 2 minutos.</p></li>
+          <li><span class="cos-rule-n">02</span><h3>Nunca finge que fez.</h3><p>Uma ação só conta como feita quando a ferramenta confirma. Contato ambíguo vira pergunta, não chute.</p></li>
+          <li><span class="cos-rule-n">03</span><h3>Nada decorativo.</h3><p>Todo número e todo estado da tela vêm de um evento real. Fonte fora do ar mostra "—", nunca um número inventado.</p></li>
+        </ol>
+      </div>
       <span class="cos-kick">feito com cuidado</span>
       <h2 class="cos-h2">Números que contam.</h2>
       <div class="cos-stats">
@@ -426,10 +452,6 @@
   </section>
 </main>
 
-<div class="cos-modal" id="cosModal" role="dialog" aria-modal="true" aria-label="COSMOS na prática" hidden>
-  <button type="button" class="cos-modal-close" id="cosModalClose">✕ fechar</button>
-  <video id="cosPracticeVideo" playsinline controls preload="none"></video>
-</div>
 
 
 
@@ -466,8 +488,8 @@
 <script src="./assets/vendor/gsap.min.js"></script>
 <script src="./assets/vendor/ScrollTrigger.min.js"></script>
 <script src="./assets/vendor/lenis.min.js"></script>
-<script src="./js/i18n.js?v=20261052"></script>
-<script src="./js/main.js?v=20261049"></script>
-<script src="./js/cosmos.js?v=20261051"></script>
+<script src="./js/i18n.js?v=20261112"></script>
+<script src="./js/main.js?v=20261111"></script>
+<script src="./js/cosmos.js?v=20261112"></script>
 </body>
 </html>

@@ -439,7 +439,7 @@
     turn:   { d: { x: 0.5,  y: 0.55, w: 0.5 },  m: { x: 0.5, y: 0.5,  w: 1.1 },  dim: 0.38, tilt: 0.2,  state: "thinking" },
     rules:  { d: { x: 0.76, y: 0.5,  w: 0.55 }, m: { x: 0.5, y: 0.82, w: 1.2 },  dim: 0.8,  tilt: 0,    state: "tool" },
     does:   { d: { x: 0.5,  y: 0.08, w: 1.3 },  m: { x: 0.5, y: 0.1,  w: 2 },    dim: 0.35, tilt: 0.35, state: "tool",     note: "WhatsApp, Gmail, Agenda" },
-    play:   { d: { x: 0.5,  y: 0.52, w: 0.44 }, m: { x: 0.5, y: 0.5,  w: 1.15 }, dim: 1,    tilt: 0,    state: null },
+    play:   { d: { x: 0.5,  y: 0.52, w: 0.44 }, m: { x: 0.5, y: 0.3,  w: 0.95 }, dim: 1,    tilt: 0,    state: null },
     arch:   { d: { x: 0.18, y: 0.55, w: 0.55 }, m: { x: 0.5, y: 0.2,  w: 1.4 },  dim: 0.3,  tilt: 0.25, state: "thinking" },
     custom: { d: { x: 0.5,  y: 0.3,  w: 0.5 },  m: { x: 0.5, y: 0.28, w: 1.15 }, dim: 1,    tilt: 0.1,  state: "speaking", note: "às suas ordens" },
     trust:  { d: { x: 0.86, y: 0.62, w: 0.42 }, m: { x: 0.85, y: 0.15, w: 1.2 }, dim: 0.28, tilt: 0.3,  state: "idle" },
@@ -590,11 +590,11 @@
     };
 
     let last = { scene: "", pulsed: false };
-    const v = $("#cosVideo");
+    const v = $("#cosVideo"), iv = $("#cosInvVideo");
     const update = (p) => {
       layers(p);
       const scene = p < 0.22 ? "hero" : p < INTRO.bEnd - 0.04 ? "video" : "turn";
-      if (scene !== last.scene){ last.scene = scene; goScene(scene); }
+      if (scene !== last.scene){ last.scene = scene; if (!introST || introST.isActive) goScene(scene); } // a suavização do scrub não pode puxar a cena de volta depois que a pessoa já passou
       if (G){
         const inA = clamp(p / 0.34, 0, 1), outB = clamp((p - INTRO.bStart) / 0.25, 0, 1);
         const ease = (t) => t * t * (3 - 2 * t);
@@ -604,7 +604,7 @@
       const n = Math.round(clamp((p - (INTRO.bEnd + 0.03)) / 0.14, 0, 1) * words.length);
       words.forEach((w, i) => w.classList.toggle("on", i < n));
       hero.inert = p > 0.2; vid.inert = p < 0.3 || p > INTRO.bStart + 0.05; turn.inert = p < INTRO.bEnd;
-      if (v && !v.paused && (p < 0.3 || p > INTRO.bStart + 0.03)) v.pause();
+      if (p < 0.3 || p > INTRO.bStart + 0.03){ if (v && !v.paused) v.pause(); if (iv && !iv.paused) iv.pause(); }
     };
     introST = ScrollTrigger.create({
       trigger: wrap, start: "top top", end: () => "+=" + Math.round(window.innerHeight * (mobile() ? 4.2 : 5.2)),
@@ -658,54 +658,76 @@
     return introST.start + (introST.end - introST.start) * ((INTRO.aEnd + INTRO.bStart) / 2);
   }
 
-  // 3 · PICO: o cartão de confirmação se monta com a rolagem
-  const typed = "Envia para o Pai que vamos jantar às 20h";
-  let rulesP = 0;
-  function rulesState(){
-    if (rulesP < 0.18) return "listening";
-    if (rulesP < 0.62) return "confirmation";
-    if (rulesP < 0.74) return "tool";
-    if (rulesP < 0.84) return "speaking";
-    return "idle";
-  }
-  function rulesNote(){
-    if (rulesP < 0.18) return "";
-    if (rulesP < 0.62) return "";
-    if (rulesP < 0.74) return "whatsapp.send";
-    if (rulesP < 0.84) return "enviado, senhor";
-    return "";
-  }
-  function initRules(){
-    const typedEl = $("#cosTyped"), timer = $("#cosTimer"), send = $("#cosSend");
-    const steps = { card: $('[data-step="card"]'), log: $('[data-step="log"]'), reply: $('[data-step="reply"]'), meters: $('[data-step="meters"]') };
-    const rules = $$(".cos-rule");
-    const text = T(typed);
-    let lastState = "";
-    function paint(p){
-      rulesP = p;
-      typedEl.textContent = text.slice(0, Math.round(clamp(p / 0.16, 0, 1) * text.length));
-      const show = (el, on) => el && el.classList.toggle("is-in", on);
-      show(steps.card, p >= 0.18);
-      const secs = Math.round(120 - clamp((p - 0.22) / 0.38, 0, 1) * 18);
-      timer.textContent = `(${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")})`;
-      send.classList.toggle("is-pressed", p >= 0.6 && p < 0.7);
-      show(steps.log, p >= 0.64);
-      if (steps.log){ const ok = steps.log.querySelector(".ok"); if (ok) ok.style.visibility = p >= 0.7 ? "visible" : "hidden"; }
-      show(steps.reply, p >= 0.74);
-      show(steps.meters, p >= 0.84);
-      rules[0] && rules[0].classList.toggle("is-on", p >= 0.18);
-      rules[1] && rules[1].classList.toggle("is-on", p >= 0.66);
-      rules[2] && rules[2].classList.toggle("is-on", p >= 0.84);
+  // 3 · O QUE ELE FAZ: as funções giram numa roda (tambor 3D) presa na tela;
+  //     a caixa ao lado troca o exemplo e a galáxia muda de estado a cada função
+  let skCur = 0, skExs = [];
+  function rulesState(){ const ex = skExs[skCur]; return (ex && ex.dataset.state) || "idle"; }
+  function rulesNote(){ const ex = skExs[skCur]; return (ex && ex.dataset.note) || ""; }
+  function initSkills(){
+    const sec = $("#cos-skills"), pin = $("#cosSkPin");
+    if (!sec || !pin) return;
+    const items = $$(".cos-sk-item", sec), descs = $$(".cos-sk-d", sec), ticks = $$(".cos-sk-ticks i", sec);
+    const now = $("#cosSkNow"), right = $(".cos-sk-right", sec);
+    skExs = $$(".cos-ex", sec);
+    const N = items.length;
+    let lastState = "", lastK = -1;
+    const small = window.matchMedia("(max-width: 960px)");
+    const step = () => (small.matches ? 44 : 60); // distância entre as linhas da roda
+    function setCur(k){
+      if (k === lastK) return;
+      lastK = k; skCur = k;
+      items.forEach((el, i) => el.classList.toggle("is-cur", i === k));
+      descs.forEach((el, i) => el.classList.toggle("is-cur", i === k));
+      skExs.forEach((el, i) => el.classList.toggle("is-cur", i === k));
+      ticks.forEach((el, i) => el.classList.toggle("on", i <= k));
+      if (now) now.textContent = String(k + 1).padStart(2, "0");
       const st = rulesState();
-      if (st !== lastState && currentScene === "rules"){ lastState = st; if (G) G.setState(st); }
-      if (currentScene === "rules") setStatus(st, rulesNote());
+      if (currentScene === "rules"){
+        if (st !== lastState){ lastState = st; if (G) G.setState(st); }
+        setStatus(st, rulesNote());
+        if (G && G.pulse && k > 0) G.pulse(0.35);
+      }
     }
-    if (reduce || !window.ScrollTrigger){ paint(1); return; }
+    function paint(pos){
+      const h = step();
+      items.forEach((el, i) => {
+        const d = i - pos, a = Math.abs(d);
+        if (a > 3.6){ el.style.visibility = "hidden"; return; }
+        el.style.visibility = "";
+        const op = Math.max(0, 1 - a * 0.3);
+        el.style.transform = `translate3d(0, ${(d * h).toFixed(1)}px, ${(-a * 40).toFixed(1)}px) rotateX(${(-d * 20).toFixed(2)}deg) scale(${(1 - Math.min(a, 3) * 0.06).toFixed(3)})`;
+        el.style.opacity = op.toFixed(3);
+        el.style.filter = a > 0.35 ? `blur(${Math.min(a * 0.9, 3).toFixed(2)}px)` : "none";
+      });
+      setCur(Math.max(0, Math.min(N - 1, Math.round(pos))));
+    }
+    // celular/tablet: a caixa de exemplo encolhe por inteiro se não couber
+    function fit(){
+      if (!right) return;
+      right.style.transform = ""; right.style.marginBottom = "";
+      if (!small.matches || reduce) return;
+      const cs = getComputedStyle(pin);
+      const natural = right.offsetHeight;
+      const top = right.getBoundingClientRect().top - pin.getBoundingClientRect().top;
+      const avail = pin.clientHeight - parseFloat(cs.paddingBottom) - top;
+      const s = Math.max(0.62, Math.min(1, avail / natural));
+      if (s < 0.98){ right.style.transform = "scale(" + s.toFixed(3) + ")"; right.style.marginBottom = (natural * (s - 1)).toFixed(1) + "px"; }
+    }
+    if (reduce || !window.ScrollTrigger){
+      sec.classList.add("is-static");
+      setCur(1); // mostra o exemplo do WhatsApp (a confirmação)
+      return;
+    }
     paint(0);
+    fit();
+    let fitT = 0;
+    window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(() => { fit(); }, 150); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
     ScrollTrigger.create({
-      trigger: "#cosRulesPin", start: "top top", end: () => "+=" + Math.round(window.innerHeight * (mobile() ? 2.6 : 3.4)),
-      pin: true, scrub: true, anticipatePin: 1,
-      onUpdate: (self) => paint(self.progress),
+      trigger: pin, start: "top top", end: () => "+=" + Math.round(window.innerHeight * (mobile() ? 4.4 : 5.2)),
+      pin: true, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true,
+      onUpdate: (self) => paint(self.progress * (N - 1)),
+      onEnter: () => setTimeout(fit, 50),
     });
   }
 
@@ -891,34 +913,37 @@
   }
 
   // 9 · vídeos
-  // celular/tablet: abas "Apresentação | Na prática" trocam o que aparece no mesmo lugar do player
+  // abas "Apresentação | Investimentos" (e, no computador, a fila ao lado) trocam o vídeo no mesmo palco
   function initVideoTabs(){
-    const sec = $("#cos-video"), tabs = $$(".cos-vtabs [data-vtab]");
+    const sec = $("#cos-video"), tabs = $$(".cos-vtabs [data-vtab]"), queue = $$(".cos-queue [data-vtab]");
     if (!sec || tabs.length < 2) return;
-    const panes = { a: $("#cosPlayer"), b: $("#cosPractice") };
+    const panes = { a: $("#cosPlayer"), b: $("#cosInv") };
+    const vids = { a: $("#cosVideo"), b: $("#cosInvVideo") };
     const mq = window.matchMedia("(max-width: 960px)");
     let cur = "a";
     function set(id, focus){
       cur = id;
       sec.dataset.vtab = id;
-      const on = mq.matches;
       tabs.forEach((t) => { const sel = t.dataset.vtab === id; t.setAttribute("aria-selected", String(sel)); t.tabIndex = sel ? 0 : -1; if (sel && focus) t.focus(); });
+      queue.forEach((q) => { const sel = q.dataset.vtab === id; q.classList.toggle("is-cur", sel); q.setAttribute("aria-pressed", String(sel)); });
       Object.keys(panes).forEach((k) => {
         const el = panes[k]; if (!el) return;
-        const hide = on && k !== id;
+        const hide = k !== id;
         el.toggleAttribute("inert", hide);
         if (hide) el.setAttribute("aria-hidden", "true"); else el.removeAttribute("aria-hidden");
+        if (hide && vids[k] && !vids[k].paused) vids[k].pause();
       });
-      if (on && id === "b"){ const v = $("#cosVideo"); if (v && !v.paused) v.pause(); }
     }
+    const pick = (id) => { if (id !== cur){ set(id); track("cosmos_video_tab", { tab: id === "a" ? "apresentacao" : "investimentos" }); } };
     tabs.forEach((t) => {
-      t.addEventListener("click", () => { if (t.dataset.vtab !== cur){ set(t.dataset.vtab); track("cosmos_video_tab", { tab: t.dataset.vtab === "a" ? "apresentacao" : "na_pratica" }); } });
+      t.addEventListener("click", () => pick(t.dataset.vtab));
       t.addEventListener("keydown", (e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
         e.preventDefault(); set(cur === "a" ? "b" : "a", true);
       });
     });
-    // deslizar o dedo para o lado sobre o vídeo também troca de aba
+    queue.forEach((q) => q.addEventListener("click", () => pick(q.dataset.vtab)));
+    // deslizar o dedo para o lado sobre o vídeo também troca (celular)
     let x0 = 0, y0 = 0, t0 = 0;
     Object.values(panes).forEach((el) => {
       if (!el) return;
@@ -926,98 +951,75 @@
       el.addEventListener("touchend", (e) => {
         if (!mq.matches) return;
         const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
-        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - t0 < 700){
-          const next = dx < 0 ? "b" : "a";
-          if (next !== cur) set(next);
-        }
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - t0 < 700) pick(dx < 0 ? "b" : "a");
       }, { passive: true });
     });
-    const sync = () => set(cur);
-    if (mq.addEventListener) mq.addEventListener("change", sync); else if (mq.addListener) mq.addListener(sync);
     set("a");
+  }
+
+  // carrega as fontes certas (vertical no celular em pé, horizontal no resto) na primeira vez que toca
+  const isVertical = () => window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
+  function loadSources(v, d){
+    if (v.dataset.loaded) return; v.dataset.loaded = "1";
+    const big = window.innerWidth > 1280 && !(navigator.connection && navigator.connection.saveData);
+    const list = isVertical() ? [[d.vMp4, "video/mp4"]]
+                              : [[d.hWebm, "video/webm"], [big ? d.hMp4 : d.hMp4Sm, "video/mp4"]];
+    const safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (safari) list.reverse(); // Safari toca WebM mal em alguns aparelhos: MP4 primeiro
+    list.forEach(([src, type]) => { if (!src) return; const s = document.createElement("source"); s.src = src; s.type = type; v.appendChild(s); });
+    v.load();
+  }
+  function wireVideo(v){
+    v.addEventListener("play", () => { if (window.AGAudio) window.AGAudio.duck(true); });
+    v.addEventListener("pause", () => { if (window.AGAudio) window.AGAudio.duck(false); });
+    v.addEventListener("ended", () => { if (window.AGAudio) window.AGAudio.duck(false); });
+    if ("IntersectionObserver" in window){
+      new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting && !v.paused) v.pause(); }), { threshold: 0.15 }).observe(v);
+    }
   }
 
   function initVideos(){
     const v = $("#cosVideo"), btn = $("#cosPlayBtn"), box = $("#cosPlayer");
     if (v && btn){
-      const vertical = () => window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
-      if (vertical()) v.poster = v.dataset.vPoster;
-      let loaded = false;
-      function load(){
-        if (loaded) return; loaded = true;
-        const big = window.innerWidth > 1280 && !(navigator.connection && navigator.connection.saveData);
-        const list = vertical() ? [[v.dataset.vMp4, "video/mp4"]]
-                                : [[v.dataset.hWebm, "video/webm"], [big ? v.dataset.hMp4 : v.dataset.hMp4Sm, "video/mp4"]];
-        // Safari toca WebM mal em alguns aparelhos: MP4 primeiro nele
-        const safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        if (safari) list.reverse();
-        list.forEach(([src, type]) => { const s = document.createElement("source"); s.src = src; s.type = type; v.appendChild(s); });
-        v.load();
-      }
+      if (isVertical()) v.poster = v.dataset.vPoster;
       btn.addEventListener("click", () => {
-        load();
+        loadSources(v, v.dataset);
         box.classList.add("is-playing");
         v.play().catch(() => {});
         v.focus({ preventScroll: true });
-        track("cosmos_video_play", { video: vertical() ? "vertical" : "horizontal" });
+        track("cosmos_video_play", { video: isVertical() ? "vertical" : "horizontal" });
       });
-      v.addEventListener("play", () => { box.classList.add("is-playing"); if (window.AGAudio) window.AGAudio.duck(true); });
-      v.addEventListener("pause", () => { if (window.AGAudio) window.AGAudio.duck(false); });
-      v.addEventListener("ended", () => { if (window.AGAudio) window.AGAudio.duck(false); });
-      // fora da tela: pausa
-      if ("IntersectionObserver" in window){
-        new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting && !v.paused) v.pause(); }), { threshold: 0.15 }).observe(v);
-      }
+      v.addEventListener("play", () => box.classList.add("is-playing"));
+      wireVideo(v);
     }
 
     initVideoTabs();
 
-    // "agora, na prática": só libera quando o arquivo existir no servidor
-    const card = $("#cosPractice"), pbtn = $("#cosPracticeBtn"), note = $("#cosPracticeNote");
-    const modal = $("#cosModal"), mv = $("#cosPracticeVideo"), close = $("#cosModalClose");
-    if (!card || !pbtn) return;
-    const src = card.dataset.src;
-    fetch(src, { method: "HEAD", cache: "no-store" }).then((r) => {
+    // COSMOS Investimentos: o palco fica pronto; o vídeo só aparece quando o arquivo existir no servidor
+    const inv = $("#cosInv"), iv = $("#cosInvVideo"), ibtn = $("#cosInvBtn"), note = $("#cosInvNote");
+    if (!inv || !iv || !ibtn) return;
+    const d = inv.dataset;
+    fetch(d.readySrc, { method: "HEAD", cache: "no-store" }).then((r) => {
       const type = r.headers.get("content-type") || "";
       if (!r.ok || type.indexOf("video") < 0) return;
-      card.classList.add("is-ready");
-      pbtn.disabled = false;
-      pbtn.textContent = "▶ " + T("Assistir");
-      if (note) note.textContent = T("Uso real, sem roteiro.");
+      inv.classList.add("is-ready");
+      iv.poster = isVertical() ? d.vPoster : d.hPoster;
+      ibtn.disabled = false;
+      ibtn.textContent = "▶ " + T("Assistir");
+      if (note) note.textContent = T("Por dentro do novo módulo do COSMOS.");
+      const thumb = $("#cosQInvThumb"), meta = $("#cosQInvMeta");
+      if (thumb){ thumb.style.backgroundImage = "url('" + d.hPoster + "')"; thumb.classList.add("has-poster"); }
+      if (meta) meta.textContent = T("novo");
     }).catch(() => {});
-    let lastFocus = null;
-    function open(){
-      lastFocus = document.activeElement;
-      if (!mv.getAttribute("src")) mv.src = src;
-      modal.hidden = false;
-      requestAnimationFrame(() => modal.classList.add("is-open"));
-      if (window.__lenis) window.__lenis.stop();
-      mv.play().catch(() => {});
-      close.focus();
-      track("cosmos_practice_play", {});
-    }
-    function shut(){
-      modal.classList.remove("is-open");
-      mv.pause();
-      if (window.__lenis) window.__lenis.start();
-      setTimeout(() => { modal.hidden = true; }, 350);
-      if (lastFocus) lastFocus.focus({ preventScroll: true });
-    }
-    pbtn.addEventListener("click", open);
-    close.addEventListener("click", shut);
-    modal.addEventListener("click", (e) => { if (e.target === modal) shut(); });
-    document.addEventListener("keydown", (e) => {
-      if (modal.hidden) return;
-      if (e.key === "Escape") shut();
-      if (e.key === "Tab"){ // foco preso entre o botão e o vídeo
-        const f = [close, mv];
-        const i = f.indexOf(document.activeElement);
-        e.preventDefault();
-        f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
-      }
+    ibtn.addEventListener("click", () => {
+      if (!inv.classList.contains("is-ready")) return;
+      loadSources(iv, d);
+      inv.classList.add("is-playing");
+      iv.play().catch(() => {});
+      iv.focus({ preventScroll: true });
+      track("cosmos_investimentos_play", { video: isVertical() ? "vertical" : "horizontal" });
     });
-    mv.addEventListener("play", () => { if (window.AGAudio) window.AGAudio.duck(true); });
-    mv.addEventListener("pause", () => { if (window.AGAudio) window.AGAudio.duck(false); });
+    wireVideo(iv);
   }
 
   // CTAs e atalhos
@@ -1058,7 +1060,7 @@
     const h1 = $("#cos-hero .cos-h1");
     const heroChars = h1 && !reduce ? splitChars(h1) : [];
     initIntro(turnWords, heroChars);     // pin da abertura antes do pin das regras (ordem do documento)
-    initRules();
+    initSkills();
     initRail();
     initPlay();
     initDiagram();

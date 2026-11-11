@@ -3750,3 +3750,7 @@ html.lq-lock, html.lq-lock body{ overflow:hidden !important; }
   .lqc-title{ font-size: 2.6rem; margin:.5rem 0 .6rem; }
   .lqc-btn{ height:auto; min-height:48px; padding: .7rem 1.1rem; font-size:.8rem; text-align:center; line-height:1.3; }
 }
+
+/* caixa inteira clicável (destino principal); os botões internos seguem com o próprio destino */
+.proj-card.is-card-link{ cursor:pointer; }
+.proj-card.is-card-link .proj-desc, .proj-card.is-card-link .proj-name{ cursor:pointer; }

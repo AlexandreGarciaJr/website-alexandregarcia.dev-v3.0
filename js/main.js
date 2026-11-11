@@ -395,6 +395,36 @@
 
   /* card do COSMOS nos Projetos: o trecho do vídeo só baixa perto da tela
      e só toca enquanto está visível; os cliques contam como interesse */
+  /* caixas de projeto com mais de um destino (Ver Projeto + GitHub, ou vídeo + botão):
+     clicar em qualquer ponto da caixa abre o destino principal; os botões
+     continuam levando cada um ao seu lugar */
+  function initCardLinks(){
+    const primaryOf = (card) =>
+      card.querySelector("[data-card-primary]") ||
+      card.querySelector(".cosc-btn") ||
+      card.querySelector(".lqc-btn") ||
+      card.querySelector(".proj-links a") ||
+      card.querySelector("a.proj-shot");
+    document.querySelectorAll("#projects div.proj-card").forEach((card) => {
+      const primary = primaryOf(card);
+      if (!primary) return;
+      card.classList.add("is-card-link");
+      card.addEventListener("click", (e) => {
+        if (e.defaultPrevented || e.button !== 0) return;
+        if (e.target.closest("a, button, input, select, textarea, label, video[controls]")) return; // já é um link/botão próprio
+        const sel = window.getSelection && String(window.getSelection());
+        if (sel && sel.trim()) return; // estava selecionando texto
+        primary.click();
+      });
+      // clique do meio / Ctrl+clique abrem o destino principal em nova aba, como num link comum
+      card.addEventListener("auxclick", (e) => {
+        if (e.button !== 1 || e.target.closest("a, button")) return;
+        const href = primary.getAttribute && primary.getAttribute("href");
+        if (href) window.open(new URL(href, location.href).href, "_blank", "noopener");
+      });
+    });
+  }
+
   function initCosmosCard(){
     const card = document.querySelector(".cosc");
     if (!card) return;
@@ -3305,6 +3335,7 @@
     initProjectsBackdrop();
     initLoveQuest();
     initCosmosCard();
+    initCardLinks();
     initEducationSplit();
 
     runLoader(() => {

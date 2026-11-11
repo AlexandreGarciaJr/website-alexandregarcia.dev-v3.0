@@ -22,7 +22,7 @@ Portfólio de um arquiteto que virou desenvolvedor.
 
 </div>
 
-![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.png)
+![Topo do site com a maquete 3D da casa e o painel de parâmetros](.github/preview-hero.webp)
 
 ## Sobre
 
@@ -34,7 +34,7 @@ Daí em diante, o site apresenta:
 
 - quem eu sou;
 - minha trajetória, de arquiteto a desenvolvedor na **New Arrays**;
-- os projetos que entreguei;
+- os projetos que entreguei, com duas experiências próprias: o **Love Quest**, um jogo que abre em tela cheia, e o **COSMOS**, meu assistente de IA, com página dedicada;
 - minha formação;
 - um jeito direto de falar comigo.
 
@@ -62,9 +62,22 @@ Ao rolar a página, ou ao clicar em "Código" no painel, a casa se desmancha em 
 
 ![Título da Trajetória e cartões de experiência](.github/preview-trajetoria.webp)
 
-**Projetos em prancheta.** Os projetos ficam num grid editorial de 12 colunas. Os cartões inclinam de leve sob o mouse, com reflexo de luz, e o fundo da seção acende na cor do projeto em que você está.
+**Projetos em prancheta.** Os projetos ficam num grid editorial de 12 colunas. Os cartões inclinam de leve sob o mouse, com reflexo de luz, e o fundo da seção acende na cor do projeto em que você está. A caixa inteira é clicável e leva ao projeto; o botão do GitHub, quando existe, continua indo para o código.
 
 ![Grid de projetos](.github/preview-projetos.webp)
+
+**Love Quest em tela cheia.** O cartão do Love Quest, um jogo em pixel art feito como declaração de amor, se expande até ocupar a tela. Lá dentro, um celular em 3D gira, o título se monta em pixels e o trailer cresce até a barra "Jogar agora". Fecha com Esc ou no botão, e a página volta exatamente para onde estava.
+
+**COSMOS, uma página de produto.** O COSMOS é o meu assistente pessoal de IA, por voz e texto, e ganhou uma página própria ([cosmos.html](https://alexandregarcia.dev/cosmos.html)) pensada para tráfego pago:
+
+- **Galáxia viva:** uma galáxia em WebGL fica fixa atrás da página e muda de estado conforme a seção, como no app (ouvindo, pensando, usando ferramentas, aguardando confirmação). Dá para girar, dar um pulso e trocar as cores, e as cores acompanham o tema escolhido no site.
+- **Abertura que vira vídeo:** a abertura, os vídeos e a frase de virada acontecem numa cena fixa; a rolagem faz o título ser "sugado" pela galáxia e o vídeo se abrir no lugar.
+- **Vídeos com abas e fila:** a apresentação e o vídeo do COSMOS Investimentos dividem o mesmo player, com abas e, no computador, uma fila ao lado; no celular os vídeos são verticais.
+- **Roda de funções:** as 12 funções do assistente giram como um tambor 3D conforme a rolagem, e a caixa ao lado mostra um exemplo real de cada uma (o cartão "Posso enviar?", a carteira, a previsão do tempo).
+- **Arquitetura que se monta:** o diagrama de como ele funciona é construído pelo scroll, caixa por caixa, sem expor detalhes de infraestrutura.
+- **Contratação direta:** o botão "Quero o meu" abre o formulário de contato já com o assunto marcado, e há atalho para o WhatsApp.
+
+![Página do COSMOS com a roda de funções e a galáxia](.github/preview-cosmos.webp)
 
 **Contato que também é jogo.**
 
@@ -75,7 +88,7 @@ Ao rolar a página, ou ao clicar em "Código" no painel, a casa se desmancha em 
 
 **Detalhes de interface.**
 
-- **Áudio:** duas trilhas ambientes (Sci-Fi e Synthwave), com mute e controle de volume. Um aviso discreto chama para o primeiro clique.
+- **Áudio:** duas trilhas ambientes (Sci-Fi e Synthwave), com mute e controle de volume. Um aviso discreto chama para o primeiro clique. Botões e cartões têm som de hover e de clique, e a trilha abaixa sozinha quando um vídeo toca.
 - **Temas:** quatro cores de destaque (azul, esmeralda, âmbar e violeta).
 - **Configurações:** um painel que reúne tema, idioma e trilha.
 - **Loader:** desenhado com o logo do site.
@@ -86,10 +99,10 @@ Ao rolar a página, ou ao clicar em "Código" no painel, a casa se desmancha em 
 |---|---|
 | **Sem build** | HTML, CSS e JavaScript puro, sem framework e sem `npm install` para rodar |
 | **Três idiomas** | Português, English e Español. Na primeira visita o idioma vem do navegador, e a escolha fica salva |
-| **Mobile de verdade** | Versão própria para celular, com hero em coluna, mergulho no notebook em retrato e quadros mais leves. Ajustes específicos para Safari/iOS e para notebooks de tela baixa |
+| **Mobile de verdade** | Versão própria para celular, com hero em coluna, mergulho no notebook em retrato e quadros mais leves. Seções presas na tela continuam funcionando no toque (arrastar move o carrossel). Ajustes específicos para Safari/iOS e para notebooks de tela baixa |
 | **Acessibilidade** | `<main>` e títulos semânticos, menus que respeitam a tecla Esc e o foco do teclado, contraste revisado e respeito ao "reduzir movimento" do sistema |
 | **Testado** | QA automatizado com Playwright em desktop, notebook e celular, incluindo auditoria de acessibilidade com axe-core |
-| **Desempenho** | Maquete GLB otimizada para poucas chamadas de desenho, imagens comprimidas e carregamento sob demanda |
+| **Desempenho** | Maquete GLB otimizada para poucas chamadas de desenho, imagens comprimidas, vídeos em MP4 e WebM com versões para celular e carregamento sob demanda |
 | **Compartilhamento** | Open Graph completo, para o link aparecer com imagem e ícone no WhatsApp e no LinkedIn |
 | **SEO e medição** | URL canônica, dados estruturados, sitemap, GA4, Meta Pixel e Clarity com consentimento (LGPD), conversões prontas para Google Ads |
 | **Formulário seguro** | Validação no navegador e no servidor, checagem do domínio do e-mail, proteção contra robôs e envios repetidos. As credenciais nunca vão para o repositório |
@@ -115,7 +128,8 @@ O site está pronto para receber tráfego pago e ser encontrado no Google.
 - **Conversões separadas:** envio bem-sucedido do formulário (`generate_lead` / `Lead`) e clique no WhatsApp (`contact_whatsapp` / `Contact`), prontos para importar no Google Ads e usar nas campanhas da Meta.
 - **Aviso de cookies próprio:** no visual do site, em três idiomas, só com Aceitar e Recusar, e reaberto pelo link "Cookies" no rodapé. Aparece depois que o loader e a maquete 3D terminam de carregar, para não atrapalhar a primeira impressão.
 - **Página de privacidade** com as ferramentas usadas, a finalidade de cada uma e os direitos do titular.
-- **SEO técnico:** título e descrição por página, URL canônica, dados estruturados (Schema.org `Person` e `WebSite`), Open Graph, `sitemap.xml` e `robots.txt`.
+- **SEO técnico:** título e descrição por página, URL canônica, dados estruturados (Schema.org `Person` e `WebSite`; na página do COSMOS, `WebPage`, `SoftwareApplication` e `VideoObject`), Open Graph com imagem própria por página, `sitemap.xml` e `robots.txt`.
+- **Eventos da página do COSMOS:** cliques em "Quero o meu", no WhatsApp, nos vídeos e nas abas, para comparar o que converte melhor nas campanhas.
 
 Toda a configuração fica em um arquivo, `js/tracking.js`: os IDs das ferramentas ficam no topo, e nenhum script de terceiros é colado direto no HTML.
 
@@ -132,7 +146,7 @@ Abra **http://localhost:8000**. O Live Server do VS Code também funciona, mas s
 
 Para o formulário enviar de verdade (o GitHub Pages não executa PHP):
 
-1. Coloque o PHPMailer (`src/`) na raiz.
+1. Coloque o PHPMailer 7.1 (`src/`) na raiz.
 2. Copie `config.example.php` para `config.php`.
 3. Preencha o `config.php` com o seu SMTP. No Gmail, use uma senha de app.
 
@@ -142,22 +156,26 @@ Os arquivos `.php` com dados sensíveis ficam fora do Git.
 
 ```text
 ├── index.html              página principal
+├── cosmos.html             página do COSMOS (assistente de IA)
 ├── contato.html            página de contato
 ├── privacidade.html        política de privacidade e cookies
 ├── config.example.php      modelo das credenciais SMTP
 ├── LICENSE                 licença MIT (só o código)
 ├── site.webmanifest        ícone e cores do site
-├── css/style.css           estilos
+├── css/
+│   ├── style.css           estilos do site
+│   └── cosmos.css          estilos da página do COSMOS
 ├── js/
 │   ├── hero3d.js           maquete 3D e transformação em código
-│   ├── main.js             animações, seções, áudio, menus e painel
+│   ├── main.js             animações, seções, áudio, menus, painel e Love Quest
+│   ├── cosmos.js           galáxia, cenas e seções da página do COSMOS
 │   ├── i18n.js             traduções PT / EN / ES
 │   ├── contato.js          formulário e campo de pontos
 │   ├── tracking.js         GA4, Meta Pixel, Clarity e aviso de cookies
 │   └── quebra-blocos.js    mini-jogo da seção de contato
 └── assets/
     ├── models/             maquete GLB da casa
-    ├── video/              quadros da Trajetória (desktop e celular)
+    ├── video/              quadros da Trajetória, vídeos do COSMOS e do Love Quest
     ├── img/                fotos, projetos, logo e imagem de compartilhamento
     ├── audio/              trilhas ambientes
     ├── fonts/              Archivo variável
@@ -171,6 +189,8 @@ Para adicionar um projeto, copie um cartão em `index.html` e ajuste as classes 
 
 | Projeto | O que é | Stack |
 |---|---|---|
+| **COSMOS** | Assistente pessoal de IA por voz e texto, auto-hospedado: WhatsApp, e-mail, agenda, finanças, investimentos e mais | Next.js, TypeScript, Claude |
+| **Love Quest** | Jogo em pixel art com 4 fases e uma mensagem no final, feito para o celular | React, Phaser 4, TypeScript |
 | **BHD Móveis** | Site vitrine de loja de móveis outlet, gerado em PHP a partir de JSON | PHP, JSON, JS, GSAP |
 | **New Arrays** | Site da agência de experiência digital | HTML, CSS, JS, PHP |
 | **Teon App** | Reformulação de UX e funcionalidades do site do app | React, Next, TypeScript |
@@ -187,7 +207,7 @@ Para adicionar um projeto, copie um cartão em `index.html` e ajuste as classes 
 
 O código-fonte (HTML, CSS, JavaScript e PHP) está sob a [licença MIT](LICENSE): pode ser estudado, copiado e adaptado, mantendo o aviso de copyright.
 
-Ficam de fora da licença: textos, fotos, nome, logo, identidade visual, vídeos, imagens, trilhas de áudio e o modelo 3D. O conteúdo pessoal tem todos os direitos reservados. Bibliotecas, fontes e mídias de terceiros (GSAP, Lenis, Three.js, PHPMailer, Archivo) mantêm as suas próprias licenças.
+Ficam de fora da licença, com todos os direitos reservados: textos, fotos, nome, logo, identidade visual (incluindo a marca COSMOS), vídeos, imagens, trilhas de áudio e o modelo 3D. Bibliotecas e fontes de terceiros (GSAP, Lenis, Three.js, PHPMailer, Archivo) mantêm as suas próprias licenças.
 
 ---
 
