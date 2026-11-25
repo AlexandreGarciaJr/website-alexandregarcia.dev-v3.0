@@ -227,6 +227,12 @@
     "Sistema de Loja de Eletrônicos": ["Electronics Store System", "Sistema de Tienda de Electrónica"],
     "API para controlar o caixa de uma loja de eletrônicos.": ["API to manage the cash register of an electronics store.", "API para controlar la caja de una tienda de electrónica."],
     "Maonamassa — Aplicativo de Serviços": ["Maonamassa — Services App", "Maonamassa — App de Servicios"],
+    "App Mão na Massa": ["Mão na Massa App", "App Mão na Massa"],
+    "App que conecta clientes a prestadores de serviço verificados, com foco em segurança: preferência por prestadoras, botão de segurança durante a visita e pagamento liberado só quando o serviço é concluído. Projeto Integrador do SENAC.": ["App connecting clients with verified service providers, built around safety: option to prefer female providers, a safety button during the visit and payment released only when the job is done. SENAC capstone project.", "App que conecta clientes con prestadores de servicios verificados, con foco en la seguridad: preferencia por prestadoras, botón de seguridad durante la visita y pago liberado solo cuando el servicio se completa. Proyecto Integrador del SENAC."],
+    "→ Ver o app": ["→ View the app", "→ Ver la app"],
+    "▶ assistir com som · 0:51": ["▶ watch with sound · 0:51", "▶ ver con sonido · 0:51"],
+    "Assistir ao vídeo do app Mão na Massa": ["Watch the Mão na Massa app video", "Ver el video de la app Mão na Massa"],
+    "Mão na Massa · vídeo de apresentação": ["Mão na Massa · presentation video", "Mão na Massa · video de presentación"],
     "Landing Page Alexandre Personal": ["Alexandre Personal landing page", "Landing page Alexandre Personal"],
 
     // formação

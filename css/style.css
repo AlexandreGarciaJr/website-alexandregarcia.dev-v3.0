@@ -3754,3 +3754,66 @@ html.lq-lock, html.lq-lock body{ overflow:hidden !important; }
 /* caixa inteira clicável (destino principal); os botões internos seguem com o próprio destino */
 .proj-card.is-card-link{ cursor:pointer; }
 .proj-card.is-card-link .proj-desc, .proj-card.is-card-link .proj-name{ cursor:pointer; }
+
+/* =========================================================
+   CURSOR DE MÃO em tudo o que é clicável (junto com o anel
+   do cursor customizado). Antes, links e botões escondiam a
+   mão; só algumas caixas mostravam, o que ficava inconsistente.
+   ========================================================= */
+@media (pointer: fine){
+  a[href], button, [role="button"], [role="tab"], summary, select,
+  label.chip, .chip, .cos-chip, .proj-card, .lqc-media,
+  input[type="range"], input[type="radio"], input[type="checkbox"], input[type="submit"]{ cursor:pointer; }
+  button:disabled, button[disabled], [aria-disabled="true"]{ cursor:not-allowed; }
+  input[type="text"], input[type="email"], input[type="tel"], input[type="search"], input:not([type]), textarea{ cursor:text; }
+}
+
+/* ===== caixa de projeto com vídeo (Mão na Massa): trecho mudo em loop + abre o vídeo com som ===== */
+.proj-vid-shot{ display:block; width:100%; padding:0; border:0; margin:0; font:inherit; color:inherit; cursor:pointer; text-align:left; }
+.proj-vid-loop{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  clip-path: inset(0 100% 0 0); transform: scale(1.08);
+  transition: transform 1.1s cubic-bezier(.22,.61,.36,1), clip-path 1.1s cubic-bezier(.76,0,.24,1), filter .5s;
+}
+.proj-card.is-in .proj-vid-shot.is-loaded .proj-vid-loop{ clip-path: inset(0 0% 0 0); transform: scale(1); }
+.proj-card.is-in:hover .proj-vid-shot.is-loaded .proj-vid-loop{ transform: scale(1.035); filter: brightness(1.06); transition: transform .7s var(--ease-out), clip-path 1.1s cubic-bezier(.76,0,.24,1), filter .5s; }
+.proj-vid-tag{
+  position:absolute; left:1rem; bottom:1rem; z-index:2;
+  font-family: var(--f-mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
+  padding:.5rem .85rem; border-radius:999px;
+  background: rgba(6,9,15,.72); border:1px solid rgba(232,93,93,.55); color: var(--text);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: background .3s, border-color .3s, transform .3s var(--ease-out), box-shadow .3s;
+}
+.proj-vid-shot:hover .proj-vid-tag, .proj-vid-shot:focus-visible .proj-vid-tag{
+  background: rgb(232,93,93); border-color: rgb(232,93,93); color:#fff; transform: translateY(-2px);
+  box-shadow: 0 8px 28px -6px rgba(232,93,93,.6);
+}
+.proj-vid-shot:focus-visible{ outline:2px solid rgb(232,93,93); outline-offset:-2px; }
+
+/* tela do vídeo com som */
+.vmodal{
+  position:fixed; inset:0; z-index:9000;
+  display:flex; align-items:center; justify-content:center;
+  padding: clamp(.75rem, 3vw, 2.5rem);
+  background: rgba(4,6,10,.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  opacity:0; transition: opacity .3s ease;
+}
+.vmodal[hidden]{ display:none; }
+.vmodal.is-open{ opacity:1; }
+.vmodal-box{ width:min(1180px, 100%); transform: translateY(14px) scale(.98); transition: transform .4s var(--ease-out); }
+.vmodal.is-open .vmodal-box{ transform:none; }
+.vmodal-top{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.75rem; }
+.vmodal-title{ font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color: var(--text-dim, #9aa4b2); margin:0; }
+.vmodal-close{
+  background:transparent; border:1px solid var(--border-strong); color: var(--text);
+  border-radius:999px; padding:.5rem .95rem; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; white-space:nowrap; flex-shrink:0;
+  transition: border-color .25s, background .25s;
+}
+.vmodal-close:hover, .vmodal-close:focus-visible{ border-color: rgb(232,93,93); background: rgba(232,93,93,.12); }
+.vmodal video{ display:block; width:100%; max-height: calc(100dvh - 7rem); aspect-ratio:16/9; background:#000; border-radius:14px; box-shadow: 0 30px 80px -20px rgba(0,0,0,.7); }
+html.vmodal-lock, html.vmodal-lock body{ overflow:hidden; }
+@media (prefers-reduced-motion: reduce){
+  .proj-vid-loop{ clip-path:none; transform:none; transition:none; }
+  .vmodal, .vmodal-box{ transition:none; }
+}

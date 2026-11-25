@@ -425,6 +425,64 @@
     });
   }
 
+  /* vídeos dentro das caixas de projeto: trecho mudo em loop quando a caixa aparece;
+     clicar abre o vídeo completo, com som, numa tela por cima */
+  function initProjectVideos(){
+    const loops = document.querySelectorAll(".proj-vid-loop");
+    loops.forEach((v) => { // o pôster faz o papel do print: tira o brilho de "carregando" quando chega
+      const shot = v.closest(".proj-shot"); const im = new Image();
+      im.onload = im.onerror = () => shot && shot.classList.add("is-loaded");
+      im.src = v.getAttribute("poster");
+    });
+    if (loops.length && !reduceMotion && "IntersectionObserver" in window){
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        const v = e.target;
+        if (e.isIntersecting){ if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); }
+        else if (!v.paused) v.pause();
+      }), { rootMargin: "200px 0px", threshold: 0.2 });
+      loops.forEach((v) => io.observe(v));
+    }
+    const modal = document.getElementById("vModal");
+    if (!modal) return;
+    const mv = document.getElementById("vModalVideo"), close = document.getElementById("vModalClose"), title = document.getElementById("vModalTitle");
+    let lastFocus = null, loopPaused = null;
+    function open(btn){
+      lastFocus = btn;
+      const src = btn.dataset.video;
+      if (mv.getAttribute("src") !== src) mv.src = src;
+      title.textContent = (window.I18N && window.I18N.t) ? window.I18N.t(btn.dataset.videoTitle || "") : (btn.dataset.videoTitle || "");
+      loopPaused = btn.querySelector(".proj-vid-loop"); if (loopPaused && !loopPaused.paused) loopPaused.pause();
+      modal.hidden = false;
+      requestAnimationFrame(() => modal.classList.add("is-open"));
+      if (lenis) lenis.stop();
+      document.documentElement.classList.add("vmodal-lock");
+      mv.currentTime = 0;
+      mv.play().catch(() => {});
+      close.focus({ preventScroll: true });
+      if (window.agTrack) window.agTrack("project_video_play", { project: btn.dataset.videoTitle || "" });
+    }
+    function shut(){
+      modal.classList.remove("is-open");
+      mv.pause();
+      if (lenis) lenis.start();
+      document.documentElement.classList.remove("vmodal-lock");
+      setTimeout(() => { modal.hidden = true; }, 320);
+      if (loopPaused && !reduceMotion) loopPaused.play().catch(() => {});
+      if (lastFocus) lastFocus.focus({ preventScroll: true });
+    }
+    document.querySelectorAll("[data-video]").forEach((btn) => btn.addEventListener("click", () => open(btn)));
+    close.addEventListener("click", shut);
+    modal.addEventListener("click", (e) => { if (e.target === modal) shut(); });
+    document.addEventListener("keydown", (e) => {
+      if (modal.hidden) return;
+      if (e.key === "Escape") shut();
+      if (e.key === "Tab"){ const f = [close, mv]; const i = f.indexOf(document.activeElement); e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus(); }
+    });
+    mv.addEventListener("play", () => { if (window.AGAudio) window.AGAudio.duck(true); });
+    mv.addEventListener("pause", () => { if (window.AGAudio) window.AGAudio.duck(false); });
+    mv.addEventListener("ended", () => { if (window.AGAudio) window.AGAudio.duck(false); });
+  }
+
   function initCosmosCard(){
     const card = document.querySelector(".cosc");
     if (!card) return;
@@ -757,11 +815,16 @@
     }
     loop();
 
-    const hoverables = document.querySelectorAll("a, button, .proj-card, .exp-card");
-    hoverables.forEach((el) => {
-      el.addEventListener("mouseenter", () => ring.classList.add("is-hover"));
-      el.addEventListener("mouseleave", () => ring.classList.remove("is-hover"));
+    // anel do cursor cresce sobre qualquer coisa clicável, inclusive o que aparece depois (delegação)
+    const HOVER = "a[href], button, [role='button'], [role='tab'], summary, select, label.chip, .chip, .proj-card, .exp-card, .lqc-media, input[type='range']";
+    let hoverEl = null;
+    document.addEventListener("mouseover", (e) => {
+      const el = e.target.closest && e.target.closest(HOVER);
+      if (el === hoverEl) return;
+      hoverEl = el;
+      ring.classList.toggle("is-hover", !!el);
     });
+    document.addEventListener("mouseleave", () => { hoverEl = null; ring.classList.remove("is-hover"); });
   }
 
   /* ---------------------------------------------------------
@@ -3336,6 +3399,7 @@
     initLoveQuest();
     initCosmosCard();
     initCardLinks();
+    initProjectVideos();
     initEducationSplit();
 
     runLoader(() => {
